@@ -26,7 +26,10 @@
   }
 
   .sf-dialog .p-dialog-title {
-    flex: 1; direction: rtl; text-align: right; // #2 — טקסט RTL
+    flex: 1; direction: rtl; text-align: right;
+    font-size: .6rem !important;
+    font-weight: 400 !important;
+    letter-spacing: .4px;
   }
 
   .sf-dialog .p-dialog-header-close {
@@ -206,10 +209,11 @@ label {
   display: flex;
   justify-content: space-between;
   direction: rtl;
+  overflow: hidden;
 }
 
-.btn-upload,
-.btn-delete { flex: 0 0 auto; }
+.btn-upload { border-radius: 0 6px 6px 0 !important; }
+.btn-delete { border-radius: 6px 0 0 6px !important; }
 
 .btn-upload {
   display: inline-flex; align-items: center; gap: 5px;
