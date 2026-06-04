@@ -7,7 +7,7 @@ import { AuthService } from '../../core/services/auth.service';
 
 interface PlatformStats {
   orgs:  { total: number; active: number; inactive: number; expiring: number; };
-  users: { total: number; active: number; };
+  users: { total: number; active: number; inactive: number; };
 }
 
 @Component({

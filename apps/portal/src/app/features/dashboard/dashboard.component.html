@@ -89,6 +89,16 @@
           <span class="kpi-label">משתמשים פעילים</span>
         </div>
       </div>
+
+      <div class="kpi-card" [class.kpi-danger]="stats()!.users.inactive > 0">
+        <div class="kpi-icon" [class]="stats()!.users.inactive > 0 ? 'bg-red' : 'bg-gray'">
+          <mat-icon>person_off</mat-icon>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ stats()!.users.inactive }}</span>
+          <span class="kpi-label">משתמשים לא פעילים</span>
+        </div>
+      </div>
     </div>
   }
 
