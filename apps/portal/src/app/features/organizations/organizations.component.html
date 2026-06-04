@@ -35,7 +35,7 @@
       [globalFilterFields]="['CompanyName','TenantCode','Email','Phone']"
       sortField="CompanyName"
       [sortOrder]="1"
-      styleClass="p-datatable-striped p-datatable-sm p-datatable-gridlines"
+      styleClass="p-datatable-sm sf-table"
       [tableStyle]="{'min-width':'700px'}"
       #dt>
 
@@ -117,8 +117,10 @@
 
           <!-- סטטוס -->
           <td>
-            <p-tag [value]="o.IsActive ? 'פעיל' : 'מושהה'"
-                   [severity]="o.IsActive ? 'success' : 'danger'" />
+            <div class="status-dot-wrap">
+              <span class="status-dot" [class.dot-active]="o.IsActive" [class.dot-inactive]="!o.IsActive"></span>
+              <span class="status-label">{{ o.IsActive ? 'פעיל' : 'מושהה' }}</span>
+            </div>
           </td>
 
           <!-- פעולות -->
