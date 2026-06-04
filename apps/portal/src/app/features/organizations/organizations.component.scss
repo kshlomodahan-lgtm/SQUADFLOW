@@ -151,10 +151,10 @@
     color: var(--sf-primary) !important;
   }
 
-  // Body rows
+  // Body rows — לבן מלא
   .sf-table .p-datatable-tbody > tr > td {
-    background: #fff;
-    border-bottom: 1px solid #f3f4f6 !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid #f0f2f5 !important;
     border-top: none !important;
     border-right: none !important;
     border-left: none !important;
@@ -165,22 +165,22 @@
   }
 
   .sf-table .p-datatable-tbody > tr:hover > td {
-    background: #f8faff !important;
+    background: #f5f8ff !important;
   }
 
   .sf-table .p-datatable-tbody > tr:last-child > td {
     border-bottom: none !important;
   }
 
-  // Paginator
-  .sf-table + .p-paginator,
-  .p-paginator {
-    direction: rtl;
-    font-family: 'Noto Sans Hebrew', sans-serif;
-    font-size: .82rem;
-    border-top: 1px solid #e5e7eb;
-    background: #fafafa;
-    padding: 8px 16px;
+  // Paginator — לבן
+  .sf-table .p-paginator,
+  .sf-table + .p-paginator {
+    direction: rtl !important;
+    font-family: 'Noto Sans Hebrew', sans-serif !important;
+    font-size: .82rem !important;
+    border-top: 1px solid #e5e7eb !important;
+    background: #ffffff !important;
+    padding: 8px 16px !important;
   }
 
   // Search input
