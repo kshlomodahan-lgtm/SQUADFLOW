@@ -77,9 +77,11 @@
   }
 }
 
-// sort header arrows → align RTL
-::ng-deep .mat-sort-header-container { flex-direction: row-reverse; }
-::ng-deep .mat-sort-header-arrow     { margin-left: 0; margin-right: 4px; }
+// כותרות — יישור ימין + חץ מיון ב-RTL
+::ng-deep .mat-mdc-header-cell               { text-align: right; justify-content: flex-end; }
+::ng-deep .mat-sort-header-container         { flex-direction: row-reverse; justify-content: flex-end; }
+::ng-deep .mat-sort-header-arrow             { margin-left: 0; margin-right: 4px; }
+::ng-deep .mat-mdc-cell                      { text-align: right; }
 
 // header row
 ::ng-deep .mat-mdc-header-row {
