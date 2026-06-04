@@ -25,6 +25,16 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/organizations/organizations.component').then(m => m.OrganizationsComponent),
       },
+      {
+        path: 'users',
+        loadComponent: () =>
+          import('./features/users/users.component').then(m => m.UsersComponent),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./features/settings/settings.component').then(m => m.SettingsComponent),
+      },
     ],
   },
   { path: '**', redirectTo: 'login' },
