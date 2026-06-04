@@ -1,0 +1,81 @@
+// ── Dialog global overrides ──────────────────────────────
+:host ::ng-deep {
+  .sf-dialog .p-dialog-header {
+    background: var(--sf-primary);
+    color: #fff;
+    border-radius: 12px 12px 0 0;
+    padding: 16px 20px;
+    font-family: 'Noto Sans Hebrew', sans-serif;
+    font-size: 1rem; font-weight: 700;
+    direction: rtl;
+  }
+
+  .sf-dialog .p-dialog-header-close {
+    color: rgba(255,255,255,.8) !important;
+    &:hover { color: #fff !important; background: rgba(255,255,255,.15) !important; }
+  }
+
+  .sf-dialog .p-dialog-content {
+    border-radius: 0;
+    direction: rtl;
+  }
+
+  .sf-dialog .p-dialog-footer {
+    border-radius: 0 0 12px 12px;
+    background: var(--sf-bg);
+    border-top: 1px solid var(--sf-border);
+    padding: 12px 20px;
+    direction: rtl;
+  }
+
+  // שדות
+  .p-inputtext, .p-textarea {
+    width: 100%;
+    direction: rtl;
+    font-family: 'Noto Sans Hebrew', sans-serif;
+    font-size: .9rem;
+  }
+
+  .p-select { width: 100%; direction: rtl; }
+  .p-inputnumber { width: 100%; }
+  .p-inputnumber-input { width: 100%; direction: ltr; text-align: right; }
+}
+
+// ── Form grid ────────────────────────────────────────────
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+  direction: rtl;
+}
+
+.field {
+  display: flex; flex-direction: column; gap: 6px;
+
+  &.full   { grid-column: 1 / -1; }
+}
+
+label {
+  font-size: .78rem; font-weight: 700;
+  color: var(--sf-text-secondary);
+  text-transform: uppercase; letter-spacing: .4px;
+}
+
+.req { color: var(--sf-danger); margin-right: 2px; }
+
+.err {
+  color: var(--sf-danger); font-size: .76rem; font-weight: 500;
+  margin-top: 2px;
+}
+
+// ── Toggle ───────────────────────────────────────────────
+.field-toggle label { margin-bottom: 8px; }
+.toggle-wrap {
+  display: flex; align-items: center; gap: 10px;
+  font-size: .9rem; color: var(--sf-text); font-weight: 500;
+}
+
+// ── Footer ───────────────────────────────────────────────
+.dialog-footer {
+  display: flex; justify-content: flex-start; gap: 10px;
+}

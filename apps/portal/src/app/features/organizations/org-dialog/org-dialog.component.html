@@ -1,0 +1,116 @@
+<p-dialog
+  [header]="title"
+  [(visible)]="visible"
+  (visibleChange)="visibleChange.emit($event)"
+  [modal]="true"
+  [draggable]="true"
+  [resizable]="false"
+  [style]="{width:'640px'}"
+  [contentStyle]="{'padding':'24px'}"
+  styleClass="sf-dialog">
+
+  <form [formGroup]="form" novalidate>
+
+    <!-- שגיאה כללית -->
+    @if (errorMsg) {
+      <p-message severity="error" [text]="errorMsg" styleClass="w-full mb-4" />
+    }
+
+    <div class="form-grid">
+
+      <!-- שורה 1: קוד ארגון (רק בהוספה) + שם חברה -->
+      @if (!isEdit) {
+        <div class="field">
+          <label>קוד ארגון <span class="req">*</span></label>
+          <input pInputText formControlName="tenantCode"
+                 placeholder="לדוגמה: ABC_12345"
+                 style="text-transform:uppercase"
+                 [class.ng-invalid]="form.get('tenantCode')?.invalid && form.get('tenantCode')?.touched" />
+          @if (form.get('tenantCode')?.hasError('required') && form.get('tenantCode')?.touched) {
+            <small class="err">שדה חובה</small>
+          }
+          @if (form.get('tenantCode')?.hasError('pattern') && form.get('tenantCode')?.touched) {
+            <small class="err">פורמט: 3 אותיות, קו תחתי, מספרים — לדוגמה: ABC_12345</small>
+          }
+        </div>
+      }
+
+      <div class="field" [class.full]="isEdit">
+        <label>שם חברה <span class="req">*</span></label>
+        <input pInputText formControlName="companyName"
+               [class.ng-invalid]="form.get('companyName')?.invalid && form.get('companyName')?.touched" />
+        @if (form.get('companyName')?.invalid && form.get('companyName')?.touched) {
+          <small class="err">שדה חובה</small>
+        }
+      </div>
+
+      <!-- שורה 2: אימייל + טלפון -->
+      <div class="field">
+        <label>אימייל <span class="req">*</span></label>
+        <input pInputText formControlName="email" type="email"
+               [class.ng-invalid]="form.get('email')?.invalid && form.get('email')?.touched" />
+        @if (form.get('email')?.invalid && form.get('email')?.touched) {
+          <small class="err">אימייל לא תקין</small>
+        }
+      </div>
+
+      <div class="field">
+        <label>טלפון</label>
+        <input pInputText formControlName="phone" placeholder="050-0000000" />
+      </div>
+
+      <!-- שורה 3: תוכנית + מ. משתמשים + מ. תקלות -->
+      <div class="field">
+        <label>תוכנית <span class="req">*</span></label>
+        <p-select formControlName="planType"
+                  [options]="plans"
+                  optionLabel="label"
+                  optionValue="value"
+                  styleClass="w-full" />
+      </div>
+
+      <div class="field">
+        <label>מקסימום משתמשים</label>
+        <p-inputnumber formControlName="maxUsers" [min]="1" [max]="9999" styleClass="w-full" />
+      </div>
+
+      <div class="field">
+        <label>מקסימום תקלות</label>
+        <p-inputnumber formControlName="maxTickets" [min]="1" [max]="999999" styleClass="w-full" />
+      </div>
+
+      <!-- פעיל (רק בעדכון) -->
+      @if (isEdit) {
+        <div class="field field-toggle">
+          <label>סטטוס ארגון</label>
+          <div class="toggle-wrap">
+            <p-toggleswitch formControlName="isActive" />
+            <span>{{ form.get('isActive')?.value ? 'פעיל' : 'מושהה' }}</span>
+          </div>
+        </div>
+      }
+
+      <!-- הערות -->
+      <div class="field full">
+        <label>הערות</label>
+        <textarea pTextarea formControlName="notes" rows="3" autoResize="true"
+                  class="w-full" placeholder="הערות אופציונליות..."></textarea>
+      </div>
+
+    </div>
+
+  </form>
+
+  <!-- Footer -->
+  <ng-template #footer>
+    <div class="dialog-footer">
+      <p-button label="ביטול" severity="secondary" [outlined]="true"
+                (onClick)="close()" [disabled]="saving" />
+      <p-button [label]="isEdit ? 'שמור שינויים' : 'צור ארגון'"
+                icon="pi pi-check"
+                [loading]="saving"
+                (onClick)="save()" />
+    </div>
+  </ng-template>
+
+</p-dialog>
