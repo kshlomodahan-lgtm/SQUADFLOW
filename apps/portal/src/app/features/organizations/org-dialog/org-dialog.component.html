@@ -5,151 +5,132 @@
   [modal]="true"
   [draggable]="true"
   [resizable]="false"
-  [style]="{width:'600px'}"
+  [style]="{width:'660px'}"
   styleClass="sf-dialog">
 
   <form [formGroup]="form" novalidate>
 
-    <!-- שגיאה כללית -->
     @if (errorMsg) {
       <div class="form-error-banner">
-        <i class="pi pi-exclamation-circle"></i>
-        {{ errorMsg }}
+        <i class="pi pi-exclamation-circle"></i>{{ errorMsg }}
       </div>
     }
 
-    <!-- ── קטע: פרטי ארגון ─────────────────────────── -->
-    <div class="form-section">
-      <div class="section-title">
-        <i class="pi pi-building"></i>
-        פרטי ארגון
-      </div>
+    <!-- ══ שורה עליונה: פרטי ארגון (ימין) + לוגו (שמאל) ══ -->
+    <div class="top-grid">
 
-      @if (!isEdit) {
-        <div class="form-row">
-          <label>קוד ארגון <span class="req">*</span></label>
-          <div class="input-col">
-            <input pInputText formControlName="tenantCode"
-                   placeholder="לדוגמה: ABC_12345"
-                   class="line-input"
-                   (input)="onTenantCodeInput($event)" />
-            @if (form.get('tenantCode')?.hasError('required') && form.get('tenantCode')?.touched) {
-              <small class="err">שדה חובה</small>
-            }
-            @if (form.get('tenantCode')?.hasError('pattern') && form.get('tenantCode')?.touched) {
-              <small class="err">פורמט: ABC_12345</small>
-            }
-          </div>
-        </div>
-      }
+      <!-- ימין — פרטי ארגון -->
+      <div class="form-section">
+        <div class="section-title"><i class="pi pi-building"></i> פרטי ארגון</div>
 
-      <div class="form-row">
-        <label>שם חברה <span class="req">*</span></label>
-        <div class="input-col">
-          <input pInputText formControlName="companyName" class="line-input" />
-          @if (form.get('companyName')?.invalid && form.get('companyName')?.touched) {
-            <small class="err">שדה חובה</small>
-          }
-        </div>
-      </div>
-
-      <div class="form-row">
-        <label>אימייל <span class="req">*</span></label>
-        <div class="input-col">
-          <input pInputText formControlName="email" type="email" class="line-input" />
-          @if (form.get('email')?.invalid && form.get('email')?.touched) {
-            <small class="err">אימייל לא תקין</small>
-          }
-        </div>
-      </div>
-
-      <div class="form-row">
-        <label>טלפון</label>
-        <div class="input-col">
-          <input pInputText formControlName="phone" placeholder="050-0000000" class="line-input" />
-        </div>
-      </div>
-    </div>
-
-    <!-- ── קטע: לוגו ──────────────────────────────── -->
-    <div class="form-section">
-      <div class="section-title">
-        <i class="pi pi-image"></i>
-        לוגו חברה
-      </div>
-
-      <div class="form-row">
-        <label>לוגו</label>
-        <div class="input-col">
-          <div class="logo-upload-wrap">
-
-            <!-- תצוגה -->
-            @if (logoPreview) {
-              <div class="logo-preview-box">
-                <img [src]="logoPreview" alt="לוגו" class="logo-preview-img" />
-              </div>
-            } @else {
-              <div class="logo-placeholder">
-                <i class="pi pi-image"></i>
-                <span>אין לוגו</span>
-              </div>
-            }
-
-            <!-- כפתורים -->
-            <div class="logo-actions">
-              <label class="btn-upload" [class.loading]="uploading">
-                @if (uploading) {
-                  <i class="pi pi-spin pi-spinner"></i> מעלה...
-                } @else {
-                  <i class="pi pi-upload"></i> בחר קובץ
-                }
-                <input type="file" accept=".png,.jpg,.jpeg,.svg,.webp"
-                       (change)="onLogoSelect($event)"
-                       style="display:none" />
-              </label>
-
-              <button type="button" class="btn-delete"
-                      [disabled]="!logoPreview"
-                      (click)="removeLogo()">
-                <i class="pi pi-trash"></i> מחק קובץ
-              </button>
-
-              <small class="logo-hint">PNG / JPG / SVG · עד 2MB</small>
+        @if (!isEdit) {
+          <div class="form-row">
+            <label>קוד ארגון <span class="req">*</span></label>
+            <div class="input-col">
+              <input pInputText formControlName="tenantCode"
+                     placeholder="לדוגמה: ABC_12345" class="line-input"
+                     (input)="onTenantCodeInput($event)" />
+              @if (form.get('tenantCode')?.hasError('required') && form.get('tenantCode')?.touched) {
+                <small class="err">שדה חובה</small>
+              }
+              @if (form.get('tenantCode')?.hasError('pattern') && form.get('tenantCode')?.touched) {
+                <small class="err">פורמט: ABC_12345</small>
+              }
             </div>
           </div>
+        }
+
+        <div class="form-row">
+          <label>שם חברה <span class="req">*</span></label>
+          <div class="input-col">
+            <input pInputText formControlName="companyName" class="line-input" />
+            @if (form.get('companyName')?.invalid && form.get('companyName')?.touched) {
+              <small class="err">שדה חובה</small>
+            }
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label>אימייל <span class="req">*</span></label>
+          <div class="input-col">
+            <input pInputText formControlName="email" type="email" class="line-input" />
+            @if (form.get('email')?.invalid && form.get('email')?.touched) {
+              <small class="err">אימייל לא תקין</small>
+            }
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label>טלפון</label>
+          <div class="input-col">
+            <input pInputText formControlName="phone" placeholder="050-0000000" class="line-input" />
+          </div>
         </div>
       </div>
+
+      <!-- שמאל — לוגו -->
+      <div class="form-section logo-section">
+        <div class="section-title"><i class="pi pi-image"></i> לוגו חברה</div>
+
+        <div class="logo-block">
+          @if (logoPreview) {
+            <div class="logo-preview-box">
+              <img [src]="logoPreview" alt="לוגו" class="logo-preview-img" />
+            </div>
+          } @else {
+            <div class="logo-placeholder">
+              <i class="pi pi-image"></i>
+              <span>אין לוגו</span>
+            </div>
+          }
+
+          <!-- כפתורים מתחת ללוגו -->
+          <div class="logo-btns">
+            <label class="btn-upload" [class.loading]="uploading">
+              @if (uploading) {
+                <i class="pi pi-spin pi-spinner"></i>
+              } @else {
+                <i class="pi pi-upload"></i> העלאה
+              }
+              <input type="file" accept=".png,.jpg,.jpeg,.svg,.webp"
+                     (change)="onLogoSelect($event)" style="display:none" />
+            </label>
+
+            <button type="button" class="btn-delete"
+                    [disabled]="!logoPreview" (click)="removeLogo()">
+              <i class="pi pi-trash"></i> מחיקה
+            </button>
+          </div>
+
+          <small class="logo-hint">PNG / JPG / SVG · עד 2MB</small>
+        </div>
+      </div>
+
     </div>
 
-    <!-- ── קטע: תוכנית ─────────────────────────────── -->
+    <!-- ══ תוכנית ומגבלות ══ -->
     <div class="form-section">
-      <div class="section-title">
-        <i class="pi pi-box"></i>
-        תוכנית ומגבלות
-      </div>
+      <div class="section-title"><i class="pi pi-box"></i> תוכנית ומגבלות</div>
 
       <div class="form-row">
         <label>תוכנית</label>
         <div class="input-col">
-          <p-select formControlName="planType"
-                    [options]="plans"
-                    optionLabel="label"
-                    optionValue="value"
-                    styleClass="line-select w-full" />
+          <p-select formControlName="planType" [options]="plans"
+                    optionLabel="label" optionValue="value" styleClass="line-select w-full" />
         </div>
       </div>
 
       <div class="form-row">
         <label>מקסימום משתמשים</label>
         <div class="input-col">
-          <p-inputnumber formControlName="maxUsers" [min]="1" [max]="9999" styleClass="line-input w-full" />
+          <p-inputnumber formControlName="maxUsers" [min]="1" [max]="9999" styleClass="w-full" />
         </div>
       </div>
 
       <div class="form-row">
         <label>מקסימום תקלות</label>
         <div class="input-col">
-          <p-inputnumber formControlName="maxTickets" [min]="1" [max]="999999" styleClass="line-input w-full" />
+          <p-inputnumber formControlName="maxTickets" [min]="1" [max]="999999" styleClass="w-full" />
         </div>
       </div>
 
@@ -164,7 +145,7 @@
       }
     </div>
 
-    <!-- ── קטע: הערות ───────────────────────────────── -->
+    <!-- ══ הערות ══ -->
     <div class="form-section last">
       <div class="form-row">
         <label>הערות</label>
@@ -182,9 +163,7 @@
       <p-button label="ביטול" severity="secondary" [outlined]="true"
                 (click)="close()" [disabled]="saving" />
       <p-button [label]="isEdit ? 'שמור שינויים' : 'צור ארגון'"
-                icon="pi pi-check"
-                [loading]="saving"
-                (click)="save()" />
+                icon="pi pi-check" [loading]="saving" (click)="save()" />
     </div>
   </ng-template>
 

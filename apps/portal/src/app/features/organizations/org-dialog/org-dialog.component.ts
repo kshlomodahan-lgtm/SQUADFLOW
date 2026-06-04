@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
@@ -52,6 +52,7 @@ export class OrgDialogComponent implements OnInit {
     private fb:     FormBuilder,
     private svc:    OrganizationService,
     private upload: UploadService,
+    private zone:   NgZone,
   ) {}
 
   ngOnInit() {
@@ -102,31 +103,32 @@ export class OrgDialogComponent implements OnInit {
 
     reader.onload = ev => {
       img.onload = () => {
-        const MAX   = 300;
+        const MAX = 300;
         let w = img.width, h = img.height;
         if (w > MAX || h > MAX) {
           if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
           else       { w = Math.round(w * MAX / h); h = MAX; }
         }
-
         const canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
 
-        // DataURL לpreview + Blob להעלאה
         const dataUrl = canvas.toDataURL('image/png', 0.85);
-        this.logoPreview = dataUrl;
 
         canvas.toBlob(blob => {
-          if (!blob) { this.uploading = false; return; }
+          if (!blob) { this.zone.run(() => { this.uploading = false; }); return; }
           const compressed = new File([blob], file.name, { type: 'image/png' });
 
-          this.upload.uploadLogo(compressed).subscribe({
-            next: r => {
-              this.uploading = false;
-              if (r.success) this.form.get('logoUrl')?.setValue(r.logoUrl);
-            },
-            error: () => { this.uploading = false; this.errorMsg = 'שגיאה בהעלאת הלוגו'; },
+          // הכל בתוך zone — Angular מזהה שינויים מיד
+          this.zone.run(() => {
+            this.logoPreview = dataUrl;
+            this.upload.uploadLogo(compressed).subscribe({
+              next: r => {
+                this.uploading = false;
+                if (r.success) this.form.get('logoUrl')?.setValue(r.logoUrl);
+              },
+              error: () => { this.uploading = false; this.errorMsg = 'שגיאה בהעלאת הלוגו'; },
+            });
           });
         }, 'image/png', 0.85);
       };

@@ -100,6 +100,14 @@
   }
 }
 
+// ── Top grid: פרטי ארגון (ימין) + לוגו (שמאל) ───────────
+.top-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  direction: rtl;
+  border-bottom: 1px solid #f0f2f5;
+}
+
 // ── Form section ─────────────────────────────────────────
 .form-section {
   background: #fff;
@@ -107,6 +115,14 @@
   border-bottom: 1px solid #f0f2f5;
 
   &.last { border-bottom: none; }
+}
+
+.logo-section {
+  border-right: 1px solid #f0f2f5;
+  border-bottom: none;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
 }
 
 // ── Section title ─────────────────────────────────────────
@@ -149,13 +165,13 @@ label {
 }
 
 // ── Logo upload ──────────────────────────────────────────
-.logo-upload-wrap {
-  display: flex; align-items: flex-start; gap: 16px;
+// ── Logo block (אנכי) ────────────────────────────────────
+.logo-block {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
 }
 
-// תמונה — 2.5× (72 → 180px)
 .logo-preview-box {
-  position: relative; width: 180px; height: 180px; flex-shrink: 0;
+  width: 160px; height: 160px;
   border: 1px solid var(--sf-border); border-radius: 10px;
   background: #f8fafc;
   display: flex; align-items: center; justify-content: center;
@@ -166,7 +182,7 @@ label {
 }
 
 .logo-placeholder {
-  width: 180px; height: 180px; flex-shrink: 0;
+  width: 160px; height: 160px;
   border: 1.5px dashed #d1d5db; border-radius: 10px;
   display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 8px; color: #9ca3af;
@@ -174,34 +190,41 @@ label {
   i { font-size: 2rem; }
 }
 
-// כפתורים
-.logo-actions {
-  display: flex; flex-direction: column; gap: 8px; padding-top: 4px;
+// כפתורים מתחת ללוגו — עלאה ימין, מחיקה שמאל
+.logo-btns {
+  width: 160px;
+  display: flex;
+  justify-content: space-between;
+  direction: rtl;
+  gap: 4px;
 }
 
 .btn-upload {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 12px; border-radius: 6px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 6px; cursor: pointer;
   border: 1px solid var(--sf-border); background: #fff;
-  font-size: .8rem; font-weight: 500; color: var(--sf-text);
-  white-space: nowrap; width: fit-content;
+  font-size: .78rem; font-weight: 500; color: var(--sf-text);
+  white-space: nowrap;
   transition: background .15s, border-color .15s;
   &:hover { background: var(--sf-bg-hover); border-color: var(--sf-primary); color: var(--sf-primary); }
   &.loading { opacity: .7; cursor: wait; }
 }
 
 .btn-delete {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 12px; border-radius: 6px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 6px; cursor: pointer;
   border: 1px solid #fca5a5; background: #fff;
-  font-size: .8rem; font-weight: 500; color: var(--sf-danger);
-  white-space: nowrap; width: fit-content;
+  font-size: .78rem; font-weight: 500; color: var(--sf-danger);
+  white-space: nowrap;
   transition: background .15s;
   &:hover { background: #fef2f2; }
-  &:disabled { opacity: .4; cursor: default; }
+  &:disabled { opacity: .35; cursor: default; pointer-events: none; }
 }
 
-.logo-hint { font-size: .68rem; color: var(--sf-text-muted); direction: ltr; }
+.logo-hint {
+  font-size: .65rem; color: var(--sf-text-muted);
+  direction: ltr; width: 160px; text-align: center;
+}
 
 // ── Toggle ───────────────────────────────────────────────
 .toggle-row { flex-direction: row; align-items: center; gap: 10px; padding-top: 6px; }
