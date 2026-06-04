@@ -1,254 +1,157 @@
-:host {
-  display: block;
-  height: 100vh;
-}
+:host { display: block; height: 100vh; }
 
-// ── Page layout ─────────────────────────────────────────
+// ── Page ────────────────────────────────────────────────
 .login-page {
-  display: flex;
   height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f2f5;
   direction: rtl;
-  background: var(--sf-dark);
-  overflow: hidden;
-}
-
-// ── Right panel (form) ───────────────────────────────────
-.login-panel {
-  width: 440px;
-  min-width: 360px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 48px 40px 32px;
-  background: var(--sf-dark-card);
-  border-left: 1px solid var(--sf-border);
-  z-index: 2;
-}
-
-.logo-area {
-  text-align: center;
-  margin-bottom: 24px;
-}
-
-.brand-logo {
-  font-size: 2.4rem;
-  font-weight: 900;
-  letter-spacing: -1px;
-  line-height: 1;
-}
-
-.brand-squad { color: #fff; }
-.brand-flow  { color: var(--sf-accent); }
-
-.brand-tagline {
-  margin: 6px 0 0;
-  font-size: 0.75rem;
-  color: var(--sf-text-muted);
-  letter-spacing: 0.5px;
-}
-
-// ── Tenant badge (תצוגה בלבד) ──────────────────────────
-.tenant-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: rgba(0,229,255,0.07);
-  border: 1px solid rgba(0,229,255,0.25);
-  border-radius: 8px;
-  padding: 8px 16px;
-  margin-bottom: 20px;
-  color: var(--sf-accent);
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 1px;
-
-  mat-icon { font-size: 16px; width: 16px; height: 16px; }
-}
-
-// ── No tenant error ──────────────────────────────────────
-.no-tenant-box {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 12px;
-  padding: 32px 16px;
-
-  mat-icon { font-size: 48px; width: 48px; height: 48px; color: #ef5350; }
-  h3 { margin: 0; font-size: 1.1rem; color: var(--sf-text); }
-  p  { margin: 0; font-size: 0.85rem; color: var(--sf-text-muted); line-height: 1.6; }
 }
 
 // ── Card ────────────────────────────────────────────────
 .login-card {
-  flex: 1;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.10);
+  padding: 48px 40px 36px;
+  width: 380px;
   display: flex;
   flex-direction: column;
+  align-items: center;
+}
+
+// ── Logo ─────────────────────────────────────────────────
+.logo-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.company-logo {
+  max-height: 72px;
+  max-width: 220px;
+  object-fit: contain;
+}
+
+.company-initials {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0D47FF, #00E5FF);
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
   justify-content: center;
 }
 
-.card-title {
-  font-size: 1.3rem;
+.company-name {
+  font-size: 1.2rem;
   font-weight: 700;
-  color: var(--sf-text);
-  margin: 0 0 28px;
+  color: #1a1a2e;
+  margin: 0;
   text-align: center;
 }
 
-// ── Form fields ─────────────────────────────────────────
-.full-width {
-  width: 100%;
-  margin-bottom: 8px;
-  direction: rtl;
-
-  // Material 3 dark overrides
-  --mdc-outlined-text-field-outline-color:         var(--sf-border);
-  --mdc-outlined-text-field-focus-outline-color:   var(--sf-accent);
-  --mdc-outlined-text-field-label-text-color:      var(--sf-text-muted);
-  --mdc-outlined-text-field-input-text-color:      var(--sf-text);
-  --mdc-outlined-text-field-container-color:       transparent;
-  --mat-form-field-subscript-text-color:           #ef5350;
+.login-subtitle {
+  font-size: 0.85rem;
+  color: #888;
+  margin: 0 0 24px;
 }
 
-// ── Error banner ────────────────────────────────────────
+// ── Form fields ──────────────────────────────────────────
+.full-width {
+  width: 100%;
+  margin-bottom: 4px;
+  direction: rtl;
+
+  --mdc-outlined-text-field-outline-color:       #d0d5dd;
+  --mdc-outlined-text-field-focus-outline-color: #0D47FF;
+  --mdc-outlined-text-field-label-text-color:    #667085;
+  --mdc-outlined-text-field-input-text-color:    #1a1a2e;
+  --mdc-outlined-text-field-container-color:     transparent;
+}
+
+// ── Error ────────────────────────────────────────────────
 .error-banner {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(239, 83, 80, 0.12);
-  border: 1px solid rgba(239, 83, 80, 0.4);
+  background: #fff5f5;
+  border: 1px solid #fca5a5;
   border-radius: 8px;
   padding: 10px 14px;
-  color: #ef9a9a;
-  font-size: 0.85rem;
+  color: #dc2626;
+  font-size: 0.83rem;
   margin-bottom: 12px;
+  width: 100%;
 
-  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  mat-icon { font-size: 18px; width: 18px; height: 18px; flex-shrink: 0; }
 }
 
-// ── Login button ────────────────────────────────────────
+// ── Button ───────────────────────────────────────────────
 .btn-login {
   width: 100%;
-  height: 48px;
-  font-size: 1rem;
+  height: 46px;
+  font-size: 0.95rem;
   font-weight: 700;
   font-family: 'Noto Sans Hebrew', sans-serif;
-  background: linear-gradient(135deg, var(--sf-primary), #1565c0) !important;
+  background: #0D47FF !important;
   color: #fff !important;
   border-radius: 10px !important;
+  margin-top: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 8px;
-  transition: opacity 0.2s;
+  transition: background 0.2s;
 
-  &:hover:not([disabled]) { opacity: 0.9; }
-  &[disabled]             { opacity: 0.5; }
+  &:hover:not([disabled]) { background: #0a35c4 !important; }
+  &[disabled] { opacity: 0.55; }
 
   mat-spinner { --mdc-circular-progress-active-indicator-color: #fff; }
 }
 
-// ── Footer ──────────────────────────────────────────────
-.footer-copy {
-  text-align: center;
+// ── Powered by ───────────────────────────────────────────
+.powered-by {
+  margin: 20px 0 0;
   font-size: 0.72rem;
-  color: var(--sf-text-muted);
-  margin: 0;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-// ── Left panel (visual) ──────────────────────────────────
-.visual-panel {
-  flex: 1;
+.sf-brand { font-weight: 700; font-size: 0.78rem; }
+.sq { color: #1a1a2e; }
+.fl { color: #0D47FF; }
+
+// ── Splash loader ─────────────────────────────────────────
+.splash {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(ellipse at 60% 40%, #0d1f3c 0%, var(--sf-dark) 70%);
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(circle at 30% 50%, rgba(13,71,255,0.15) 0%, transparent 60%),
-      radial-gradient(circle at 80% 20%, rgba(0,229,255,0.08) 0%, transparent 50%);
-  }
+  height: 100vh;
+  width: 100%;
 }
 
-.visual-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 40px;
-  z-index: 1;
-}
-
-// טבעת זוהרת
-.glow-ring {
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  border: 2px solid rgba(0,229,255,0.3);
-  box-shadow:
-    0 0 40px rgba(0,229,255,0.2),
-    inset 0 0 40px rgba(13,71,255,0.1);
-  animation: pulse 3s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1);    opacity: 0.6; }
-  50%       { transform: scale(1.05); opacity: 1;   }
-}
-
-// כרטיסי סטטיסטיקה
-.stat-cards {
-  display: flex;
-  gap: 16px;
-}
-
-.stat-card {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--sf-border);
-  border-radius: 12px;
-  padding: 16px 20px;
+// ── No tenant ────────────────────────────────────────────
+.no-tenant-card {
   text-align: center;
-  backdrop-filter: blur(8px);
+  gap: 12px;
 
-  &.accent {
-    border-color: rgba(0,229,255,0.35);
-    background: rgba(0,229,255,0.06);
-  }
-}
-
-.stat-num {
-  display: block;
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--sf-accent);
-}
-
-.stat-label {
-  display: block;
-  font-size: 0.72rem;
-  color: var(--sf-text-muted);
-  margin-top: 4px;
-}
-
-.visual-slogan {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: rgba(255,255,255,0.15);
-  letter-spacing: 2px;
-  text-align: center;
+  .no-tenant-icon { font-size: 48px; width: 48px; height: 48px; color: #dc2626; }
+  h3 { margin: 0; font-size: 1.1rem; color: #1a1a2e; }
+  p  { margin: 0; font-size: 0.85rem; color: #888; line-height: 1.6; }
 }
 
 // ── Responsive ──────────────────────────────────────────
-@media (max-width: 768px) {
-  .visual-panel { display: none; }
-  .login-panel  { width: 100%; border: none; }
+@media (max-width: 440px) {
+  .login-card { width: 100%; min-height: 100vh; border-radius: 0; padding: 40px 24px; }
+  .login-page { background: #fff; }
 }

@@ -1,115 +1,92 @@
 <div class="login-page">
 
-  <!-- ── Panel ימין: טופס ───────────────────────────── -->
-  <div class="login-panel">
-
-    <!-- לוגו -->
-    <div class="logo-area">
-      <div class="brand-logo">
-        <span class="brand-squad">SQUAD</span><span class="brand-flow">FLOW</span>
-      </div>
-      <p class="brand-tagline">AI Development Team · Operating System</p>
+  <!-- טעינה ראשונית -->
+  @if (loadingTenant()) {
+    <div class="splash">
+      <mat-spinner diameter="36" />
     </div>
+  }
 
-    <!-- URL שגוי — אין קוד ארגון -->
-    @if (noTenant()) {
-      <div class="no-tenant-box">
-        <mat-icon>link_off</mat-icon>
-        <h3>קישור לא תקין</h3>
-        <p>פנה למנהל המערכת לקבלת קישור כניסה אישי לארגון שלך.</p>
+  <!-- URL שגוי -->
+  @if (!loadingTenant() && noTenant()) {
+    <div class="login-card no-tenant-card">
+      <mat-icon class="no-tenant-icon">link_off</mat-icon>
+      <h3>קישור לא תקין</h3>
+      <p>פנה למנהל המערכת לקבלת קישור כניסה לארגון שלך.</p>
+    </div>
+  }
+
+  <!-- טופס כניסה -->
+  @if (!loadingTenant() && !noTenant() && tenant()) {
+    <div class="login-card">
+
+      <!-- לוגו הארגון -->
+      <div class="logo-area">
+        @if (tenant()!.logoUrl) {
+          <img [src]="tenant()!.logoUrl" [alt]="tenant()!.companyName" class="company-logo" />
+        } @else {
+          <div class="company-initials">
+            {{ tenant()!.companyName.charAt(0) }}
+          </div>
+        }
+        <h1 class="company-name">{{ tenant()!.companyName }}</h1>
       </div>
-    }
 
-    <!-- טופס רגיל -->
-    @if (!noTenant()) {
-      <!-- שם ארגון (רק תצוגה) -->
-      <div class="tenant-badge">
-        <mat-icon>business</mat-icon>
-        <span>{{ tenantCode() }}</span>
-      </div>
+      <p class="login-subtitle">כניסה למערכת</p>
 
-      <!-- כרטיס טופס -->
-      <div class="login-card">
-        <h2 class="card-title">כניסה למערכת</h2>
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
 
-        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-
-          <!-- שם משתמש -->
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>שם משתמש</mat-label>
-            <mat-icon matPrefix>person</mat-icon>
-            <input matInput formControlName="username"
-                   autocomplete="username" />
-            @if (form.get('username')?.hasError('required') && form.get('username')?.touched) {
-              <mat-error>שדה חובה</mat-error>
-            }
-          </mat-form-field>
-
-          <!-- סיסמה -->
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>סיסמה</mat-label>
-            <mat-icon matPrefix>lock</mat-icon>
-            <input matInput formControlName="password"
-                   [type]="showPass() ? 'text' : 'password'"
-                   autocomplete="current-password" />
-            <button mat-icon-button matSuffix type="button"
-                    (click)="showPass.set(!showPass())"
-                    [attr.aria-label]="showPass() ? 'הסתר סיסמה' : 'הצג סיסמה'">
-              <mat-icon>{{ showPass() ? 'visibility_off' : 'visibility' }}</mat-icon>
-            </button>
-            @if (form.get('password')?.hasError('required') && form.get('password')?.touched) {
-              <mat-error>שדה חובה</mat-error>
-            }
-          </mat-form-field>
-
-          <!-- הודעת שגיאה -->
-          @if (error()) {
-            <div class="error-banner">
-              <mat-icon>warning</mat-icon>
-              {{ error() }}
-            </div>
+        <!-- שם משתמש -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>שם משתמש</mat-label>
+          <input matInput formControlName="username" autocomplete="username" />
+          @if (form.get('username')?.hasError('required') && form.get('username')?.touched) {
+            <mat-error>שדה חובה</mat-error>
           }
+        </mat-form-field>
 
-          <!-- כפתור כניסה -->
-          <button mat-flat-button class="btn-login" type="submit"
-                  [disabled]="loading()">
-            @if (loading()) {
-              <mat-spinner diameter="20" />
-            } @else {
-              <ng-container>
-                <mat-icon>login</mat-icon>
-                כניסה למערכת
-              </ng-container>
-            }
+        <!-- סיסמה -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>סיסמה</mat-label>
+          <input matInput formControlName="password"
+                 [type]="showPass() ? 'text' : 'password'"
+                 autocomplete="current-password" />
+          <button mat-icon-button matSuffix type="button"
+                  (click)="showPass.set(!showPass())"
+                  [attr.aria-label]="showPass() ? 'הסתר' : 'הצג'">
+            <mat-icon>{{ showPass() ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
+          @if (form.get('password')?.hasError('required') && form.get('password')?.touched) {
+            <mat-error>שדה חובה</mat-error>
+          }
+        </mat-form-field>
 
-        </form>
-      </div>
-    }
+        <!-- שגיאה -->
+        @if (error()) {
+          <div class="error-banner">
+            <mat-icon>warning_amber</mat-icon>
+            {{ error() }}
+          </div>
+        }
 
-    <p class="footer-copy">© 2026 Profits Software Solutions Ltd.</p>
-  </div>
+        <!-- כפתור -->
+        <button mat-flat-button class="btn-login" type="submit" [disabled]="loading()">
+          @if (loading()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            <ng-container>כניסה</ng-container>
+          }
+        </button>
 
-  <!-- ── Panel שמאל: ויזואלי ───────────────────────── -->
-  <div class="visual-panel">
-    <div class="visual-content">
-      <div class="glow-ring"></div>
-      <div class="stat-cards">
-        <div class="stat-card">
-          <span class="stat-num">24</span>
-          <span class="stat-label">ארגונים פעילים</span>
-        </div>
-        <div class="stat-card accent">
-          <span class="stat-num">1,248</span>
-          <span class="stat-label">תקלות טופלו</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-num">98%</span>
-          <span class="stat-label">שביעות רצון</span>
-        </div>
-      </div>
-      <p class="visual-slogan">נהל. אוטומט. גדל.</p>
+      </form>
+
+      <!-- Footer -->
+      <p class="powered-by">
+        מופעל על ידי
+        <span class="sf-brand"><span class="sq">SQUAD</span><span class="fl">FLOW</span></span>
+      </p>
+
     </div>
-  </div>
+  }
 
 </div>

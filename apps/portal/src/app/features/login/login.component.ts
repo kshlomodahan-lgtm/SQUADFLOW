@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../core/services/auth.service';
+import { TenantService, TenantPublicInfo } from '../../core/services/tenant.service';
 
 @Component({
   selector: 'app-login',
@@ -26,17 +27,20 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class LoginComponent implements OnInit {
   form!: FormGroup;
-  loading    = signal(false);
-  error      = signal('');
-  showPass   = signal(false);
-  tenantCode = signal('');
-  noTenant   = signal(false);
+  loading      = signal(false);
+  loadingTenant = signal(true);
+  error        = signal('');
+  showPass     = signal(false);
+  tenantCode   = signal('');
+  noTenant     = signal(false);
+  tenant       = signal<TenantPublicInfo | null>(null);
 
   constructor(
-    private fb:     FormBuilder,
-    private auth:   AuthService,
-    private router: Router,
-    private route:  ActivatedRoute,
+    private fb:      FormBuilder,
+    private auth:    AuthService,
+    private router:  Router,
+    private route:   ActivatedRoute,
+    private tenantSvc: TenantService,
   ) {}
 
   ngOnInit() {
@@ -45,22 +49,31 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    // קוד ארגון — מה-URL בלבד
     const urlTenant   = this.route.snapshot.queryParamMap.get('tenant') ?? '';
     const savedTenant = localStorage.getItem('lastTenantCode') ?? '';
-    const tenant      = (urlTenant || savedTenant).toUpperCase();
+    const code        = (urlTenant || savedTenant).toUpperCase();
 
-    if (!tenant) {
+    if (!code) {
       this.noTenant.set(true);
+      this.loadingTenant.set(false);
       return;
     }
 
-    this.tenantCode.set(tenant);
-    localStorage.setItem('lastTenantCode', tenant);
+    this.tenantCode.set(code);
+    localStorage.setItem('lastTenantCode', code);
 
-    this.form = this.fb.group({
-      username: ['', Validators.required],
-      password: ['', Validators.required],
+    // טען פרטי ארגון
+    this.tenantSvc.getPublicInfo(code).subscribe(info => {
+      if (!info.success) {
+        this.noTenant.set(true);
+      } else {
+        this.tenant.set(info);
+        this.form = this.fb.group({
+          username: ['', Validators.required],
+          password: ['', Validators.required],
+        });
+      }
+      this.loadingTenant.set(false);
     });
   }
 
