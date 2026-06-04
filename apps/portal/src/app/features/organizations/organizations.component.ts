@@ -6,7 +6,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { OrganizationService } from '../../core/services/organization.service';
@@ -18,7 +17,7 @@ import { Organization } from '../../core/models/organization.model';
   imports: [
     CommonModule, FormsModule,
     MatTableModule, MatButtonModule, MatIconModule,
-    MatInputModule, MatFormFieldModule, MatChipsModule,
+    MatInputModule, MatFormFieldModule,
     MatTooltipModule, MatProgressSpinnerModule,
   ],
   templateUrl: './organizations.component.html',
@@ -40,22 +39,27 @@ export class OrganizationsComponent implements OnInit {
     );
   });
 
-  columns = ['logo', 'CompanyName', 'TenantCode', 'Email', 'PlanType', 'stats', 'IsActive', 'actions'];
+  columns = ['org', 'TenantCode', 'Email', 'plan', 'users', 'expiry', 'status', 'actions'];
 
   constructor(private svc: OrganizationService) {}
 
   ngOnInit() {
+    this.load();
+  }
+
+  load() {
+    this.loading.set(true);
     this.svc.getAll().subscribe({
-      next: r => { this.allOrgs.set(r.tenants); this.loading.set(false); },
+      next:  r => { this.allOrgs.set(r.tenants); this.loading.set(false); },
       error: () => { this.error.set('שגיאה בטעינת ארגונים'); this.loading.set(false); },
     });
   }
 
-  planLabel(plan: string): string {
-    return { basic: 'בסיסי', pro: 'מקצועי', enterprise: 'ארגוני' }[plan] ?? plan;
+  planLabel(p: string) {
+    return ({ basic: 'בסיסי', pro: 'מקצועי', enterprise: 'ארגוני' } as any)[p] ?? p;
   }
 
-  planClass(plan: string): string {
-    return { basic: 'chip-basic', pro: 'chip-pro', enterprise: 'chip-ent' }[plan] ?? '';
+  daysLeft(expiry: string): number {
+    return Math.ceil((new Date(expiry).getTime() - Date.now()) / 86400000);
   }
 }

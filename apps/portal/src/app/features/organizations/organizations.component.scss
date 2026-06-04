@@ -1,1 +1,122 @@
 :host { display: block; }
+
+.orgs-page { max-width: 1200px; }
+
+// ── Header ──────────────────────────────────────────────
+.page-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 24px;
+  h1 { font-size: 1.3rem; font-weight: 700; color: var(--sf-text); margin: 0; }
+  p  { font-size: 0.83rem; color: var(--sf-text-secondary); margin: 3px 0 0; }
+}
+
+.btn-primary {
+  display: flex; align-items: center; gap: 6px;
+  padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer;
+  background: var(--sf-primary); color: #fff;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  font-size: .88rem; font-weight: 600;
+  transition: background .15s;
+  white-space: nowrap;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  &:hover { background: var(--sf-primary-hover); }
+}
+
+// ── Toolbar ──────────────────────────────────────────────
+.toolbar { margin-bottom: 16px; }
+
+.search-wrap {
+  display: flex; align-items: center; gap: 8px;
+  background: #fff; border: 1px solid var(--sf-border);
+  border-radius: 8px; padding: 0 12px;
+  width: 320px; transition: border-color .15s;
+  &:focus-within { border-color: var(--sf-primary); }
+}
+.search-icon { color: var(--sf-text-muted); font-size: 18px; width: 18px; height: 18px; flex-shrink: 0; }
+.search-input {
+  flex: 1; border: none; outline: none; padding: 9px 0;
+  font-family: 'Noto Sans Hebrew', sans-serif; font-size: .88rem;
+  color: var(--sf-text); background: transparent; direction: rtl;
+  &::placeholder { color: var(--sf-text-muted); }
+}
+.clear-btn {
+  background: none; border: none; cursor: pointer; padding: 0;
+  color: var(--sf-text-muted); display: flex; align-items: center;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  &:hover { color: var(--sf-text); }
+}
+
+// ── States ───────────────────────────────────────────────
+.state-box {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 12px;
+  padding: 60px; color: var(--sf-text-secondary); text-align: center;
+  &.error { color: var(--sf-danger); }
+  mat-icon { font-size: 32px; width: 32px; height: 32px; }
+}
+.btn-link { background: none; border: none; cursor: pointer; color: var(--sf-primary); font-size: .85rem; text-decoration: underline; }
+
+// ── Table ────────────────────────────────────────────────
+.table-card {
+  background: #fff; border: 1px solid var(--sf-border);
+  border-radius: 12px; overflow: hidden;
+  box-shadow: var(--sf-shadow);
+}
+
+// org cell
+.org-cell { display: flex; align-items: center; gap: 10px; }
+
+.org-logo {
+  width: 32px; height: 32px; border-radius: 6px;
+  object-fit: contain; border: 1px solid var(--sf-border); padding: 2px;
+  background: #fff;
+}
+
+.org-avatar {
+  width: 32px; height: 32px; border-radius: 6px; flex-shrink: 0;
+  background: var(--sf-primary-light); color: var(--sf-primary);
+  font-size: .85rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.org-name { font-weight: 600; color: var(--sf-text); font-size: .88rem; }
+
+// code badge
+.code-badge {
+  font-family: 'Share Tech Mono', monospace; font-size: .78rem;
+  background: var(--sf-bg); border: 1px solid var(--sf-border);
+  border-radius: 5px; padding: 2px 8px; color: var(--sf-text-secondary);
+}
+
+.muted { color: var(--sf-text-secondary); font-size: .85rem; }
+
+// plan + status chips
+.chip {
+  display: inline-flex; align-items: center; padding: 3px 10px;
+  border-radius: 20px; font-size: .75rem; font-weight: 600; white-space: nowrap;
+}
+.chip-basic      { background: #f1f5f9; color: #64748b; }
+.chip-pro        { background: #eff6ff; color: #3b82f6; }
+.chip-enterprise { background: #faf5ff; color: #8b5cf6; }
+.chip-active     { background: #f0fdf4; color: #16a34a; }
+.chip-inactive   { background: #fef2f2; color: #dc2626; }
+
+// users
+.users-count { font-size: .88rem; font-weight: 600; color: var(--sf-text); }
+
+// expiry
+.expiry { font-size: .83rem; color: var(--sf-text-secondary); }
+.expiry-warn { color: var(--sf-warning); font-weight: 600; }
+
+// action button
+.action-btn { color: var(--sf-text-muted) !important;
+              &:hover { color: var(--sf-primary) !important; } }
+
+// empty state
+.empty-state {
+  padding: 48px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  color: var(--sf-text-muted);
+  mat-icon { font-size: 36px; width: 36px; height: 36px; }
+  p { margin: 0; font-size: .88rem; }
+}

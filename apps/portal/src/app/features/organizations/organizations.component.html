@@ -1,7 +1,138 @@
-<div class="page-header">
-  <div>
-    <h1>ארגונים</h1>
-    <p>רשימת כל הארגונים הרשומים במערכת</p>
+<div class="orgs-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>ארגונים</h1>
+      <p>{{ allOrgs().length }} ארגונים רשומים במערכת</p>
+    </div>
+    <button class="btn-primary">
+      <mat-icon>add</mat-icon>
+      ארגון חדש
+    </button>
   </div>
+
+  <!-- Search -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input class="search-input" type="text" placeholder="חיפוש לפי שם, קוד או אימייל..."
+             [value]="search()" (input)="search.set($any($event.target).value)" />
+      @if (search()) {
+        <button class="clear-btn" (click)="search.set('')">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="state-box"><mat-spinner diameter="36" /></div>
+  }
+
+  <!-- Error -->
+  @if (!loading() && error()) {
+    <div class="state-box error">
+      <mat-icon>error_outline</mat-icon>
+      {{ error() }}
+      <button class="btn-link" (click)="load()">נסה שנית</button>
+    </div>
+  }
+
+  <!-- Table -->
+  @if (!loading() && !error()) {
+    <div class="table-card">
+      <table mat-table [dataSource]="filtered()">
+
+        <!-- עמודה: ארגון -->
+        <ng-container matColumnDef="org">
+          <th mat-header-cell *matHeaderCellDef>ארגון</th>
+          <td mat-cell *matCellDef="let o">
+            <div class="org-cell">
+              @if (o.LogoUrl) {
+                <img [src]="o.LogoUrl" [alt]="o.CompanyName" class="org-logo" />
+              } @else {
+                <div class="org-avatar">{{ o.CompanyName.charAt(0) }}</div>
+              }
+              <span class="org-name">{{ o.CompanyName }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- עמודה: קוד -->
+        <ng-container matColumnDef="TenantCode">
+          <th mat-header-cell *matHeaderCellDef>קוד ארגון</th>
+          <td mat-cell *matCellDef="let o">
+            <code class="code-badge">{{ o.TenantCode }}</code>
+          </td>
+        </ng-container>
+
+        <!-- עמודה: אימייל -->
+        <ng-container matColumnDef="Email">
+          <th mat-header-cell *matHeaderCellDef>אימייל</th>
+          <td mat-cell *matCellDef="let o" class="muted">{{ o.Email }}</td>
+        </ng-container>
+
+        <!-- עמודה: תוכנית -->
+        <ng-container matColumnDef="plan">
+          <th mat-header-cell *matHeaderCellDef>תוכנית</th>
+          <td mat-cell *matCellDef="let o">
+            <span class="chip" [class]="'chip-' + o.PlanType">{{ planLabel(o.PlanType) }}</span>
+          </td>
+        </ng-container>
+
+        <!-- עמודה: משתמשים -->
+        <ng-container matColumnDef="users">
+          <th mat-header-cell *matHeaderCellDef>משתמשים</th>
+          <td mat-cell *matCellDef="let o">
+            <span class="users-count">{{ o.UserCount }}<span class="muted"> / {{ o.MaxUsers }}</span></span>
+          </td>
+        </ng-container>
+
+        <!-- עמודה: תפוגה -->
+        <ng-container matColumnDef="expiry">
+          <th mat-header-cell *matHeaderCellDef>תפוגה</th>
+          <td mat-cell *matCellDef="let o">
+            <span class="expiry" [class.expiry-warn]="daysLeft(o.ExpiresAt) < 30">
+              {{ daysLeft(o.ExpiresAt) }} יום
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- עמודה: סטטוס -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>סטטוס</th>
+          <td mat-cell *matCellDef="let o">
+            <span class="chip" [class]="o.IsActive ? 'chip-active' : 'chip-inactive'">
+              {{ o.IsActive ? 'פעיל' : 'מושהה' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- עמודה: פעולות -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let o">
+            <button mat-icon-button matTooltip="עריכה" class="action-btn">
+              <mat-icon>edit</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns;"></tr>
+
+      </table>
+
+      <!-- Empty state -->
+      @if (filtered().length === 0) {
+        <div class="empty-state">
+          <mat-icon>search_off</mat-icon>
+          <p>לא נמצאו ארגונים התואמים את החיפוש</p>
+        </div>
+      }
+    </div>
+  }
+
 </div>
-<p style="color:#94a3b8">בקרוב...</p>
