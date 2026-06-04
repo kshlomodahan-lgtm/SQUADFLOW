@@ -27,9 +27,9 @@
 
   .sf-dialog .p-dialog-title {
     flex: 1; direction: rtl; text-align: right;
-    font-size: .6rem !important;
-    font-weight: 400 !important;
-    letter-spacing: .4px;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    color: #1e3a5f !important;
   }
 
   .sf-dialog .p-dialog-header-close {
@@ -137,13 +137,14 @@
   flex-direction: column;
 }
 
-// ── Section title — #6 מיושר עם עמודת הכותרות ────────────
+// ── Section title — מיושר עם עמודת הכותרות ────────────────
 .section-title {
   display: flex; align-items: center; gap: 6px;
   font-size: .78rem; font-weight: 700;
   color: var(--sf-primary);
   margin-bottom: 12px;
-  text-align: right;
+  direction: rtl;
+  justify-content: flex-end;   // ← מיושר ימינה
   i { font-size: .8rem; }
 }
 

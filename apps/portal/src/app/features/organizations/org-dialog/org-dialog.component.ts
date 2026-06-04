@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, NgZone } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
@@ -53,6 +53,7 @@ export class OrgDialogComponent implements OnInit {
     private svc:    OrganizationService,
     private upload: UploadService,
     private zone:   NgZone,
+    private cdr:    ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
@@ -122,12 +123,18 @@ export class OrgDialogComponent implements OnInit {
           // הכל בתוך zone — Angular מזהה שינויים מיד
           this.zone.run(() => {
             this.logoPreview = dataUrl;
+            this.cdr.detectChanges();
             this.upload.uploadLogo(compressed).subscribe({
               next: r => {
                 this.uploading = false;
                 if (r.success) this.form.get('logoUrl')?.setValue(r.logoUrl);
+                this.cdr.detectChanges();
               },
-              error: () => { this.uploading = false; this.errorMsg = 'שגיאה בהעלאת הלוגו'; },
+              error: () => {
+                this.uploading = false;
+                this.errorMsg  = 'שגיאה בהעלאת הלוגו';
+                this.cdr.detectChanges();
+              },
             });
           });
         }, 'image/png', 0.85);
