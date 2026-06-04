@@ -83,14 +83,10 @@
         <div class="input-col">
           <div class="logo-upload-wrap">
 
-            <!-- תצוגת לוגו קיים -->
+            <!-- תצוגה -->
             @if (logoPreview) {
               <div class="logo-preview-box">
                 <img [src]="logoPreview" alt="לוגו" class="logo-preview-img" />
-                <button type="button" class="logo-remove-btn"
-                        (click)="removeLogo()" title="הסר לוגו">
-                  <i class="pi pi-times"></i>
-                </button>
               </div>
             } @else {
               <div class="logo-placeholder">
@@ -99,7 +95,7 @@
               </div>
             }
 
-            <!-- כפתור בחירת קובץ -->
+            <!-- כפתורים -->
             <div class="logo-actions">
               <label class="btn-upload" [class.loading]="uploading">
                 @if (uploading) {
@@ -111,7 +107,14 @@
                        (change)="onLogoSelect($event)"
                        style="display:none" />
               </label>
-              <small class="logo-hint">PNG / JPG / SVG עד 2MB</small>
+
+              <button type="button" class="btn-delete"
+                      [disabled]="!logoPreview"
+                      (click)="removeLogo()">
+                <i class="pi pi-trash"></i> מחק קובץ
+              </button>
+
+              <small class="logo-hint">PNG / JPG / SVG · עד 2MB</small>
             </div>
           </div>
         </div>
