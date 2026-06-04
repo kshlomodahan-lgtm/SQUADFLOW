@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -27,11 +27,11 @@ import { OrgDialogComponent } from './org-dialog/org-dialog.component';
   styleUrl:    './organizations.component.scss',
 })
 export class OrganizationsComponent implements OnInit {
-  loading      = signal(true);
-  error        = signal('');
-  orgs         = signal<Organization[]>([]);
-  dialogVisible = signal(false);
-  editOrg       = signal<Organization | null>(null);
+  @ViewChild(OrgDialogComponent) dialog!: OrgDialogComponent;
+
+  loading = signal(true);
+  error   = signal('');
+  orgs    = signal<Organization[]>([]);
 
   constructor(private svc: OrganizationService) {}
 
@@ -45,9 +45,9 @@ export class OrganizationsComponent implements OnInit {
     });
   }
 
-  openAdd()           { this.editOrg.set(null);  this.dialogVisible.set(true); }
-  openEdit(o: Organization) { this.editOrg.set(o); this.dialogVisible.set(true); }
-  onSaved()           { this.load(); }
+  openAdd()                  { this.dialog.open(null); }
+  openEdit(o: Organization)  { this.dialog.open(o); }
+  onSaved()                  { this.load(); }
 
   planLabel(p: string) {
     return ({ basic: 'בסיסי', pro: 'מקצועי', enterprise: 'ארגוני' } as any)[p] ?? p;

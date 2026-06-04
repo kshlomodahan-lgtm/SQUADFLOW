@@ -167,8 +167,4 @@
 </div>
 
 <!-- Dialog הוספה / עדכון -->
-<app-org-dialog
-  [org]="editOrg()"
-  [visible]="dialogVisible()"
-  (visibleChange)="dialogVisible.set($event)"
-  (saved)="onSaved()" />
+<app-org-dialog (saved)="onSaved()" />

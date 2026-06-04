@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
@@ -26,32 +26,14 @@ import { OrganizationService } from '../../../core/services/organization.service
 })
 export class OrgDialogComponent {
 
-  _visible = false;
-  _org: Organization | null = null;
+  @Output() saved = new EventEmitter<void>();
 
-  // org חייב להגיע לפני visible — setter שומר ומאתחל
-  @Input() set org(v: Organization | null) {
-    this._org = v;
-  }
-
-  // visible setter — defer buildForm כדי לתת ל-org להתעדכן קודם
-  @Input() set visible(v: boolean) {
-    this._visible = v;
-    if (v) {
-      this.errorMsg = '';
-      this.saving   = false;
-      // setTimeout מבטיח שכל ה-@Inputs התעדכנו לפני buildForm
-      setTimeout(() => this.buildForm());
-    }
-  }
-  get visible() { return this._visible; }
-
-  @Output() visibleChange = new EventEmitter<boolean>();
-  @Output() saved         = new EventEmitter<void>();
-
-  form!: FormGroup;
+  visible  = false;
   saving   = false;
   errorMsg = '';
+  form!: FormGroup;
+
+  private _org: Organization | null = null;
 
   plans = [
     { label: 'בסיסי',    value: 'basic' },
@@ -64,23 +46,28 @@ export class OrgDialogComponent {
 
   constructor(private fb: FormBuilder, private svc: OrganizationService) {}
 
-  onVisibleChange(v: boolean) {
-    this._visible = v;
-    this.visibleChange.emit(v);
+  // ── API ציבורי שההורה קורא ──────────────────────────
+  open(org: Organization | null = null) {
+    this._org     = org;
+    this.errorMsg = '';
+    this.saving   = false;
+    this.buildForm();
+    this.visible  = true;
   }
 
-  close() { this.onVisibleChange(false); }
+  close() { this.visible = false; }
 
+  // ── בניית טופס ────────────────────────────────────────
   private buildForm() {
-    if (this.isEdit) {
-      const o = this._org!;
+    if (this._org) {
+      const o = this._org;
       this.form = this.fb.group({
-        companyName: [o.CompanyName, [Validators.required, Validators.maxLength(150)]],
-        email:       [o.Email,       [Validators.required, Validators.email]],
+        companyName: [o.CompanyName,    [Validators.required, Validators.maxLength(150)]],
+        email:       [o.Email,          [Validators.required, Validators.email]],
         phone:       [o.Phone ?? ''],
-        planType:    [o.PlanType,    Validators.required],
-        maxUsers:    [o.MaxUsers,    [Validators.required, Validators.min(1)]],
-        maxTickets:  [o.MaxTickets,  [Validators.required, Validators.min(1)]],
+        planType:    [o.PlanType,       Validators.required],
+        maxUsers:    [o.MaxUsers,       [Validators.required, Validators.min(1)]],
+        maxTickets:  [o.MaxTickets,     [Validators.required, Validators.min(1)]],
         isActive:    [o.IsActive],
         notes:       [o.Notes ?? ''],
       });
@@ -98,12 +85,12 @@ export class OrgDialogComponent {
     }
   }
 
-  // ממיר tenantCode לאותיות גדולות בהקלדה
+  // uppercase בזמן הקלדת קוד ארגון
   onTenantCodeInput(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const upper = input.value.toUpperCase();
-    input.value = upper;
-    this.form.get('tenantCode')?.setValue(upper, { emitEvent: false });
+    const el  = event.target as HTMLInputElement;
+    const val = el.value.toUpperCase();
+    el.value  = val;
+    this.form.get('tenantCode')?.setValue(val, { emitEvent: false });
   }
 
   save() {
@@ -112,21 +99,15 @@ export class OrgDialogComponent {
     this.errorMsg = '';
 
     const payload = { ...this.form.value };
-    // ודא uppercase לפני שליחה
-    if (payload.tenantCode) {
-      payload.tenantCode = payload.tenantCode.toUpperCase();
-    }
+    if (payload.tenantCode) payload.tenantCode = payload.tenantCode.toUpperCase();
 
     const obs = this.isEdit
       ? this.svc.update(this._org!.TenantID, payload)
       : this.svc.create(payload);
 
     obs.subscribe({
-      next: () => { this.saving = false; this.saved.emit(); this.close(); },
-      error: err => {
-        this.saving   = false;
-        this.errorMsg = err.error?.message ?? 'שגיאה בשמירה, נסה שנית';
-      },
+      next:  () => { this.saving = false; this.saved.emit(); this.close(); },
+      error: err => { this.saving = false; this.errorMsg = err.error?.message ?? 'שגיאה בשמירה'; },
     });
   }
 }
