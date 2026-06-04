@@ -139,13 +139,12 @@
 
 // ── Section title — מיושר עם עמודת הכותרות ────────────────
 .section-title {
-  display: flex; align-items: center; gap: 6px;
-  font-size: .78rem; font-weight: 700;
+  display: block;
+  font-size: .82rem; font-weight: 600;   // זהה לכותרות שדות
   color: var(--sf-primary);
   margin-bottom: 12px;
-  direction: rtl;
-  justify-content: flex-start;  // ← ב-RTL: flex-start = ימין
-  i { font-size: .8rem; }
+  text-align: right; direction: rtl;
+  i { font-size: .8rem; margin-left: 4px; }
 }
 
 // ── Form rows ─────────────────────────────────────────────
