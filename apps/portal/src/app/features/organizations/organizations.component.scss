@@ -77,25 +77,34 @@
   }
 }
 
-// כותרות — יישור ימין + חץ מיון ב-RTL
-::ng-deep .mat-mdc-header-cell               { text-align: right; justify-content: flex-end; }
-::ng-deep .mat-sort-header-container         { flex-direction: row-reverse; justify-content: flex-end; }
-::ng-deep .mat-sort-header-arrow             { margin-left: 0; margin-right: 4px; }
-::ng-deep .mat-mdc-cell                      { text-align: right; }
+// כותרות + תאים — יישור ימין, צבע, RTL
+:host ::ng-deep {
 
-// header row — צבע בולט, בסגנון Teams
-::ng-deep .mat-mdc-header-row {
-  background: #eef2ff;
-  border-bottom: 2px solid #c7d2fe !important;
-}
-::ng-deep .mat-mdc-header-cell {
-  color: #3730a3 !important;
-  font-weight: 700 !important;
-}
+  .mat-mdc-header-row {
+    background: #eef2ff !important;
+    border-bottom: 2px solid #c7d2fe !important;
+  }
 
-// data rows — לבן טהור
-::ng-deep .mat-mdc-row { background: #fff; }
-.data-row:hover ::ng-deep .mat-mdc-cell { background: #f5f7ff; }
+  .mat-mdc-header-cell {
+    text-align: right !important;
+    justify-content: flex-end !important;
+    color: #3730a3 !important;
+    font-weight: 700 !important;
+  }
+
+  .mat-sort-header-container {
+    flex-direction: row-reverse !important;
+    justify-content: flex-end !important;
+  }
+
+  .mat-sort-header-arrow { margin-left: 0 !important; margin-right: 4px !important; }
+
+  .mat-mdc-cell { text-align: right !important; }
+
+  .mat-mdc-row { background: #fff !important; }
+
+  .mat-mdc-row:hover .mat-mdc-cell { background: #f5f7ff !important; }
+}
 
 // ── Cells ────────────────────────────────────────────────
 .org-cell { display: flex; align-items: center; gap: 10px; }
