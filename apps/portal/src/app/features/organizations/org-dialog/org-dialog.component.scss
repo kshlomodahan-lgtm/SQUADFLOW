@@ -15,10 +15,11 @@
     background: #e8f4fb;          // תכלת ים עדין
     color: #1e3a5f;               // כחול כהה
     border-radius: 12px 12px 0 0;
-    padding: 10px 20px;
+    padding: 8px 16px;
     font-family: 'Noto Sans Hebrew', sans-serif;
-    font-size: .72rem; font-weight: 500;
-    letter-spacing: .3px;
+    font-size: .65rem; font-weight: 400;
+    letter-spacing: .5px;
+    text-transform: uppercase;
     direction: rtl;
     border-bottom: 1px solid #c8dff0;
   }
@@ -146,6 +147,55 @@ label {
 .err {
   font-size: .75rem; color: var(--sf-danger); font-weight: 500;
 }
+
+// ── Logo upload ──────────────────────────────────────────
+.logo-upload-wrap {
+  display: flex; align-items: center; gap: 16px;
+}
+
+.logo-preview-box {
+  position: relative; width: 72px; height: 72px; flex-shrink: 0;
+  border: 1px solid var(--sf-border); border-radius: 8px;
+  overflow: hidden; background: #f8fafc;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.logo-preview-img {
+  max-width: 100%; max-height: 100%; object-fit: contain; padding: 4px;
+}
+
+.logo-remove-btn {
+  position: absolute; top: 2px; left: 2px;
+  background: rgba(0,0,0,.55); border: none; border-radius: 4px;
+  color: #fff; cursor: pointer; padding: 2px 4px;
+  font-size: .65rem; line-height: 1;
+  &:hover { background: var(--sf-danger); }
+}
+
+.logo-placeholder {
+  width: 72px; height: 72px; flex-shrink: 0;
+  border: 1.5px dashed #d1d5db; border-radius: 8px;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 4px; color: #9ca3af;
+  font-size: .7rem;
+  i { font-size: 1.2rem; }
+}
+
+.logo-actions {
+  display: flex; flex-direction: column; gap: 6px;
+}
+
+.btn-upload {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--sf-border); background: #fff;
+  font-size: .82rem; font-weight: 500; color: var(--sf-text);
+  transition: background .15s, border-color .15s;
+  &:hover { background: var(--sf-bg-hover); border-color: var(--sf-primary); color: var(--sf-primary); }
+  &.loading { opacity: .7; cursor: wait; }
+}
+
+.logo-hint { font-size: .7rem; color: var(--sf-text-muted); }
 
 // ── Toggle ───────────────────────────────────────────────
 .toggle-row { flex-direction: row; align-items: center; gap: 10px; padding-top: 6px; }

@@ -11,6 +11,7 @@ import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { Organization } from '../../../core/models/organization.model';
 import { OrganizationService } from '../../../core/services/organization.service';
+import { UploadService } from '../../../core/services/upload.service';
 
 @Component({
   selector: 'app-org-dialog',
@@ -31,10 +32,12 @@ export class OrgDialogComponent implements OnInit {
   @Output() closed = new EventEmitter<void>();
   @Output() saved  = new EventEmitter<void>();
 
-  visible  = true;   // נפתח מיד עם יצירת הקומפוננטה
-  saving   = false;
-  errorMsg = '';
+  visible    = true;
+  saving     = false;
+  uploading  = false;
+  errorMsg   = '';
   form!: FormGroup;
+  logoPreview: string | null = null;
 
   plans = [
     { label: 'בסיסי',    value: 'basic' },
@@ -45,7 +48,11 @@ export class OrgDialogComponent implements OnInit {
   get isEdit() { return !!this.org; }
   get title()  { return this.isEdit ? `עריכת ארגון — ${this.org!.CompanyName}` : 'ארגון חדש'; }
 
-  constructor(private fb: FormBuilder, private svc: OrganizationService) {}
+  constructor(
+    private fb:     FormBuilder,
+    private svc:    OrganizationService,
+    private upload: UploadService,
+  ) {}
 
   ngOnInit() {
     this.buildForm();
@@ -54,6 +61,7 @@ export class OrgDialogComponent implements OnInit {
   private buildForm() {
     if (this.isEdit) {
       const o = this.org!;
+      this.logoPreview = o.LogoUrl || null;
       this.form = this.fb.group({
         companyName: [o.CompanyName,    [Validators.required, Validators.maxLength(150)]],
         email:       [o.Email,          [Validators.required, Validators.email]],
@@ -62,9 +70,11 @@ export class OrgDialogComponent implements OnInit {
         maxUsers:    [o.MaxUsers,       [Validators.required, Validators.min(1)]],
         maxTickets:  [o.MaxTickets,     [Validators.required, Validators.min(1)]],
         isActive:    [o.IsActive],
+        logoUrl:     [o.LogoUrl ?? ''],
         notes:       [o.Notes ?? ''],
       });
     } else {
+      this.logoPreview = null;
       this.form = this.fb.group({
         tenantCode:  ['', [Validators.required, Validators.pattern(/^[A-Z]{3}_[0-9]+$/)]],
         companyName: ['', [Validators.required, Validators.maxLength(150)]],
@@ -73,9 +83,40 @@ export class OrgDialogComponent implements OnInit {
         planType:    ['basic', Validators.required],
         maxUsers:    [10,  [Validators.required, Validators.min(1)]],
         maxTickets:  [200, [Validators.required, Validators.min(1)]],
+        logoUrl:     [''],
         notes:       [''],
       });
     }
+  }
+
+  onLogoSelect(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    // preview מיידי
+    const reader = new FileReader();
+    reader.onload = e => this.logoPreview = e.target?.result as string;
+    reader.readAsDataURL(file);
+
+    // העלאה לשרת
+    this.uploading = true;
+    this.upload.uploadLogo(file).subscribe({
+      next: r => {
+        this.uploading = false;
+        if (r.success) {
+          this.form.get('logoUrl')?.setValue(r.logoUrl);
+        }
+      },
+      error: () => {
+        this.uploading = false;
+        this.errorMsg = 'שגיאה בהעלאת הלוגו';
+      },
+    });
+  }
+
+  removeLogo() {
+    this.logoPreview = null;
+    this.form.get('logoUrl')?.setValue('');
   }
 
   onTenantCodeInput(event: Event) {

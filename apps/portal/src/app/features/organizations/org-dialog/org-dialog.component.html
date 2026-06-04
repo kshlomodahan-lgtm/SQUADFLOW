@@ -71,6 +71,53 @@
       </div>
     </div>
 
+    <!-- ── קטע: לוגו ──────────────────────────────── -->
+    <div class="form-section">
+      <div class="section-title">
+        <i class="pi pi-image"></i>
+        לוגו חברה
+      </div>
+
+      <div class="form-row">
+        <label>לוגו</label>
+        <div class="input-col">
+          <div class="logo-upload-wrap">
+
+            <!-- תצוגת לוגו קיים -->
+            @if (logoPreview) {
+              <div class="logo-preview-box">
+                <img [src]="logoPreview" alt="לוגו" class="logo-preview-img" />
+                <button type="button" class="logo-remove-btn"
+                        (click)="removeLogo()" title="הסר לוגו">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            } @else {
+              <div class="logo-placeholder">
+                <i class="pi pi-image"></i>
+                <span>אין לוגו</span>
+              </div>
+            }
+
+            <!-- כפתור בחירת קובץ -->
+            <div class="logo-actions">
+              <label class="btn-upload" [class.loading]="uploading">
+                @if (uploading) {
+                  <i class="pi pi-spin pi-spinner"></i> מעלה...
+                } @else {
+                  <i class="pi pi-upload"></i> בחר קובץ
+                }
+                <input type="file" accept=".png,.jpg,.jpeg,.svg,.webp"
+                       (change)="onLogoSelect($event)"
+                       style="display:none" />
+              </label>
+              <small class="logo-hint">PNG / JPG / SVG עד 2MB</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ── קטע: תוכנית ─────────────────────────────── -->
     <div class="form-section">
       <div class="section-title">
