@@ -29,6 +29,7 @@
 
 .brand-logo {
   font-size: 1.25rem; font-weight: 900; letter-spacing: -.5px; line-height: 1;
+  direction: ltr;   // שם מותג — תמיד שמאל לימין
   .sq { color: var(--sf-text); }
   .fl { color: var(--sf-primary); }
 }

@@ -248,6 +248,7 @@ input[type="password"] {
 .sf-wordmark {
   display: flex; align-items: baseline;
   line-height: 1;
+  direction: ltr;   // שם מותג — תמיד שמאל לימין
 }
 
 .sf-squad {
