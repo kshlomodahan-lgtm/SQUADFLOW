@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../core/services/auth.service';
 import { TenantService, TenantPublicInfo } from '../../core/services/tenant.service';
+import { NeuralNetComponent } from '../../shared/components/neural-net/neural-net.component';
 
 @Component({
   selector: 'app-login',
@@ -21,6 +22,7 @@ import { TenantService, TenantPublicInfo } from '../../core/services/tenant.serv
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    NeuralNetComponent,
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
