@@ -39,14 +39,21 @@
       [tableStyle]="{'min-width':'700px'}"
       #dt>
 
-      <!-- Caption (search) -->
+      <!-- Caption (search + actions) -->
       <ng-template #caption>
         <div class="table-caption">
-          <p-iconfield>
+          <p-iconfield class="search-field">
             <p-inputicon styleClass="pi pi-search" />
-            <input pInputText type="text" placeholder="חיפוש..."
+            <input pInputText type="text" placeholder="חיפוש לפי שם, קוד, אימייל..."
                    (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
           </p-iconfield>
+          <div class="caption-actions">
+            <p-button icon="pi pi-file-export" [text]="true" [rounded]="true"
+                      severity="secondary" pTooltip="ייצוא" tooltipPosition="top" />
+            <p-button icon="pi pi-refresh" [text]="true" [rounded]="true"
+                      severity="secondary" pTooltip="רענן" tooltipPosition="top"
+                      (onClick)="load()" />
+          </div>
         </div>
       </ng-template>
 

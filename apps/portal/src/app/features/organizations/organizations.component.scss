@@ -26,9 +26,26 @@
   color: var(--sf-primary); font-size: .85rem; text-decoration: underline;
 }
 
-// ── Table caption (search bar) ───────────────────────────
+// ── Table caption ────────────────────────────────────────
 .table-caption {
-  display: flex; justify-content: flex-start; padding: 4px 0 8px;
+  display: flex; align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0 8px;
+  width: 100%;
+}
+
+.search-field {
+  flex: 1;
+  max-width: 480px;
+
+  :host ::ng-deep .p-inputtext {
+    width: 100%;
+  }
+}
+
+.caption-actions {
+  display: flex; align-items: center; gap: 2px;
 }
 
 // ── Org cell ─────────────────────────────────────────────
