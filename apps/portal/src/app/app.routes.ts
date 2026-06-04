@@ -20,6 +20,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
       },
+      {
+        path: 'organizations',
+        loadComponent: () =>
+          import('./features/organizations/organizations.component').then(m => m.OrganizationsComponent),
+      },
     ],
   },
   { path: '**', redirectTo: 'login' },

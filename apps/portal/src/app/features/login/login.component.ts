@@ -27,8 +27,9 @@ import { TenantService, TenantPublicInfo } from '../../core/services/tenant.serv
 })
 export class LoginComponent implements OnInit {
   form!: FormGroup;
-  loading      = signal(false);
+  loading       = signal(false);
   loadingTenant = signal(true);
+  shake         = signal(false);
   error        = signal('');
   showPass     = signal(false);
   tenantCode   = signal('');
@@ -77,8 +78,13 @@ export class LoginComponent implements OnInit {
     });
   }
 
+  triggerShake() {
+    this.shake.set(true);
+    setTimeout(() => this.shake.set(false), 450);
+  }
+
   submit() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) { this.form.markAllAsTouched(); this.triggerShake(); return; }
 
     this.loading.set(true);
     this.error.set('');
@@ -92,11 +98,13 @@ export class LoginComponent implements OnInit {
         } else {
           this.error.set(res.message ?? 'שגיאת כניסה');
           this.loading.set(false);
+          this.triggerShake();
         }
       },
       error: err => {
         this.error.set(err.error?.message ?? 'שגיאת שרת. נסה שנית.');
         this.loading.set(false);
+        this.triggerShake();
       },
     });
   }

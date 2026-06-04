@@ -31,12 +31,12 @@ export class ShellComponent {
   sidebarOpen = true;
 
   navItems: NavItem[] = [
-    { icon: 'dashboard',      label: 'דשבורד',      route: '/app/dashboard' },
-    { icon: 'confirmation_number', label: 'תקלות',   route: '/app/tickets' },
-    { icon: 'people',         label: 'לקוחות',       route: '/app/customers' },
-    { icon: 'manage_accounts', label: 'משתמשים',     route: '/app/users' },
-    { icon: 'corporate_fare', label: 'ארגונים',       route: '/app/organizations' },
-    { icon: 'settings',       label: 'הגדרות',        route: '/app/settings' },
+    { icon: 'dashboard',           label: 'דשבורד',   route: '/app/dashboard' },
+    { icon: 'corporate_fare',      label: 'ארגונים',  route: '/app/organizations' },
+    { icon: 'confirmation_number', label: 'תקלות',    route: '/app/tickets' },
+    { icon: 'people',              label: 'לקוחות',   route: '/app/customers' },
+    { icon: 'manage_accounts',     label: 'משתמשים',  route: '/app/users' },
+    { icon: 'settings',            label: 'הגדרות',   route: '/app/settings' },
   ];
 
   constructor(public auth: AuthService) {}

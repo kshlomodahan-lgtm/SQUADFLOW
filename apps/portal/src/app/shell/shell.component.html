@@ -3,12 +3,17 @@
   <!-- ── Sidebar ─────────────────────────────────── -->
   <aside class="sidebar">
 
-    <!-- לוגו -->
     <div class="sidebar-brand">
-      <span class="brand-squad">SQUAD</span><span class="brand-flow">FLOW</span>
+      @if (sidebarOpen) {
+        <div class="brand-logo">
+          <span class="sq">SQUAD</span><span class="fl">FLOW</span>
+        </div>
+        <div class="brand-tagline">AI Development Platform</div>
+      } @else {
+        <div class="brand-logo"><span class="fl">SF</span></div>
+      }
     </div>
 
-    <!-- ניווט -->
     <nav class="sidebar-nav">
       @for (item of navItems; track item.route) {
         <a class="nav-item"
@@ -17,48 +22,41 @@
            [matTooltip]="!sidebarOpen ? item.label : ''"
            matTooltipPosition="after">
           <mat-icon>{{ item.icon }}</mat-icon>
-          @if (sidebarOpen) {
-            <span>{{ item.label }}</span>
-          }
+          @if (sidebarOpen) { <span>{{ item.label }}</span> }
         </a>
       }
     </nav>
 
-    <!-- Toggle + Logout -->
     <div class="sidebar-footer">
-      <button mat-icon-button class="toggle-btn"
-              (click)="sidebarOpen = !sidebarOpen"
-              [matTooltip]="sidebarOpen ? 'כווץ תפריט' : 'הרחב תפריט'">
+      <button mat-icon-button (click)="sidebarOpen = !sidebarOpen"
+              [matTooltip]="sidebarOpen ? 'כווץ' : 'הרחב'">
         <mat-icon>{{ sidebarOpen ? 'chevron_right' : 'chevron_left' }}</mat-icon>
       </button>
-
-      <button mat-icon-button class="logout-btn"
-              (click)="logout()"
-              matTooltip="התנתק">
+      <button mat-icon-button (click)="logout()" matTooltip="התנתק">
         <mat-icon>logout</mat-icon>
       </button>
     </div>
   </aside>
 
-  <!-- ── Main area ────────────────────────────────── -->
+  <!-- ── Main ────────────────────────────────────── -->
   <div class="main-area">
 
-    <!-- Header -->
     <header class="topbar">
-      <div class="topbar-right">
+      <div class="topbar-start">
         <mat-icon class="topbar-icon">notifications_none</mat-icon>
+        <mat-icon class="topbar-icon">help_outline</mat-icon>
       </div>
-      <div class="topbar-left">
-        <span class="user-name">{{ auth.user()?.fullName }}</span>
-        <span class="user-role">{{ auth.user()?.roleName }}</span>
+      <div class="topbar-end">
+        <div class="user-chip">
+          <div class="user-avatar">{{ auth.user()?.fullName?.charAt(0) }}</div>
+          <span class="user-name">{{ auth.user()?.fullName }}</span>
+        </div>
       </div>
     </header>
 
-    <!-- Page content -->
     <main class="page-content">
       <router-outlet />
     </main>
 
   </div>
-
 </div>
