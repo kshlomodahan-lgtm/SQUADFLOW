@@ -1,6 +1,7 @@
 <p-dialog
   [header]="title"
   [(visible)]="visible"
+  (visibleChange)="!$event && close()"
   [modal]="true"
   [draggable]="true"
   [resizable]="false"

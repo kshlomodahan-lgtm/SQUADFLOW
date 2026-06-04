@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -27,11 +27,11 @@ import { OrgDialogComponent } from './org-dialog/org-dialog.component';
   styleUrl:    './organizations.component.scss',
 })
 export class OrganizationsComponent implements OnInit {
-  @ViewChild(OrgDialogComponent) dialog!: OrgDialogComponent;
-
-  loading = signal(true);
-  error   = signal('');
-  orgs    = signal<Organization[]>([]);
+  loading    = signal(true);
+  error      = signal('');
+  orgs       = signal<Organization[]>([]);
+  dialogOpen = false;
+  dialogOrg: Organization | null = null;
 
   constructor(private svc: OrganizationService) {}
 
@@ -45,8 +45,8 @@ export class OrganizationsComponent implements OnInit {
     });
   }
 
-  openAdd()                  { this.dialog.open(null); }
-  openEdit(o: Organization)  { this.dialog.open(o); }
+  openAdd()                 { this.dialogOrg = null;  this.dialogOpen = false; setTimeout(() => this.dialogOpen = true); }
+  openEdit(o: Organization) { this.dialogOrg = o;     this.dialogOpen = false; setTimeout(() => this.dialogOpen = true); }
   onSaved()                  { this.load(); }
 
   planLabel(p: string) {

@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
@@ -24,16 +24,17 @@ import { OrganizationService } from '../../../core/services/organization.service
   templateUrl: './org-dialog.component.html',
   styleUrl:    './org-dialog.component.scss',
 })
-export class OrgDialogComponent {
+export class OrgDialogComponent implements OnInit {
 
-  @Output() saved = new EventEmitter<void>();
+  // הקומפוננטה נוצרת מחדש בכל פתיחה — ngOnInit בונה טופס נקי
+  @Input()  org: Organization | null = null;
+  @Output() closed = new EventEmitter<void>();
+  @Output() saved  = new EventEmitter<void>();
 
-  visible  = false;
+  visible  = true;   // נפתח מיד עם יצירת הקומפוננטה
   saving   = false;
   errorMsg = '';
   form!: FormGroup;
-
-  private _org: Organization | null = null;
 
   plans = [
     { label: 'בסיסי',    value: 'basic' },
@@ -41,26 +42,18 @@ export class OrgDialogComponent {
     { label: 'ארגוני',   value: 'enterprise' },
   ];
 
-  get isEdit() { return !!this._org; }
-  get title()  { return this.isEdit ? `עריכת ארגון — ${this._org!.CompanyName}` : 'ארגון חדש'; }
+  get isEdit() { return !!this.org; }
+  get title()  { return this.isEdit ? `עריכת ארגון — ${this.org!.CompanyName}` : 'ארגון חדש'; }
 
   constructor(private fb: FormBuilder, private svc: OrganizationService) {}
 
-  // ── API ציבורי שההורה קורא ──────────────────────────
-  open(org: Organization | null = null) {
-    this._org     = org;
-    this.errorMsg = '';
-    this.saving   = false;
+  ngOnInit() {
     this.buildForm();
-    this.visible  = true;
   }
 
-  close() { this.visible = false; }
-
-  // ── בניית טופס ────────────────────────────────────────
   private buildForm() {
-    if (this._org) {
-      const o = this._org;
+    if (this.isEdit) {
+      const o = this.org!;
       this.form = this.fb.group({
         companyName: [o.CompanyName,    [Validators.required, Validators.maxLength(150)]],
         email:       [o.Email,          [Validators.required, Validators.email]],
@@ -85,12 +78,16 @@ export class OrgDialogComponent {
     }
   }
 
-  // uppercase בזמן הקלדת קוד ארגון
   onTenantCodeInput(event: Event) {
     const el  = event.target as HTMLInputElement;
     const val = el.value.toUpperCase();
     el.value  = val;
     this.form.get('tenantCode')?.setValue(val, { emitEvent: false });
+  }
+
+  close() {
+    this.visible = false;
+    this.closed.emit();
   }
 
   save() {
@@ -102,7 +99,7 @@ export class OrgDialogComponent {
     if (payload.tenantCode) payload.tenantCode = payload.tenantCode.toUpperCase();
 
     const obs = this.isEdit
-      ? this.svc.update(this._org!.TenantID, payload)
+      ? this.svc.update(this.org!.TenantID, payload)
       : this.svc.create(payload);
 
     obs.subscribe({
