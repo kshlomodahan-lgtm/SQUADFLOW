@@ -144,7 +144,7 @@
   color: var(--sf-primary);
   margin-bottom: 12px;
   direction: rtl;
-  justify-content: flex-end;   // ← מיושר ימינה
+  justify-content: flex-start;  // ← ב-RTL: flex-start = ימין
   i { font-size: .8rem; }
 }
 
