@@ -51,19 +51,9 @@
         </div>
 
         <div class="form-row">
-          <label>אימייל <span class="req">*</span></label>
+          <label>מספר עוסק / ח.פ.</label>
           <div class="input-col">
-            <input pInputText formControlName="email" type="email" class="line-input" />
-            @if (form.get('email')?.invalid && form.get('email')?.touched) {
-              <small class="err">אימייל לא תקין</small>
-            }
-          </div>
-        </div>
-
-        <div class="form-row">
-          <label>טלפון</label>
-          <div class="input-col">
-            <input pInputText formControlName="phone" placeholder="050-0000000" class="line-input" />
+            <input pInputText formControlName="businessNumber" class="line-input" placeholder="123456789" />
           </div>
         </div>
       </div>
@@ -71,7 +61,6 @@
       <!-- שמאל — לוגו -->
       <div class="form-section logo-section">
         <div class="section-title">לוגו חברה</div>
-
         <div class="logo-block">
           @if (logoPreview) {
             <div class="logo-preview-box">
@@ -83,106 +72,46 @@
               <span>אין לוגו</span>
             </div>
           }
-
-          <!-- כפתורים מתחת ללוגו -->
           <div class="logo-btns">
             <label class="btn-upload" [class.loading]="uploading">
-              @if (uploading) {
-                <i class="pi pi-spin pi-spinner"></i>
-              } @else {
-                <i class="pi pi-upload"></i> העלאה
-              }
+              @if (uploading) { <i class="pi pi-spin pi-spinner"></i> }
+              @else { <i class="pi pi-upload"></i> העלאה }
               <input type="file" accept=".png,.jpg,.jpeg,.svg,.webp"
                      (change)="onLogoSelect($event)" style="display:none" />
             </label>
-
-            <button type="button" class="btn-delete"
-                    [disabled]="!logoPreview" (click)="removeLogo()">
+            <button type="button" class="btn-delete" [disabled]="!logoPreview" (click)="removeLogo()">
               <i class="pi pi-trash"></i> מחיקה
             </button>
           </div>
-
           <small class="logo-hint">PNG &nbsp;·&nbsp; JPG &nbsp;·&nbsp; SVG &nbsp;·&nbsp; max 2MB</small>
         </div>
       </div>
 
     </div>
 
-    <!-- ══ תוכנית ומגבלות ══ -->
+    <!-- ══ פרטי איש קשר ══ -->
     <div class="form-section">
-      <div class="section-title">תוכנית ומגבלות</div>
-
-      <div class="form-row">
-        <label>תוכנית</label>
-        <div class="input-col">
-          <p-select formControlName="planType" [options]="plans"
-                    optionLabel="label" optionValue="value" styleClass="line-select w-full" />
-        </div>
-      </div>
-
-      <div class="form-row">
-        <label>מקסימום משתמשים</label>
-        <div class="input-col">
-          <p-inputnumber formControlName="maxUsers" [min]="1" [max]="9999" styleClass="w-full" />
-        </div>
-      </div>
-
-      <div class="form-row">
-        <label>מקסימום תקלות</label>
-        <div class="input-col">
-          <p-inputnumber formControlName="maxTickets" [min]="1" [max]="999999" styleClass="w-full" />
-        </div>
-      </div>
-
-      @if (isEdit) {
-        <div class="form-row">
-          <label>סטטוס</label>
-          <div class="input-col toggle-row">
-            <p-toggleswitch formControlName="isActive" />
-            <span class="toggle-label">{{ form.get('isActive')?.value ? 'פעיל' : 'מושהה' }}</span>
-          </div>
-        </div>
-      }
-    </div>
-
-    <!-- ══ פרטים נוספים ══ -->
-    <div class="form-section">
-      <div class="section-title">פרטים נוספים</div>
+      <div class="section-title">פרטי איש קשר</div>
       <div class="form-grid-2">
         <div class="form-row">
-          <label>מספר עוסק / ח.פ.</label>
-          <div class="input-col">
-            <input pInputText formControlName="businessNumber" class="line-input" placeholder="123456789" />
-          </div>
-        </div>
-        <div class="form-row">
-          <label>אתר אינטרנט</label>
-          <div class="input-col">
-            <input pInputText formControlName="website" class="line-input" placeholder="www.example.com" />
-          </div>
-        </div>
-        <div class="form-row">
-          <label>כתובת</label>
-          <div class="input-col">
-            <input pInputText formControlName="address" class="line-input" placeholder="רחוב, מספר" />
-          </div>
-        </div>
-        <div class="form-row">
-          <label>עיר</label>
-          <div class="input-col">
-            <input pInputText formControlName="city" class="line-input" placeholder="תל אביב" />
-          </div>
-        </div>
-        <div class="form-row">
-          <label>מדינה</label>
-          <div class="input-col">
-            <input pInputText formControlName="country" class="line-input" />
-          </div>
-        </div>
-        <div class="form-row">
-          <label>שם איש קשר</label>
+          <label>איש קשר</label>
           <div class="input-col">
             <input pInputText formControlName="contactName" class="line-input" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>דוא"ל <span class="req">*</span></label>
+          <div class="input-col">
+            <input pInputText formControlName="email" type="email" class="line-input" />
+            @if (form.get('email')?.invalid && form.get('email')?.touched) {
+              <small class="err">כתובת דוא"ל לא תקינה</small>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <label>טלפון</label>
+          <div class="input-col">
+            <input pInputText formControlName="phone" class="line-input" placeholder="050-0000000" />
           </div>
         </div>
         <div class="form-row">
@@ -195,6 +124,37 @@
           <label>פקס</label>
           <div class="input-col">
             <input pInputText formControlName="fax" class="line-input" placeholder="03-0000000" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>אתר אינטרנט</label>
+          <div class="input-col">
+            <input pInputText formControlName="website" class="line-input" placeholder="www.example.com" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ כתובת ══ -->
+    <div class="form-section">
+      <div class="section-title">כתובת</div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>כתובת</label>
+          <div class="input-col">
+            <input pInputText formControlName="address" class="line-input" placeholder="רחוב ומספר" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>עיר</label>
+          <div class="input-col">
+            <input pInputText formControlName="city" class="line-input" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>מדינה</label>
+          <div class="input-col">
+            <input pInputText formControlName="country" class="line-input" />
           </div>
         </div>
       </div>
@@ -219,15 +179,55 @@
         <div class="form-row">
           <label>מספר חשבון</label>
           <div class="input-col">
-            <input pInputText formControlName="bankAccount" class="line-input" placeholder="מספר חשבון" />
+            <input pInputText formControlName="bankAccount" class="line-input" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ הנהלת חשבונות ══ -->
+    <div class="form-section">
+      <div class="section-title">הנהלת חשבונות</div>
+      <div class="form-row">
+        <label>מספר בהנה"ח</label>
+        <div class="input-col">
+          <input pInputText formControlName="accountingRef" class="line-input" placeholder="מספר בהנהלת חשבונות" />
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ תוכנית ומגבלות ══ -->
+    <div class="form-section">
+      <div class="section-title">תוכנית ומגבלות</div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>תוכנית</label>
+          <div class="input-col">
+            <p-select formControlName="planType" [options]="plans"
+                      optionLabel="label" optionValue="value" styleClass="line-select w-full" />
           </div>
         </div>
         <div class="form-row">
-          <label>מספר בהנה"ח</label>
+          <label>מקסימום משתמשים</label>
           <div class="input-col">
-            <input pInputText formControlName="accountingRef" class="line-input" placeholder="מספר בהנהלת חשבונות" />
+            <p-inputnumber formControlName="maxUsers" [min]="1" [max]="9999" styleClass="w-full" />
           </div>
         </div>
+        <div class="form-row">
+          <label>מקסימום תקלות</label>
+          <div class="input-col">
+            <p-inputnumber formControlName="maxTickets" [min]="1" [max]="999999" styleClass="w-full" />
+          </div>
+        </div>
+        @if (isEdit) {
+          <div class="form-row">
+            <label>סטטוס</label>
+            <div class="input-col toggle-row">
+              <p-toggleswitch formControlName="isActive" />
+              <span class="toggle-label">{{ form.get('isActive')?.value ? 'פעיל' : 'מושהה' }}</span>
+            </div>
+          </div>
+        }
       </div>
     </div>
 
