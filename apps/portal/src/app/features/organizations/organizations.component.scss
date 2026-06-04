@@ -88,6 +88,8 @@
   cursor: default;
 }
 
+.icon-demo { display: flex; align-items: center; gap: 2px; }
+
 // ── Status dot ───────────────────────────────────────────
 .status-dot-wrap {
   display: flex; align-items: center; gap: 7px;

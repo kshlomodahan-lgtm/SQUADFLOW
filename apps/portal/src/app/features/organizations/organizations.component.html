@@ -142,9 +142,32 @@
 
           <!-- פעולות -->
           <td>
-            <p-button icon="pi pi-pencil" label="עריכה"
-                      severity="info" [outlined]="true" size="small"
-                      (click)="openEdit(o)" />
+            <div class="icon-demo">
+              <!-- א -->
+              <p-button icon="pi pi-pencil"
+                        [rounded]="true" [text]="true"
+                        severity="info" size="small"
+                        pTooltip="א - עיגול" tooltipPosition="top"
+                        (click)="openEdit(o)" />
+              <!-- ב -->
+              <p-button icon="pi pi-pen-to-square"
+                        [rounded]="true" [text]="true"
+                        severity="secondary" size="small"
+                        pTooltip="ב - עיפרון ריבועי" tooltipPosition="top"
+                        (click)="openEdit(o)" />
+              <!-- ג -->
+              <p-button icon="pi pi-ellipsis-v"
+                        [rounded]="true" [text]="true"
+                        severity="secondary" size="small"
+                        pTooltip="ג - 3 נקודות" tooltipPosition="top"
+                        (click)="openEdit(o)" />
+              <!-- ד -->
+              <p-button icon="pi pi-cog"
+                        [rounded]="true" [text]="true"
+                        severity="secondary" size="small"
+                        pTooltip="ד - גלגל שיניים" tooltipPosition="top"
+                        (click)="openEdit(o)" />
+            </div>
           </td>
         </tr>
       </ng-template>

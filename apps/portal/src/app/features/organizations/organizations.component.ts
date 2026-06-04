@@ -5,6 +5,7 @@ import { TableModule } from 'primeng/table';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,7 +19,7 @@ import { OrgDialogComponent } from './org-dialog/org-dialog.component';
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    TableModule, InputTextModule, ButtonModule, TagModule,
+    TableModule, InputTextModule, ButtonModule, TagModule, TooltipModule,
     IconFieldModule, InputIconModule,
     MatIconModule, MatProgressSpinnerModule,
     OrgDialogComponent,
