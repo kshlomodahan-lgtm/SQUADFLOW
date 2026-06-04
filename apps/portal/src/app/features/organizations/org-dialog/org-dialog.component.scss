@@ -147,12 +147,28 @@
   i { font-size: .8rem; margin-left: 4px; }
 }
 
-// ── 2-column grid for additional sections ─────────────────
+// ── 2-column grid within a section ────────────────────────
 .form-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0 24px;
   direction: rtl;
+}
+
+// ── Side-by-side sections ──────────────────────────────────
+.side-by-side {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  direction: rtl;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.side-section {
+  border-bottom: none !important;
+}
+
+.side-border {
+  border-right: 1px solid #f0f2f5;
 }
 
 // ── Form rows ─────────────────────────────────────────────
