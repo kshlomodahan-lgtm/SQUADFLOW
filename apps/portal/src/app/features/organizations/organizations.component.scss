@@ -83,14 +83,19 @@
 ::ng-deep .mat-sort-header-arrow             { margin-left: 0; margin-right: 4px; }
 ::ng-deep .mat-mdc-cell                      { text-align: right; }
 
-// header row
+// header row — צבע בולט, בסגנון Teams
 ::ng-deep .mat-mdc-header-row {
-  background: var(--sf-bg);
-  border-bottom: 2px solid var(--sf-border) !important;
+  background: #eef2ff;
+  border-bottom: 2px solid #c7d2fe !important;
+}
+::ng-deep .mat-mdc-header-cell {
+  color: #3730a3 !important;
+  font-weight: 700 !important;
 }
 
-// data row hover
-.data-row:hover ::ng-deep .mat-mdc-cell { background: var(--sf-bg-hover); }
+// data rows — לבן טהור
+::ng-deep .mat-mdc-row { background: #fff; }
+.data-row:hover ::ng-deep .mat-mdc-cell { background: #f5f7ff; }
 
 // ── Cells ────────────────────────────────────────────────
 .org-cell { display: flex; align-items: center; gap: 10px; }
