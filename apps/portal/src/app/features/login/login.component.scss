@@ -237,6 +237,40 @@ input[type="password"] {
   top: -60px; left: 40px;
 }
 
+// ── SQUADFLOW Logo ──────────────────────────────────────
+.sf-logo-wrap {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 48px;
+}
+
+.sf-wordmark {
+  display: flex; align-items: baseline;
+  line-height: 1;
+}
+
+.sf-squad {
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 800; font-size: 2.6rem;
+  letter-spacing: -1px;
+  color: #fff;
+}
+
+.sf-flow {
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 300; font-size: 2.6rem;
+  letter-spacing: 2px;
+  color: #00E5FF;
+}
+
+.sf-tagline {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .68rem; letter-spacing: 4px;
+  color: #4A6FA5; text-transform: uppercase;
+  margin-top: 6px;
+}
+
 .hero-body { position: relative; z-index: 2; }
 
 .live-badge {
