@@ -1,6 +1,6 @@
-:host { display: block; }
+:host { display: block; width: 100%; }
 
-.orgs-page { max-width: 1200px; }
+.orgs-page { width: 100%; }
 
 // ── Header ──────────────────────────────────────────────
 .page-header {
@@ -67,8 +67,14 @@
   background: #fff;
   border: 1px solid var(--sf-border);
   border-radius: 12px;
-  overflow: hidden;
+  overflow: auto;           // גלילה אופקית רק בעת הצורך
   box-shadow: var(--sf-shadow);
+  width: 100%;
+
+  table {
+    width: 100%;
+    min-width: 700px;       // מניעת כיווץ יתר לפני גלילה
+  }
 }
 
 // sort header arrows → align RTL
@@ -147,6 +153,25 @@
   color: var(--sf-text-muted);
   mat-icon { font-size: 36px; width: 36px; height: 36px; }
   p { margin: 0; font-size: .88rem; }
+}
+
+// ── Responsive ──────────────────────────────────────────
+
+// מסך בינוני — מסתיר אימייל ותפוגה
+@media (max-width: 1024px) {
+  ::ng-deep .mat-column-Email,
+  ::ng-deep .mat-column-expiry { display: none !important; }
+
+  .search-wrap { width: 100%; }
+}
+
+// מסך קטן — מסתיר גם קוד ארגון
+@media (max-width: 720px) {
+  ::ng-deep .mat-column-TenantCode,
+  ::ng-deep .mat-column-users   { display: none !important; }
+
+  .page-header { flex-direction: column; gap: 12px; align-items: stretch;
+    .btn-primary { justify-content: center; } }
 }
 
 // ── Paginator ────────────────────────────────────────────
