@@ -1,38 +1,20 @@
 <div class="orgs-page">
 
-  <!-- ── Header ─────────────────────────────────── -->
+  <!-- Header -->
   <div class="page-header">
     <div>
       <h1>ארגונים</h1>
-      <p>{{ ds.data.length }} ארגונים רשומים במערכת</p>
+      <p>{{ orgs().length }} ארגונים רשומים במערכת</p>
     </div>
-    <button class="btn-primary">
-      <mat-icon>add</mat-icon>
-      ארגון חדש
-    </button>
+    <p-button label="ארגון חדש" icon="pi pi-plus" styleClass="btn-new"></p-button>
   </div>
 
-  <!-- ── Toolbar ────────────────────────────────── -->
-  <div class="toolbar">
-    <div class="search-wrap">
-      <mat-icon class="search-icon">search</mat-icon>
-      <input class="search-input" type="text" placeholder="חיפוש לפי שם, קוד או אימייל..."
-             #searchInput
-             (input)="applyFilter(searchInput.value)" />
-      @if (searchInput.value) {
-        <button class="clear-btn" (click)="searchInput.value=''; applyFilter('')">
-          <mat-icon>close</mat-icon>
-        </button>
-      }
-    </div>
-  </div>
-
-  <!-- ── Loading ────────────────────────────────── -->
+  <!-- Loading -->
   @if (loading()) {
     <div class="state-box"><mat-spinner diameter="36" /></div>
   }
 
-  <!-- ── Error ──────────────────────────────────── -->
+  <!-- Error -->
   @if (!loading() && error()) {
     <div class="state-box error">
       <mat-icon>error_outline</mat-icon>
@@ -41,17 +23,64 @@
     </div>
   }
 
-  <!-- ── Table ──────────────────────────────────── -->
+  <!-- PrimeNG Table -->
   @if (!loading() && !error()) {
-    <div class="table-card">
-      <table mat-table [dataSource]="ds" matSort matSortActive="CompanyName" matSortDirection="asc">
+    <p-table
+      [value]="orgs()"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="{first}–{last} מתוך {totalRecords} רשומות"
+      [globalFilterFields]="['CompanyName','TenantCode','Email','Phone']"
+      sortField="CompanyName"
+      [sortOrder]="1"
+      styleClass="p-datatable-striped p-datatable-sm p-datatable-gridlines"
+      [tableStyle]="{'min-width':'700px'}"
+      #dt>
 
-        <!-- ארגון -->
-        <ng-container matColumnDef="org">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="מיין לפי שם">
-            ארגון
+      <!-- Caption (search) -->
+      <ng-template #caption>
+        <div class="table-caption">
+          <p-iconfield>
+            <p-inputicon styleClass="pi pi-search" />
+            <input pInputText type="text" placeholder="חיפוש..."
+                   (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
+          </p-iconfield>
+        </div>
+      </ng-template>
+
+      <!-- Headers -->
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="CompanyName" style="min-width:200px">
+            ארגון <p-sortIcon field="CompanyName" />
           </th>
-          <td mat-cell *matCellDef="let o">
+          <th pSortableColumn="TenantCode" style="width:140px">
+            קוד ארגון <p-sortIcon field="TenantCode" />
+          </th>
+          <th pSortableColumn="Email">
+            אימייל <p-sortIcon field="Email" />
+          </th>
+          <th pSortableColumn="PlanType" style="width:110px">
+            תוכנית <p-sortIcon field="PlanType" />
+          </th>
+          <th pSortableColumn="UserCount" style="width:110px">
+            משתמשים <p-sortIcon field="UserCount" />
+          </th>
+          <th style="width:110px">תפוגה</th>
+          <th pSortableColumn="IsActive" style="width:100px">
+            סטטוס <p-sortIcon field="IsActive" />
+          </th>
+          <th style="width:72px"></th>
+        </tr>
+      </ng-template>
+
+      <!-- Body -->
+      <ng-template #body let-o>
+        <tr>
+          <!-- ארגון -->
+          <td>
             <div class="org-cell">
               @if (o.LogoUrl) {
                 <img [src]="o.LogoUrl" [alt]="o.CompanyName" class="org-logo" />
@@ -61,92 +90,57 @@
               <span class="org-name">{{ o.CompanyName }}</span>
             </div>
           </td>
-        </ng-container>
 
-        <!-- קוד -->
-        <ng-container matColumnDef="TenantCode">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="מיין לפי קוד">קוד</th>
-          <td mat-cell *matCellDef="let o">
-            <code class="code-badge">{{ o.TenantCode }}</code>
+          <!-- קוד -->
+          <td><code class="code-badge">{{ o.TenantCode }}</code></td>
+
+          <!-- אימייל -->
+          <td class="muted">{{ o.Email }}</td>
+
+          <!-- תוכנית -->
+          <td>
+            <p-tag [value]="planLabel(o.PlanType)" [severity]="planSeverity(o.PlanType)" />
           </td>
-        </ng-container>
 
-        <!-- אימייל -->
-        <ng-container matColumnDef="Email">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="מיין לפי אימייל">אימייל</th>
-          <td mat-cell *matCellDef="let o" class="muted">{{ o.Email }}</td>
-        </ng-container>
-
-        <!-- תוכנית -->
-        <ng-container matColumnDef="plan">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="מיין לפי תוכנית">תוכנית</th>
-          <td mat-cell *matCellDef="let o">
-            <span class="chip" [class]="'chip-' + o.PlanType">{{ planLabel(o.PlanType) }}</span>
+          <!-- משתמשים -->
+          <td>
+            <span class="users-count">{{ o.UserCount }}</span>
+            <span class="muted"> / {{ o.MaxUsers }}</span>
           </td>
-        </ng-container>
 
-        <!-- משתמשים -->
-        <ng-container matColumnDef="users">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="מיין לפי משתמשים">משתמשים</th>
-          <td mat-cell *matCellDef="let o">
-            <span class="users-count">
-              {{ o.UserCount }}<span class="muted"> / {{ o.MaxUsers }}</span>
-            </span>
-          </td>
-        </ng-container>
-
-        <!-- תפוגה -->
-        <ng-container matColumnDef="expiry">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="מיין לפי תפוגה">תפוגה</th>
-          <td mat-cell *matCellDef="let o">
-            <span class="expiry" [class.expiry-warn]="daysLeft(o.ExpiresAt) < 30">
+          <!-- תפוגה -->
+          <td>
+            <span [class]="daysLeft(o.ExpiresAt) < 30 ? 'expiry-warn' : 'muted'">
               {{ daysLeft(o.ExpiresAt) }} יום
             </span>
           </td>
-        </ng-container>
 
-        <!-- סטטוס -->
-        <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="מיין לפי סטטוס">סטטוס</th>
-          <td mat-cell *matCellDef="let o">
-            <span class="chip" [class]="o.IsActive ? 'chip-active' : 'chip-inactive'">
-              <span class="chip-dot"></span>
-              {{ o.IsActive ? 'פעיל' : 'מושהה' }}
-            </span>
+          <!-- סטטוס -->
+          <td>
+            <p-tag [value]="o.IsActive ? 'פעיל' : 'מושהה'"
+                   [severity]="o.IsActive ? 'success' : 'danger'" />
           </td>
-        </ng-container>
 
-        <!-- פעולות -->
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef></th>
-          <td mat-cell *matCellDef="let o">
-            <button mat-icon-button class="action-btn" matTooltip="עריכה">
-              <mat-icon>edit</mat-icon>
-            </button>
+          <!-- פעולות -->
+          <td>
+            <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" size="small"></p-button>
           </td>
-        </ng-container>
+        </tr>
+      </ng-template>
 
-        <tr mat-header-row *matHeaderRowDef="columns; sticky: true"></tr>
-        <tr mat-row *matRowDef="let row; columns: columns;" class="data-row"></tr>
-
-        <!-- empty after filter -->
-        <tr class="mat-row" *matNoDataRow>
-          <td [attr.colspan]="columns.length">
+      <!-- Empty -->
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="8">
             <div class="empty-state">
-              <mat-icon>search_off</mat-icon>
-              <p>לא נמצאו ארגונים התואמים את הסינון</p>
+              <i class="pi pi-search" style="font-size:2rem;color:#94a3b8"></i>
+              <p>לא נמצאו ארגונים</p>
             </div>
           </td>
         </tr>
+      </ng-template>
 
-      </table>
-
-      <!-- ── Paginator ── -->
-      <mat-paginator [pageSizeOptions]="[10, 25, 50]"
-                     pageSize="10"
-                     showFirstLastButtons
-                     aria-label="ניווט בין עמודים" />
-    </div>
+    </p-table>
   }
 
 </div>

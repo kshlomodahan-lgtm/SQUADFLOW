@@ -1,8 +1,7 @@
 :host { display: block; width: 100%; }
-
 .orgs-page { width: 100%; }
 
-// ── Header ──────────────────────────────────────────────
+// ── Header ───────────────────────────────────────────────
 .page-header {
   display: flex; align-items: flex-start; justify-content: space-between;
   margin-bottom: 20px;
@@ -10,191 +9,130 @@
   p  { font-size: .83rem; color: var(--sf-text-secondary); margin: 3px 0 0; }
 }
 
-.btn-primary {
-  display: flex; align-items: center; gap: 6px;
-  padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer;
-  background: var(--sf-primary); color: #fff;
-  font-family: 'Noto Sans Hebrew', sans-serif;
-  font-size: .88rem; font-weight: 600; white-space: nowrap;
-  transition: background .15s;
-  mat-icon { font-size: 18px; width: 18px; height: 18px; }
-  &:hover { background: var(--sf-primary-hover); }
+.btn-new {
+  font-family: 'Noto Sans Hebrew', sans-serif !important;
+  font-size: .88rem !important;
 }
 
-// ── Toolbar ─────────────────────────────────────────────
-.toolbar { margin-bottom: 14px; }
-
-.search-wrap {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: #fff; border: 1px solid var(--sf-border);
-  border-radius: 8px; padding: 0 12px; width: 340px;
-  transition: border-color .15s, box-shadow .15s;
-  &:focus-within {
-    border-color: var(--sf-primary);
-    box-shadow: 0 0 0 3px rgba(13,71,255,.08);
-  }
-}
-.search-icon  { color: var(--sf-text-muted); font-size: 18px; width: 18px; flex-shrink: 0; }
-.search-input {
-  flex: 1; border: none; outline: none;
-  padding: 9px 0; direction: rtl;
-  font-family: 'Noto Sans Hebrew', sans-serif; font-size: .88rem; color: var(--sf-text);
-  background: transparent;
-  &::placeholder { color: var(--sf-text-muted); }
-}
-.clear-btn {
-  background: none; border: none; cursor: pointer; padding: 0;
-  color: var(--sf-text-muted); display: flex; align-items: center;
-  mat-icon { font-size: 16px; width: 16px; height: 16px; }
-  &:hover { color: var(--sf-text); }
-}
-
-// ── State boxes ──────────────────────────────────────────
+// ── States ───────────────────────────────────────────────
 .state-box {
   display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 12px;
   padding: 64px; color: var(--sf-text-secondary); text-align: center;
   &.error { color: var(--sf-danger); }
-  mat-icon { font-size: 32px; width: 32px; height: 32px; }
 }
 .btn-link {
   background: none; border: none; cursor: pointer;
   color: var(--sf-primary); font-size: .85rem; text-decoration: underline;
 }
 
-// ── Table card ───────────────────────────────────────────
-.table-card {
-  background: #fff;
-  border: 1px solid var(--sf-border);
-  border-radius: 12px;
-  overflow: auto;           // גלילה אופקית רק בעת הצורך
-  box-shadow: var(--sf-shadow);
-  width: 100%;
-
-  table {
-    width: 100%;
-    min-width: 700px;       // מניעת כיווץ יתר לפני גלילה
-  }
+// ── Table caption (search bar) ───────────────────────────
+.table-caption {
+  display: flex; justify-content: flex-end; padding: 4px 0 8px;
 }
 
-// כותרות + תאים — יישור ימין, צבע, RTL
-:host ::ng-deep {
-
-  .mat-mdc-header-row {
-    background: #eef2ff !important;
-    border-bottom: 2px solid #c7d2fe !important;
-  }
-
-  .mat-mdc-header-cell {
-    text-align: right !important;
-    justify-content: flex-end !important;
-    color: #3730a3 !important;
-    font-weight: 700 !important;
-  }
-
-  .mat-sort-header-container {
-    flex-direction: row-reverse !important;
-    justify-content: flex-end !important;
-  }
-
-  .mat-sort-header-arrow { margin-left: 0 !important; margin-right: 4px !important; }
-
-  .mat-mdc-cell { text-align: right !important; }
-
-  .mat-mdc-row { background: #fff !important; }
-
-  .mat-mdc-row:hover .mat-mdc-cell { background: #f5f7ff !important; }
-}
-
-// ── Cells ────────────────────────────────────────────────
+// ── Org cell ─────────────────────────────────────────────
 .org-cell { display: flex; align-items: center; gap: 10px; }
 
 .org-logo {
-  width: 34px; height: 34px; border-radius: 6px;
+  width: 32px; height: 32px; border-radius: 6px;
   object-fit: contain; border: 1px solid var(--sf-border);
   padding: 2px; background: #fff; flex-shrink: 0;
 }
+
 .org-avatar {
-  width: 34px; height: 34px; border-radius: 6px; flex-shrink: 0;
+  width: 32px; height: 32px; border-radius: 6px; flex-shrink: 0;
   background: var(--sf-primary-light); color: var(--sf-primary);
   font-size: .85rem; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
 }
+
 .org-name { font-weight: 600; color: var(--sf-text); font-size: .88rem; }
 
 .code-badge {
   font-family: 'Share Tech Mono', monospace; font-size: .78rem;
   background: var(--sf-bg); border: 1px solid var(--sf-border);
   border-radius: 5px; padding: 2px 8px; color: var(--sf-text-secondary);
-  letter-spacing: .5px;
 }
 
-.muted { color: var(--sf-text-secondary); font-size: .85rem; }
-.users-count { font-size: .88rem; font-weight: 600; color: var(--sf-text); }
+.muted      { color: var(--sf-text-secondary); font-size: .85rem; }
+.users-count{ font-weight: 600; color: var(--sf-text); }
+.expiry-warn{ color: var(--sf-warning); font-weight: 600; font-size: .85rem; }
 
-// ── Chips ────────────────────────────────────────────────
-.chip {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 3px 10px; border-radius: 20px;
-  font-size: .75rem; font-weight: 600; white-space: nowrap;
-}
-.chip-dot {
-  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
-}
-.chip-basic      { background: #f1f5f9; color: #64748b;
-                   .chip-dot { background: #94a3b8; } }
-.chip-pro        { background: #eff6ff; color: #3b82f6;
-                   .chip-dot { background: #60a5fa; } }
-.chip-enterprise { background: #faf5ff; color: #8b5cf6;
-                   .chip-dot { background: #a78bfa; } }
-.chip-active     { background: #f0fdf4; color: #16a34a;
-                   .chip-dot { background: #4ade80; } }
-.chip-inactive   { background: #fef2f2; color: #dc2626;
-                   .chip-dot { background: #f87171; } }
-
-// ── Expiry ───────────────────────────────────────────────
-.expiry      { font-size: .83rem; color: var(--sf-text-secondary); }
-.expiry-warn { color: var(--sf-warning); font-weight: 600; }
-
-// ── Actions ──────────────────────────────────────────────
-.action-btn {
-  color: var(--sf-text-muted) !important;
-  &:hover { color: var(--sf-primary) !important; }
-}
-
-// ── Empty ────────────────────────────────────────────────
+// ── Empty state ──────────────────────────────────────────
 .empty-state {
   padding: 48px; text-align: center;
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   color: var(--sf-text-muted);
-  mat-icon { font-size: 36px; width: 36px; height: 36px; }
   p { margin: 0; font-size: .88rem; }
 }
 
+// ── PrimeNG overrides — RTL + עברית ─────────────────────
+:host ::ng-deep {
+  .p-datatable {
+    font-family: 'Noto Sans Hebrew', sans-serif;
+    border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--sf-border);
+    box-shadow: var(--sf-shadow);
+    direction: rtl;
+  }
+
+  .p-datatable-header { background: #fff; border-bottom: 1px solid var(--sf-border); padding: 12px 16px; }
+
+  .p-datatable-thead > tr > th {
+    background: #f1f5f9;
+    color: #374151;
+    font-weight: 700;
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    border-color: var(--sf-border) !important;
+    text-align: right;
+    padding: 12px 16px;
+  }
+
+  .p-datatable-tbody > tr > td {
+    border-color: var(--sf-border) !important;
+    padding: 12px 16px;
+    text-align: right;
+  }
+
+  // striped
+  .p-datatable-striped .p-datatable-tbody > tr:nth-child(even) > td {
+    background: #fafbfd;
+  }
+  .p-datatable-tbody > tr:hover > td { background: #f0f4ff !important; }
+
+  // paginator
+  .p-paginator {
+    direction: rtl;
+    font-family: 'Noto Sans Hebrew', sans-serif;
+    font-size: .83rem;
+    border-top: 1px solid var(--sf-border);
+    background: #f8fafc;
+    padding: 8px 16px;
+  }
+
+  // search input
+  .p-iconfield { direction: rtl; }
+  .p-inputtext { font-family: 'Noto Sans Hebrew', sans-serif; direction: rtl; }
+
+  // sort icon
+  .p-sortable-column .p-sortable-column-icon { margin-right: 4px; margin-left: 0; }
+}
+
 // ── Responsive ──────────────────────────────────────────
-
-// מסך בינוני — מסתיר אימייל ותפוגה
 @media (max-width: 1024px) {
-  ::ng-deep .mat-column-Email,
-  ::ng-deep .mat-column-expiry { display: none !important; }
-
-  .search-wrap { width: 100%; }
+  :host ::ng-deep .p-datatable-thead th:nth-child(3),
+  :host ::ng-deep .p-datatable-tbody td:nth-child(3),
+  :host ::ng-deep .p-datatable-thead th:nth-child(6),
+  :host ::ng-deep .p-datatable-tbody td:nth-child(6) { display: none; }
 }
 
-// מסך קטן — מסתיר גם קוד ארגון
 @media (max-width: 720px) {
-  ::ng-deep .mat-column-TenantCode,
-  ::ng-deep .mat-column-users   { display: none !important; }
-
-  .page-header { flex-direction: column; gap: 12px; align-items: stretch;
-    .btn-primary { justify-content: center; } }
-}
-
-// ── Paginator ────────────────────────────────────────────
-::ng-deep .mat-mdc-paginator {
-  border-top: 1px solid var(--sf-border);
-  background: var(--sf-bg);
-  direction: rtl;
-  font-family: 'Noto Sans Hebrew', sans-serif;
-  font-size: .83rem;
+  .page-header { flex-direction: column; gap: 12px; }
+  :host ::ng-deep .p-datatable-thead th:nth-child(2),
+  :host ::ng-deep .p-datatable-tbody td:nth-child(2),
+  :host ::ng-deep .p-datatable-thead th:nth-child(5),
+  :host ::ng-deep .p-datatable-tbody td:nth-child(5) { display: none; }
 }
