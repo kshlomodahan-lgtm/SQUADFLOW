@@ -93,25 +93,46 @@ export class OrgDialogComponent implements OnInit {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
 
-    // preview מיידי
-    const reader = new FileReader();
-    reader.onload = e => this.logoPreview = e.target?.result as string;
-    reader.readAsDataURL(file);
-
-    // העלאה לשרת
     this.uploading = true;
-    this.upload.uploadLogo(file).subscribe({
-      next: r => {
-        this.uploading = false;
-        if (r.success) {
-          this.form.get('logoUrl')?.setValue(r.logoUrl);
+    this.errorMsg  = '';
+
+    // כיווץ תמונה לפני העלאה — Canvas resize ל-max 300px
+    const img    = new Image();
+    const reader = new FileReader();
+
+    reader.onload = ev => {
+      img.onload = () => {
+        const MAX   = 300;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+          else       { w = Math.round(w * MAX / h); h = MAX; }
         }
-      },
-      error: () => {
-        this.uploading = false;
-        this.errorMsg = 'שגיאה בהעלאת הלוגו';
-      },
-    });
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
+
+        // DataURL לpreview + Blob להעלאה
+        const dataUrl = canvas.toDataURL('image/png', 0.85);
+        this.logoPreview = dataUrl;
+
+        canvas.toBlob(blob => {
+          if (!blob) { this.uploading = false; return; }
+          const compressed = new File([blob], file.name, { type: 'image/png' });
+
+          this.upload.uploadLogo(compressed).subscribe({
+            next: r => {
+              this.uploading = false;
+              if (r.success) this.form.get('logoUrl')?.setValue(r.logoUrl);
+            },
+            error: () => { this.uploading = false; this.errorMsg = 'שגיאה בהעלאת הלוגו'; },
+          });
+        }, 'image/png', 0.85);
+      };
+      img.src = ev.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   }
 
   removeLogo() {
