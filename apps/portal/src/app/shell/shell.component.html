@@ -1,0 +1,64 @@
+<div class="shell" [class.sidebar-closed]="!sidebarOpen">
+
+  <!-- ── Sidebar ─────────────────────────────────── -->
+  <aside class="sidebar">
+
+    <!-- לוגו -->
+    <div class="sidebar-brand">
+      <span class="brand-squad">SQUAD</span><span class="brand-flow">FLOW</span>
+    </div>
+
+    <!-- ניווט -->
+    <nav class="sidebar-nav">
+      @for (item of navItems; track item.route) {
+        <a class="nav-item"
+           [routerLink]="item.route"
+           routerLinkActive="active"
+           [matTooltip]="!sidebarOpen ? item.label : ''"
+           matTooltipPosition="after">
+          <mat-icon>{{ item.icon }}</mat-icon>
+          @if (sidebarOpen) {
+            <span>{{ item.label }}</span>
+          }
+        </a>
+      }
+    </nav>
+
+    <!-- Toggle + Logout -->
+    <div class="sidebar-footer">
+      <button mat-icon-button class="toggle-btn"
+              (click)="sidebarOpen = !sidebarOpen"
+              [matTooltip]="sidebarOpen ? 'כווץ תפריט' : 'הרחב תפריט'">
+        <mat-icon>{{ sidebarOpen ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+      </button>
+
+      <button mat-icon-button class="logout-btn"
+              (click)="logout()"
+              matTooltip="התנתק">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main area ────────────────────────────────── -->
+  <div class="main-area">
+
+    <!-- Header -->
+    <header class="topbar">
+      <div class="topbar-right">
+        <mat-icon class="topbar-icon">notifications_none</mat-icon>
+      </div>
+      <div class="topbar-left">
+        <span class="user-name">{{ auth.user()?.fullName }}</span>
+        <span class="user-role">{{ auth.user()?.roleName }}</span>
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <main class="page-content">
+      <router-outlet />
+    </main>
+
+  </div>
+
+</div>

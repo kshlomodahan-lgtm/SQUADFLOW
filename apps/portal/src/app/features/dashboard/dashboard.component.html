@@ -1,0 +1,27 @@
+<div class="dashboard">
+  <h1 class="page-title">שלום, {{ auth.user()?.fullName }} 👋</h1>
+  <p class="page-sub">ברוך הבא ל-SQUADFLOW · {{ auth.user()?.roleName }}</p>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <mat-icon>confirmation_number</mat-icon>
+      <span class="kpi-num">0</span>
+      <span class="kpi-label">תקלות פתוחות</span>
+    </div>
+    <div class="kpi-card">
+      <mat-icon>people</mat-icon>
+      <span class="kpi-num">0</span>
+      <span class="kpi-label">לקוחות פעילים</span>
+    </div>
+    <div class="kpi-card accent">
+      <mat-icon>corporate_fare</mat-icon>
+      <span class="kpi-num">0</span>
+      <span class="kpi-label">ארגונים</span>
+    </div>
+    <div class="kpi-card">
+      <mat-icon>manage_accounts</mat-icon>
+      <span class="kpi-num">0</span>
+      <span class="kpi-label">משתמשים</span>
+    </div>
+  </div>
+</div>
