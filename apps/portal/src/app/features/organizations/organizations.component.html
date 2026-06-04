@@ -1,10 +1,10 @@
 <div class="orgs-page">
 
-  <!-- Header -->
+  <!-- ── Header ─────────────────────────────────── -->
   <div class="page-header">
     <div>
       <h1>ארגונים</h1>
-      <p>{{ allOrgs().length }} ארגונים רשומים במערכת</p>
+      <p>{{ ds.data.length }} ארגונים רשומים במערכת</p>
     </div>
     <button class="btn-primary">
       <mat-icon>add</mat-icon>
@@ -12,26 +12,27 @@
     </button>
   </div>
 
-  <!-- Search -->
+  <!-- ── Toolbar ────────────────────────────────── -->
   <div class="toolbar">
     <div class="search-wrap">
       <mat-icon class="search-icon">search</mat-icon>
       <input class="search-input" type="text" placeholder="חיפוש לפי שם, קוד או אימייל..."
-             [value]="search()" (input)="search.set($any($event.target).value)" />
-      @if (search()) {
-        <button class="clear-btn" (click)="search.set('')">
+             #searchInput
+             (input)="applyFilter(searchInput.value)" />
+      @if (searchInput.value) {
+        <button class="clear-btn" (click)="searchInput.value=''; applyFilter('')">
           <mat-icon>close</mat-icon>
         </button>
       }
     </div>
   </div>
 
-  <!-- Loading -->
+  <!-- ── Loading ────────────────────────────────── -->
   @if (loading()) {
     <div class="state-box"><mat-spinner diameter="36" /></div>
   }
 
-  <!-- Error -->
+  <!-- ── Error ──────────────────────────────────── -->
   @if (!loading() && error()) {
     <div class="state-box error">
       <mat-icon>error_outline</mat-icon>
@@ -40,14 +41,16 @@
     </div>
   }
 
-  <!-- Table -->
+  <!-- ── Table ──────────────────────────────────── -->
   @if (!loading() && !error()) {
     <div class="table-card">
-      <table mat-table [dataSource]="filtered()">
+      <table mat-table [dataSource]="ds" matSort matSortActive="CompanyName" matSortDirection="asc">
 
-        <!-- עמודה: ארגון -->
+        <!-- ארגון -->
         <ng-container matColumnDef="org">
-          <th mat-header-cell *matHeaderCellDef>ארגון</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="מיין לפי שם">
+            ארגון
+          </th>
           <td mat-cell *matCellDef="let o">
             <div class="org-cell">
               @if (o.LogoUrl) {
@@ -60,39 +63,41 @@
           </td>
         </ng-container>
 
-        <!-- עמודה: קוד -->
+        <!-- קוד -->
         <ng-container matColumnDef="TenantCode">
-          <th mat-header-cell *matHeaderCellDef>קוד ארגון</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="מיין לפי קוד">קוד</th>
           <td mat-cell *matCellDef="let o">
             <code class="code-badge">{{ o.TenantCode }}</code>
           </td>
         </ng-container>
 
-        <!-- עמודה: אימייל -->
+        <!-- אימייל -->
         <ng-container matColumnDef="Email">
-          <th mat-header-cell *matHeaderCellDef>אימייל</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="מיין לפי אימייל">אימייל</th>
           <td mat-cell *matCellDef="let o" class="muted">{{ o.Email }}</td>
         </ng-container>
 
-        <!-- עמודה: תוכנית -->
+        <!-- תוכנית -->
         <ng-container matColumnDef="plan">
-          <th mat-header-cell *matHeaderCellDef>תוכנית</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="מיין לפי תוכנית">תוכנית</th>
           <td mat-cell *matCellDef="let o">
             <span class="chip" [class]="'chip-' + o.PlanType">{{ planLabel(o.PlanType) }}</span>
           </td>
         </ng-container>
 
-        <!-- עמודה: משתמשים -->
+        <!-- משתמשים -->
         <ng-container matColumnDef="users">
-          <th mat-header-cell *matHeaderCellDef>משתמשים</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="מיין לפי משתמשים">משתמשים</th>
           <td mat-cell *matCellDef="let o">
-            <span class="users-count">{{ o.UserCount }}<span class="muted"> / {{ o.MaxUsers }}</span></span>
+            <span class="users-count">
+              {{ o.UserCount }}<span class="muted"> / {{ o.MaxUsers }}</span>
+            </span>
           </td>
         </ng-container>
 
-        <!-- עמודה: תפוגה -->
+        <!-- תפוגה -->
         <ng-container matColumnDef="expiry">
-          <th mat-header-cell *matHeaderCellDef>תפוגה</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="מיין לפי תפוגה">תפוגה</th>
           <td mat-cell *matCellDef="let o">
             <span class="expiry" [class.expiry-warn]="daysLeft(o.ExpiresAt) < 30">
               {{ daysLeft(o.ExpiresAt) }} יום
@@ -100,38 +105,47 @@
           </td>
         </ng-container>
 
-        <!-- עמודה: סטטוס -->
+        <!-- סטטוס -->
         <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef>סטטוס</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="מיין לפי סטטוס">סטטוס</th>
           <td mat-cell *matCellDef="let o">
             <span class="chip" [class]="o.IsActive ? 'chip-active' : 'chip-inactive'">
+              <span class="chip-dot"></span>
               {{ o.IsActive ? 'פעיל' : 'מושהה' }}
             </span>
           </td>
         </ng-container>
 
-        <!-- עמודה: פעולות -->
+        <!-- פעולות -->
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let o">
-            <button mat-icon-button matTooltip="עריכה" class="action-btn">
+            <button mat-icon-button class="action-btn" matTooltip="עריכה">
               <mat-icon>edit</mat-icon>
             </button>
           </td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="columns"></tr>
-        <tr mat-row *matRowDef="let row; columns: columns;"></tr>
+        <tr mat-header-row *matHeaderRowDef="columns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns;" class="data-row"></tr>
+
+        <!-- empty after filter -->
+        <tr class="mat-row" *matNoDataRow>
+          <td [attr.colspan]="columns.length">
+            <div class="empty-state">
+              <mat-icon>search_off</mat-icon>
+              <p>לא נמצאו ארגונים התואמים את הסינון</p>
+            </div>
+          </td>
+        </tr>
 
       </table>
 
-      <!-- Empty state -->
-      @if (filtered().length === 0) {
-        <div class="empty-state">
-          <mat-icon>search_off</mat-icon>
-          <p>לא נמצאו ארגונים התואמים את החיפוש</p>
-        </div>
-      }
+      <!-- ── Paginator ── -->
+      <mat-paginator [pageSizeOptions]="[10, 25, 50]"
+                     pageSize="10"
+                     showFirstLastButtons
+                     aria-label="ניווט בין עמודים" />
     </div>
   }
 
