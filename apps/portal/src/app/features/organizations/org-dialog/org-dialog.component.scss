@@ -15,9 +15,10 @@
     background: #e8f4fb;          // תכלת ים עדין
     color: #1e3a5f;               // כחול כהה
     border-radius: 12px 12px 0 0;
-    padding: 12px 20px;
+    padding: 10px 20px;
     font-family: 'Noto Sans Hebrew', sans-serif;
-    font-size: .85rem; font-weight: 500;
+    font-size: .72rem; font-weight: 500;
+    letter-spacing: .3px;
     direction: rtl;
     border-bottom: 1px solid #c8dff0;
   }
@@ -70,11 +71,24 @@
     box-shadow: none !important;
   }
 
-  .p-inputnumber-input.line-input {
-    width: 100%;
+  // InputNumber — הסר border מה-input הפנימי
+  .p-inputnumber .p-inputnumber-input {
     border: none !important;
     border-bottom: 1.5px solid #d1d5db !important;
     border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 6px 0 !important;
+    width: 100% !important;
+    font-family: 'Noto Sans Hebrew', sans-serif !important;
+    font-size: .9rem !important;
+    direction: ltr !important;
+    text-align: right !important;
+  }
+
+  .p-inputnumber {
+    width: 100% !important;
+    border: none !important;
     background: transparent !important;
     box-shadow: none !important;
   }
