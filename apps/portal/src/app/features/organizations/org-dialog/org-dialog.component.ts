@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
@@ -24,14 +24,27 @@ import { OrganizationService } from '../../../core/services/organization.service
   templateUrl: './org-dialog.component.html',
   styleUrl:    './org-dialog.component.scss',
 })
-export class OrgDialogComponent implements OnChanges {
-  @Input()  visible  = false;
-  @Input()  org: Organization | null = null;   // null = הוספה, אחרת = עדכון
+export class OrgDialogComponent {
+
+  // ── visible — setter מאתחל את הטופס ─────────────────
+  _visible = false;
+
+  @Input() set visible(v: boolean) {
+    this._visible = v;
+    if (v) {
+      this.errorMsg = '';
+      this.saving   = false;
+      this.buildForm();
+    }
+  }
+  get visible() { return this._visible; }
+
+  @Input()  org: Organization | null = null;
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() saved         = new EventEmitter<void>();
 
   form!: FormGroup;
-  saving  = false;
+  saving   = false;
   errorMsg = '';
 
   plans = [
@@ -45,13 +58,12 @@ export class OrgDialogComponent implements OnChanges {
 
   constructor(private fb: FormBuilder, private svc: OrganizationService) {}
 
-  ngOnChanges(ch: SimpleChanges) {
-    if (ch['visible']?.currentValue === true) {
-      this.errorMsg = '';
-      this.saving   = false;
-      this.buildForm();
-    }
+  onVisibleChange(v: boolean) {
+    this._visible = v;
+    this.visibleChange.emit(v);
   }
+
+  close() { this.onVisibleChange(false); }
 
   private buildForm() {
     if (this.isEdit) {
@@ -80,10 +92,6 @@ export class OrgDialogComponent implements OnChanges {
     }
   }
 
-  close() {
-    this.visibleChange.emit(false);
-  }
-
   save() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.saving   = true;
@@ -94,11 +102,7 @@ export class OrgDialogComponent implements OnChanges {
       : this.svc.create(this.form.value);
 
     obs.subscribe({
-      next: () => {
-        this.saving = false;
-        this.saved.emit();
-        this.close();
-      },
+      next: () => { this.saving = false; this.saved.emit(); this.close(); },
       error: err => {
         this.saving   = false;
         this.errorMsg = err.error?.message ?? 'שגיאה בשמירה, נסה שנית';
