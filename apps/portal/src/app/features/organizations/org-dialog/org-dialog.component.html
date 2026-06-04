@@ -32,7 +32,7 @@
             <input pInputText formControlName="tenantCode"
                    placeholder="לדוגמה: ABC_12345"
                    class="line-input"
-                   style="text-transform:uppercase" />
+                   (input)="onTenantCodeInput($event)" />
             @if (form.get('tenantCode')?.hasError('required') && form.get('tenantCode')?.touched) {
               <small class="err">שדה חובה</small>
             }

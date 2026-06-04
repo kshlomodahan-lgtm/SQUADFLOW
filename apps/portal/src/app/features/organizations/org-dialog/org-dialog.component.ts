@@ -26,20 +26,26 @@ import { OrganizationService } from '../../../core/services/organization.service
 })
 export class OrgDialogComponent {
 
-  // ── visible — setter מאתחל את הטופס ─────────────────
   _visible = false;
+  _org: Organization | null = null;
 
+  // org חייב להגיע לפני visible — setter שומר ומאתחל
+  @Input() set org(v: Organization | null) {
+    this._org = v;
+  }
+
+  // visible setter — defer buildForm כדי לתת ל-org להתעדכן קודם
   @Input() set visible(v: boolean) {
     this._visible = v;
     if (v) {
       this.errorMsg = '';
       this.saving   = false;
-      this.buildForm();
+      // setTimeout מבטיח שכל ה-@Inputs התעדכנו לפני buildForm
+      setTimeout(() => this.buildForm());
     }
   }
   get visible() { return this._visible; }
 
-  @Input()  org: Organization | null = null;
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() saved         = new EventEmitter<void>();
 
@@ -53,8 +59,8 @@ export class OrgDialogComponent {
     { label: 'ארגוני',   value: 'enterprise' },
   ];
 
-  get isEdit() { return !!this.org; }
-  get title()  { return this.isEdit ? `עריכת ארגון — ${this.org!.CompanyName}` : 'ארגון חדש'; }
+  get isEdit() { return !!this._org; }
+  get title()  { return this.isEdit ? `עריכת ארגון — ${this._org!.CompanyName}` : 'ארגון חדש'; }
 
   constructor(private fb: FormBuilder, private svc: OrganizationService) {}
 
@@ -67,16 +73,16 @@ export class OrgDialogComponent {
 
   private buildForm() {
     if (this.isEdit) {
-      const o = this.org!;
+      const o = this._org!;
       this.form = this.fb.group({
         companyName: [o.CompanyName, [Validators.required, Validators.maxLength(150)]],
         email:       [o.Email,       [Validators.required, Validators.email]],
-        phone:       [o.Phone],
+        phone:       [o.Phone ?? ''],
         planType:    [o.PlanType,    Validators.required],
         maxUsers:    [o.MaxUsers,    [Validators.required, Validators.min(1)]],
         maxTickets:  [o.MaxTickets,  [Validators.required, Validators.min(1)]],
         isActive:    [o.IsActive],
-        notes:       [o.Notes],
+        notes:       [o.Notes ?? ''],
       });
     } else {
       this.form = this.fb.group({
@@ -92,14 +98,28 @@ export class OrgDialogComponent {
     }
   }
 
+  // ממיר tenantCode לאותיות גדולות בהקלדה
+  onTenantCodeInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const upper = input.value.toUpperCase();
+    input.value = upper;
+    this.form.get('tenantCode')?.setValue(upper, { emitEvent: false });
+  }
+
   save() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.saving   = true;
     this.errorMsg = '';
 
+    const payload = { ...this.form.value };
+    // ודא uppercase לפני שליחה
+    if (payload.tenantCode) {
+      payload.tenantCode = payload.tenantCode.toUpperCase();
+    }
+
     const obs = this.isEdit
-      ? this.svc.update(this.org!.TenantID, this.form.value)
-      : this.svc.create(this.form.value);
+      ? this.svc.update(this._org!.TenantID, payload)
+      : this.svc.create(payload);
 
     obs.subscribe({
       next: () => { this.saving = false; this.saved.emit(); this.close(); },
