@@ -130,11 +130,11 @@
   <ng-template #footer>
     <div class="dialog-footer">
       <p-button label="ביטול" severity="secondary" [outlined]="true"
-                (onClick)="close()" [disabled]="saving" />
+                (click)="close()" [disabled]="saving" />
       <p-button [label]="isEdit ? 'שמור שינויים' : 'צור ארגון'"
                 icon="pi pi-check"
                 [loading]="saving"
-                (onClick)="save()" />
+                (click)="save()" />
     </div>
   </ng-template>
 

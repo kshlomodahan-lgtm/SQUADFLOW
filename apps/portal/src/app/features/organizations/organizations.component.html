@@ -6,7 +6,7 @@
       <h1>ארגונים</h1>
       <p>{{ orgs().length }} ארגונים רשומים במערכת</p>
     </div>
-    <p-button label="ארגון חדש" icon="pi pi-plus" (onClick)="openAdd()"></p-button>
+    <p-button label="ארגון חדש" icon="pi pi-plus" (click)="openAdd()"></p-button>
   </div>
 
   <!-- Loading -->
@@ -52,7 +52,7 @@
                       severity="secondary" pTooltip="ייצוא" tooltipPosition="top" />
             <p-button icon="pi pi-refresh" [text]="true" [rounded]="true"
                       severity="secondary" pTooltip="רענן" tooltipPosition="top"
-                      (onClick)="load()" />
+                      (click)="load()" />
           </div>
         </div>
       </ng-template>
@@ -144,7 +144,7 @@
           <td>
             <p-button icon="pi pi-pencil" label="עריכה"
                       severity="info" [outlined]="true" size="small"
-                      (onClick)="openEdit(o)" />
+                      (click)="openEdit(o)" />
           </td>
         </tr>
       </ng-template>
