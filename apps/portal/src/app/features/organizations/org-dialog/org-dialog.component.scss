@@ -65,15 +65,19 @@
 
   .line-select .p-select {
     border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .p-inputnumber-input.line-input {
+    width: 100%;
+    border: none !important;
     border-bottom: 1.5px solid #d1d5db !important;
     border-radius: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
-    &:focus-within { border-bottom-color: var(--sf-primary) !important; }
   }
-
-  // InputNumber line style
-  .p-inputnumber-input.line-input { width: 100%; }
 
   .p-inputtext {
     font-family: 'Noto Sans Hebrew', sans-serif;
