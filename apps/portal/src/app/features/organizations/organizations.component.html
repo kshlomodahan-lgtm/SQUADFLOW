@@ -142,31 +142,14 @@
 
           <!-- פעולות -->
           <td>
-            <div class="icon-demo">
-              <!-- א -->
-              <p-button icon="pi pi-pencil"
-                        [rounded]="true" [text]="true"
-                        severity="info" size="small"
-                        pTooltip="א - עיגול" tooltipPosition="top"
-                        (click)="openEdit(o)" />
-              <!-- ב -->
-              <p-button icon="pi pi-pen-to-square"
-                        [rounded]="true" [text]="true"
-                        severity="secondary" size="small"
-                        pTooltip="ב - עיפרון ריבועי" tooltipPosition="top"
-                        (click)="openEdit(o)" />
-              <!-- ג -->
-              <p-button icon="pi pi-ellipsis-v"
-                        [rounded]="true" [text]="true"
-                        severity="secondary" size="small"
-                        pTooltip="ג - 3 נקודות" tooltipPosition="top"
-                        (click)="openEdit(o)" />
-              <!-- ד -->
-              <p-button icon="pi pi-cog"
-                        [rounded]="true" [text]="true"
-                        severity="secondary" size="small"
-                        pTooltip="ד - גלגל שיניים" tooltipPosition="top"
-                        (click)="openEdit(o)" />
+            <div class="row-actions">
+              <button class="act-btn act-delete" pTooltip="מחק ארגון" tooltipPosition="top">
+                <i class="pi pi-trash"></i>
+              </button>
+              <button class="act-btn act-edit" pTooltip="ערוך ארגון" tooltipPosition="top"
+                      (click)="openEdit(o)">
+                <i class="pi pi-pen-to-square"></i>
+              </button>
             </div>
           </td>
         </tr>
