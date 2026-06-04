@@ -60,20 +60,38 @@ export class OrgDialogComponent implements OnInit {
     this.buildForm();
   }
 
+  private newFields(o?: Organization) {
+    return {
+      businessNumber: [o?.BusinessNumber ?? ''],
+      address:        [o?.Address        ?? ''],
+      city:           [o?.City           ?? ''],
+      country:        [o?.Country        ?? 'ישראל'],
+      contactName:    [o?.ContactName    ?? ''],
+      phone2:         [o?.Phone2         ?? ''],
+      fax:            [o?.Fax            ?? ''],
+      website:        [o?.Website        ?? ''],
+      bankName:       [o?.BankName       ?? ''],
+      bankBranch:     [o?.BankBranch     ?? ''],
+      bankAccount:    [o?.BankAccount    ?? ''],
+      accountingRef:  [o?.AccountingRef  ?? ''],
+    };
+  }
+
   private buildForm() {
     if (this.isEdit) {
       const o = this.org!;
       this.logoPreview = o.LogoUrl || null;
       this.form = this.fb.group({
-        companyName: [o.CompanyName,    [Validators.required, Validators.maxLength(150)]],
-        email:       [o.Email,          [Validators.required, Validators.email]],
+        companyName: [o.CompanyName, [Validators.required, Validators.maxLength(150)]],
+        email:       [o.Email,       [Validators.required, Validators.email]],
         phone:       [o.Phone ?? ''],
-        planType:    [o.PlanType,       Validators.required],
-        maxUsers:    [o.MaxUsers,       [Validators.required, Validators.min(1)]],
-        maxTickets:  [o.MaxTickets,     [Validators.required, Validators.min(1)]],
+        planType:    [o.PlanType,    Validators.required],
+        maxUsers:    [o.MaxUsers,    [Validators.required, Validators.min(1)]],
+        maxTickets:  [o.MaxTickets,  [Validators.required, Validators.min(1)]],
         isActive:    [o.IsActive],
         logoUrl:     [o.LogoUrl ?? ''],
         notes:       [o.Notes ?? ''],
+        ...this.newFields(o),
       });
     } else {
       this.logoPreview = null;
@@ -87,6 +105,7 @@ export class OrgDialogComponent implements OnInit {
         maxTickets:  [200, [Validators.required, Validators.min(1)]],
         logoUrl:     [''],
         notes:       [''],
+        ...this.newFields(),
       });
     }
   }

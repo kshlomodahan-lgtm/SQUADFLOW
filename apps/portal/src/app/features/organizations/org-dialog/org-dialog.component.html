@@ -5,7 +5,7 @@
   [modal]="true"
   [draggable]="true"
   [resizable]="false"
-  [style]="{width:'660px'}"
+  [style]="{width:'780px'}"
   styleClass="sf-dialog">
 
   <form [formGroup]="form" novalidate>
@@ -143,6 +143,92 @@
           </div>
         </div>
       }
+    </div>
+
+    <!-- ══ פרטים נוספים ══ -->
+    <div class="form-section">
+      <div class="section-title">פרטים נוספים</div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>מספר עוסק / ח.פ.</label>
+          <div class="input-col">
+            <input pInputText formControlName="businessNumber" class="line-input" placeholder="123456789" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>אתר אינטרנט</label>
+          <div class="input-col">
+            <input pInputText formControlName="website" class="line-input" placeholder="www.example.com" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>כתובת</label>
+          <div class="input-col">
+            <input pInputText formControlName="address" class="line-input" placeholder="רחוב, מספר" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>עיר</label>
+          <div class="input-col">
+            <input pInputText formControlName="city" class="line-input" placeholder="תל אביב" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>מדינה</label>
+          <div class="input-col">
+            <input pInputText formControlName="country" class="line-input" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>שם איש קשר</label>
+          <div class="input-col">
+            <input pInputText formControlName="contactName" class="line-input" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>טלפון 2</label>
+          <div class="input-col">
+            <input pInputText formControlName="phone2" class="line-input" placeholder="050-0000000" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>פקס</label>
+          <div class="input-col">
+            <input pInputText formControlName="fax" class="line-input" placeholder="03-0000000" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ פרטי בנק ══ -->
+    <div class="form-section">
+      <div class="section-title">פרטי בנק</div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>בנק</label>
+          <div class="input-col">
+            <input pInputText formControlName="bankName" class="line-input" placeholder="שם הבנק" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>סניף</label>
+          <div class="input-col">
+            <input pInputText formControlName="bankBranch" class="line-input" placeholder="מספר סניף" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>מספר חשבון</label>
+          <div class="input-col">
+            <input pInputText formControlName="bankAccount" class="line-input" placeholder="מספר חשבון" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>מספר בהנה"ח</label>
+          <div class="input-col">
+            <input pInputText formControlName="accountingRef" class="line-input" placeholder="מספר בהנהלת חשבונות" />
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ══ הערות ══ -->

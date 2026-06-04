@@ -147,6 +147,14 @@
   i { font-size: .8rem; margin-left: 4px; }
 }
 
+// ── 2-column grid for additional sections ─────────────────
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 24px;
+  direction: rtl;
+}
+
 // ── Form rows ─────────────────────────────────────────────
 .form-row {
   display: grid;
