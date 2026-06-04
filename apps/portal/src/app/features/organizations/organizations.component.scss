@@ -95,10 +95,13 @@
 
   .sf-table {
     font-family: 'Noto Sans Hebrew', sans-serif;
-    border-radius: 8px; overflow: hidden;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    border-radius: 10px; overflow: hidden;
+    border: 1px solid #e0e7ef;
+    box-shadow:
+      0 4px 16px rgba(0,0,0,.08),
+      0 1px 4px rgba(0,0,0,.05);
     direction: rtl;
+    background: #fff;
   }
 
   // Caption (search)
@@ -108,13 +111,13 @@
     padding: 10px 16px;
   }
 
-  // Header — לבן, גבול תחתון דק בלבד
+  // Header — תכלת ים עדין
   .sf-table .p-datatable-thead > tr > th {
-    background: #fff !important;
-    color: #374151 !important;
+    background: #e8f4fb !important;
+    color: #1e3a5f !important;
     font-weight: 600 !important;
     font-size: .8rem !important;
-    border-bottom: 2px solid #e5e7eb !important;
+    border-bottom: 2px solid #c8dff0 !important;
     border-top: none !important;
     border-right: none !important;
     border-left: none !important;
