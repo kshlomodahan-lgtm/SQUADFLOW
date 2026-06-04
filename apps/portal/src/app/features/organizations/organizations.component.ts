@@ -30,8 +30,8 @@ export class OrganizationsComponent implements OnInit {
   loading    = signal(true);
   error      = signal('');
   orgs       = signal<Organization[]>([]);
-  dialogOpen = false;
-  dialogOrg: Organization | null = null;
+  dialogOpen = signal(false);
+  dialogOrg  = signal<Organization | null>(null);
 
   constructor(private svc: OrganizationService) {}
 
@@ -45,9 +45,20 @@ export class OrganizationsComponent implements OnInit {
     });
   }
 
-  openAdd()                 { this.dialogOrg = null;  this.dialogOpen = false; setTimeout(() => this.dialogOpen = true); }
-  openEdit(o: Organization) { this.dialogOrg = o;     this.dialogOpen = false; setTimeout(() => this.dialogOpen = true); }
-  onSaved()                  { this.load(); }
+  openAdd() {
+    this.dialogOrg.set(null);
+    this.dialogOpen.set(false);
+    // cycle off/on ← מאלץ Angular ליצור קומפוננטה חדשה לגמרי
+    setTimeout(() => this.dialogOpen.set(true));
+  }
+
+  openEdit(o: Organization) {
+    this.dialogOrg.set(o);
+    this.dialogOpen.set(false);
+    setTimeout(() => this.dialogOpen.set(true));
+  }
+
+  onSaved() { this.load(); }
 
   planLabel(p: string) {
     return ({ basic: 'בסיסי', pro: 'מקצועי', enterprise: 'ארגוני' } as any)[p] ?? p;

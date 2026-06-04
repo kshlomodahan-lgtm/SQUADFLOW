@@ -167,9 +167,9 @@
 </div>
 
 <!-- Dialog הוספה / עדכון -->
-@if (dialogOpen) {
+@if (dialogOpen()) {
   <app-org-dialog
-    [org]="dialogOrg"
-    (closed)="dialogOpen = false"
-    (saved)="onSaved(); dialogOpen = false" />
+    [org]="dialogOrg()"
+    (closed)="dialogOpen.set(false)"
+    (saved)="onSaved(); dialogOpen.set(false)" />
 }
