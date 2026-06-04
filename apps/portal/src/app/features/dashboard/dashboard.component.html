@@ -1,27 +1,95 @@
 <div class="dashboard">
-  <h1 class="page-title">שלום, {{ auth.user()?.fullName }} 👋</h1>
-  <p class="page-sub">ברוך הבא ל-SQUADFLOW · {{ auth.user()?.roleName }}</p>
 
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <mat-icon>confirmation_number</mat-icon>
-      <span class="kpi-num">0</span>
-      <span class="kpi-label">תקלות פתוחות</span>
-    </div>
-    <div class="kpi-card">
-      <mat-icon>people</mat-icon>
-      <span class="kpi-num">0</span>
-      <span class="kpi-label">לקוחות פעילים</span>
-    </div>
-    <div class="kpi-card accent">
-      <mat-icon>corporate_fare</mat-icon>
-      <span class="kpi-num">0</span>
-      <span class="kpi-label">ארגונים</span>
-    </div>
-    <div class="kpi-card">
-      <mat-icon>manage_accounts</mat-icon>
-      <span class="kpi-num">0</span>
-      <span class="kpi-label">משתמשים</span>
-    </div>
+  <!-- ברכה -->
+  <div class="greeting">
+    <h1>שלום, {{ auth.user()?.fullName }} 👋</h1>
+    <p>סקירת פעילות הפלטפורמה</p>
   </div>
+
+  @if (loading()) {
+    <div class="kpi-grid skeleton">
+      @for (i of [1,2,3,4]; track i) {
+        <div class="kpi-card"><div class="skeleton-box"></div></div>
+      }
+    </div>
+  }
+
+  @if (!loading() && stats()) {
+    <!-- קוביות ארגונים -->
+    <div class="section-title">
+      <mat-icon>corporate_fare</mat-icon>
+      ארגונים
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card" routerLink="/app/organizations">
+        <div class="kpi-icon bg-blue">
+          <mat-icon>corporate_fare</mat-icon>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ stats()!.orgs.total }}</span>
+          <span class="kpi-label">סה"כ ארגונים</span>
+        </div>
+        <mat-icon class="kpi-arrow">arrow_back_ios</mat-icon>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon bg-green">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ stats()!.orgs.active }}</span>
+          <span class="kpi-label">ארגונים פעילים</span>
+        </div>
+      </div>
+
+      <div class="kpi-card" [class.kpi-warn]="stats()!.orgs.expiring > 0">
+        <div class="kpi-icon" [class]="stats()!.orgs.expiring > 0 ? 'bg-warn' : 'bg-gray'">
+          <mat-icon>schedule</mat-icon>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ stats()!.orgs.expiring }}</span>
+          <span class="kpi-label">פגי תוקף בחודש</span>
+        </div>
+      </div>
+
+      <div class="kpi-card" [class.kpi-danger]="stats()!.orgs.inactive > 0">
+        <div class="kpi-icon" [class]="stats()!.orgs.inactive > 0 ? 'bg-red' : 'bg-gray'">
+          <mat-icon>block</mat-icon>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ stats()!.orgs.inactive }}</span>
+          <span class="kpi-label">ארגונים מושהים</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- קוביות משתמשים -->
+    <div class="section-title" style="margin-top:32px">
+      <mat-icon>people</mat-icon>
+      משתמשים
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card" routerLink="/app/users">
+        <div class="kpi-icon bg-purple">
+          <mat-icon>people</mat-icon>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ stats()!.users.total }}</span>
+          <span class="kpi-label">סה"כ משתמשים</span>
+        </div>
+        <mat-icon class="kpi-arrow">arrow_back_ios</mat-icon>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon bg-green">
+          <mat-icon>person</mat-icon>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ stats()!.users.active }}</span>
+          <span class="kpi-label">משתמשים פעילים</span>
+        </div>
+      </div>
+    </div>
+  }
+
 </div>
