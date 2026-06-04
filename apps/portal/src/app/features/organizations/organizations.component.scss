@@ -59,6 +59,18 @@
 .users-count{ font-weight: 600; color: var(--sf-text); }
 .expiry-warn{ color: var(--sf-warning); font-weight: 600; font-size: .85rem; }
 
+// ── Notes cell ───────────────────────────────────────────
+.notes-cell {
+  display: block;
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: .83rem;
+  color: #6b7280;
+  cursor: default;
+}
+
 // ── Status dot ───────────────────────────────────────────
 .status-dot-wrap {
   display: flex; align-items: center; gap: 7px;

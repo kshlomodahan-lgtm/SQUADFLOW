@@ -69,6 +69,7 @@
             משתמשים <p-sortIcon field="UserCount" />
           </th>
           <th style="width:110px">תפוגה</th>
+          <th style="min-width:140px">הערות</th>
           <th pSortableColumn="IsActive" style="width:100px">
             סטטוס <p-sortIcon field="IsActive" />
           </th>
@@ -113,6 +114,15 @@
             <span [class]="daysLeft(o.ExpiresAt) < 30 ? 'expiry-warn' : 'muted'">
               {{ daysLeft(o.ExpiresAt) }} יום
             </span>
+          </td>
+
+          <!-- הערות -->
+          <td>
+            @if (o.Notes) {
+              <span class="notes-cell" [title]="o.Notes">{{ o.Notes }}</span>
+            } @else {
+              <span class="muted">—</span>
+            }
           </td>
 
           <!-- סטטוס -->
