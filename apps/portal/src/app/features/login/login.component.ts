@@ -26,14 +26,15 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class LoginComponent implements OnInit {
   form!: FormGroup;
-  loading  = signal(false);
-  error    = signal('');
-  showPass = signal(false);
+  loading    = signal(false);
+  error      = signal('');
+  showPass   = signal(false);
   tenantCode = signal('');
+  noTenant   = signal(false);
 
   constructor(
-    private fb:    FormBuilder,
-    private auth:  AuthService,
+    private fb:     FormBuilder,
+    private auth:   AuthService,
     private router: Router,
     private route:  ActivatedRoute,
   ) {}
@@ -44,15 +45,22 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    const urlTenant  = this.route.snapshot.queryParamMap.get('tenant') ?? '';
+    // קוד ארגון — מה-URL בלבד
+    const urlTenant   = this.route.snapshot.queryParamMap.get('tenant') ?? '';
     const savedTenant = localStorage.getItem('lastTenantCode') ?? '';
-    const tenant = (urlTenant || savedTenant).toUpperCase();
+    const tenant      = (urlTenant || savedTenant).toUpperCase();
+
+    if (!tenant) {
+      this.noTenant.set(true);
+      return;
+    }
+
     this.tenantCode.set(tenant);
+    localStorage.setItem('lastTenantCode', tenant);
 
     this.form = this.fb.group({
-      tenantCode: [tenant, [Validators.required, Validators.pattern(/^[A-Z]{3}_\d+$/)]],
-      username:   ['', Validators.required],
-      password:   ['', Validators.required],
+      username: ['', Validators.required],
+      password: ['', Validators.required],
     });
   }
 
@@ -62,10 +70,9 @@ export class LoginComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
 
-    const { tenantCode, username, password } = this.form.value;
-    localStorage.setItem('lastTenantCode', tenantCode);
+    const { username, password } = this.form.value;
 
-    this.auth.login({ tenantCode, username, password }).subscribe({
+    this.auth.login({ tenantCode: this.tenantCode(), username, password }).subscribe({
       next: res => {
         if (res.success) {
           this.router.navigate(['/app/dashboard']);

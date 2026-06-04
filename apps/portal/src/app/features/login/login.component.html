@@ -11,79 +11,81 @@
       <p class="brand-tagline">AI Development Team · Operating System</p>
     </div>
 
-    <!-- כרטיס טופס -->
-    <div class="login-card">
-      <h2 class="card-title">כניסה למערכת</h2>
+    <!-- URL שגוי — אין קוד ארגון -->
+    @if (noTenant()) {
+      <div class="no-tenant-box">
+        <mat-icon>link_off</mat-icon>
+        <h3>קישור לא תקין</h3>
+        <p>פנה למנהל המערכת לקבלת קישור כניסה אישי לארגון שלך.</p>
+      </div>
+    }
 
-      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <!-- טופס רגיל -->
+    @if (!noTenant()) {
+      <!-- שם ארגון (רק תצוגה) -->
+      <div class="tenant-badge">
+        <mat-icon>business</mat-icon>
+        <span>{{ tenantCode() }}</span>
+      </div>
 
-        <!-- קוד ארגון -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>קוד ארגון</mat-label>
-          <mat-icon matPrefix>business</mat-icon>
-          <input matInput formControlName="tenantCode"
-                 placeholder="PRO_5149577"
-                 autocomplete="organization"
-                 style="text-transform:uppercase" />
-          @if (form.get('tenantCode')?.hasError('required') && form.get('tenantCode')?.touched) {
-            <mat-error>שדה חובה</mat-error>
+      <!-- כרטיס טופס -->
+      <div class="login-card">
+        <h2 class="card-title">כניסה למערכת</h2>
+
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+          <!-- שם משתמש -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>שם משתמש</mat-label>
+            <mat-icon matPrefix>person</mat-icon>
+            <input matInput formControlName="username"
+                   autocomplete="username" />
+            @if (form.get('username')?.hasError('required') && form.get('username')?.touched) {
+              <mat-error>שדה חובה</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- סיסמה -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>סיסמה</mat-label>
+            <mat-icon matPrefix>lock</mat-icon>
+            <input matInput formControlName="password"
+                   [type]="showPass() ? 'text' : 'password'"
+                   autocomplete="current-password" />
+            <button mat-icon-button matSuffix type="button"
+                    (click)="showPass.set(!showPass())"
+                    [attr.aria-label]="showPass() ? 'הסתר סיסמה' : 'הצג סיסמה'">
+              <mat-icon>{{ showPass() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            @if (form.get('password')?.hasError('required') && form.get('password')?.touched) {
+              <mat-error>שדה חובה</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- הודעת שגיאה -->
+          @if (error()) {
+            <div class="error-banner">
+              <mat-icon>warning</mat-icon>
+              {{ error() }}
+            </div>
           }
-          @if (form.get('tenantCode')?.hasError('pattern') && form.get('tenantCode')?.touched) {
-            <mat-error>פורמט שגוי (לדוגמה: PRO_5149577)</mat-error>
-          }
-        </mat-form-field>
 
-        <!-- שם משתמש -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>שם משתמש</mat-label>
-          <mat-icon matPrefix>person</mat-icon>
-          <input matInput formControlName="username"
-                 autocomplete="username" />
-          @if (form.get('username')?.hasError('required') && form.get('username')?.touched) {
-            <mat-error>שדה חובה</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- סיסמה -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>סיסמה</mat-label>
-          <mat-icon matPrefix>lock</mat-icon>
-          <input matInput formControlName="password"
-                 [type]="showPass() ? 'text' : 'password'"
-                 autocomplete="current-password" />
-          <button mat-icon-button matSuffix type="button"
-                  (click)="showPass.set(!showPass())"
-                  [attr.aria-label]="showPass() ? 'הסתר סיסמה' : 'הצג סיסמה'">
-            <mat-icon>{{ showPass() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          <!-- כפתור כניסה -->
+          <button mat-flat-button class="btn-login" type="submit"
+                  [disabled]="loading()">
+            @if (loading()) {
+              <mat-spinner diameter="20" />
+            } @else {
+              <ng-container>
+                <mat-icon>login</mat-icon>
+                כניסה למערכת
+              </ng-container>
+            }
           </button>
-          @if (form.get('password')?.hasError('required') && form.get('password')?.touched) {
-            <mat-error>שדה חובה</mat-error>
-          }
-        </mat-form-field>
 
-        <!-- הודעת שגיאה -->
-        @if (error()) {
-          <div class="error-banner">
-            <mat-icon>warning</mat-icon>
-            {{ error() }}
-          </div>
-        }
-
-        <!-- כפתור כניסה -->
-        <button mat-flat-button class="btn-login" type="submit"
-                [disabled]="loading()">
-          @if (loading()) {
-            <mat-spinner diameter="20" />
-          } @else {
-            <ng-container>
-              <mat-icon>login</mat-icon>
-              כניסה למערכת
-            </ng-container>
-          }
-        </button>
-
-      </form>
-    </div>
+        </form>
+      </div>
+    }
 
     <p class="footer-copy">© 2026 Profits Software Solutions Ltd.</p>
   </div>
