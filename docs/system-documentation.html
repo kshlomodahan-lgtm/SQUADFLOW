@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<title>SQUADFLOW — תיעוד מערכת</title>
+<style>
+  :root {
+    --primary: #0D47FF; --accent: #00E5FF; --dark: #020B18;
+    --text: #1e293b; --muted: #64748b; --border: #e2e8f0;
+    --bg: #f8fafc; --card: #fff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.7; }
+
+  /* Header */
+  .doc-header { background: var(--dark); color: #fff; padding: 40px 60px; }
+  .doc-header h1 { font-size: 2.2rem; font-weight: 800; }
+  .doc-header h1 span { color: var(--accent); }
+  .doc-header p { color: rgba(255,255,255,.55); margin-top: 8px; font-size: .9rem; }
+  .meta { display: flex; gap: 24px; margin-top: 20px; flex-wrap: wrap; }
+  .meta-item { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); border-radius: 8px; padding: 8px 16px; font-size: .8rem; }
+  .meta-item strong { color: var(--accent); display: block; font-size: .7rem; margin-bottom: 2px; text-transform: uppercase; letter-spacing: .5px; }
+
+  /* Nav */
+  .toc { background: #fff; border-bottom: 1px solid var(--border); padding: 12px 60px; display: flex; gap: 24px; flex-wrap: wrap; position: sticky; top: 0; z-index: 100; }
+  .toc a { color: var(--muted); text-decoration: none; font-size: .82rem; font-weight: 500; transition: color .15s; }
+  .toc a:hover { color: var(--primary); }
+
+  /* Content */
+  .content { max-width: 1100px; margin: 0 auto; padding: 40px 60px 80px; }
+  section { margin-bottom: 56px; }
+  h2 { font-size: 1.4rem; font-weight: 700; color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+  h2::before { content: attr(data-icon); font-size: 1.1rem; }
+  h3 { font-size: 1rem; font-weight: 600; color: var(--text); margin: 20px 0 10px; }
+
+  /* Cards */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+  .card h4 { font-size: .9rem; font-weight: 700; color: var(--primary); margin-bottom: 8px; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: .85rem; }
+  th { background: #f1f5f9; color: var(--muted); font-weight: 600; font-size: .75rem; text-transform: uppercase; letter-spacing: .4px; padding: 8px 12px; text-align: right; border-bottom: 2px solid var(--border); }
+  td { padding: 8px 12px; border-bottom: 1px solid #f0f2f5; text-align: right; vertical-align: top; }
+  tr:hover td { background: #f8fafc; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: .72rem; font-weight: 600; }
+  .badge-blue { background: #eff6ff; color: #3b82f6; }
+  .badge-green { background: #f0fdf4; color: #16a34a; }
+  .badge-gray { background: #f1f5f9; color: #64748b; }
+  .badge-purple { background: #faf5ff; color: #8b5cf6; }
+  .badge-orange { background: #fff7ed; color: #ea580c; }
+
+  /* Code */
+  code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: .82rem; font-family: 'Consolas', monospace; color: #e11d48; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 16px 20px; border-radius: 8px; font-size: .82rem; font-family: 'Consolas', monospace; overflow-x: auto; margin: 12px 0; direction: ltr; text-align: left; line-height: 1.6; }
+  pre .comment { color: #64748b; }
+  pre .key { color: var(--accent); }
+  pre .val { color: #86efac; }
+
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* Stack */
+  .stack-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f2f5; }
+  .stack-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: .9rem; flex-shrink: 0; }
+  .stack-info strong { display: block; font-size: .88rem; color: var(--text); }
+  .stack-info span { font-size: .78rem; color: var(--muted); }
+
+  /* URL box */
+  .url-box { background: #0f172a; color: var(--accent); padding: 10px 16px; border-radius: 8px; font-family: 'Consolas', monospace; font-size: .88rem; margin: 8px 0; direction: ltr; text-align: left; }
+
+  /* Alert */
+  .alert { border-radius: 8px; padding: 12px 16px; font-size: .85rem; margin: 12px 0; display: flex; gap: 8px; }
+  .alert-info { background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; }
+  .alert-warn { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+</style>
+</head>
+<body>
+
+<!-- ════ HEADER ════ -->
+<div class="doc-header">
+  <h1><span>SQUAD</span>FLOW — תיעוד מערכת</h1>
+  <p>AI Development Platform · Profits Software Solutions Ltd.</p>
+  <div class="meta">
+    <div class="meta-item"><strong>גרסה</strong>1.0.0</div>
+    <div class="meta-item"><strong>תאריך</strong>05/06/2026</div>
+    <div class="meta-item"><strong>סביבה</strong>Development</div>
+    <div class="meta-item"><strong>DB Server</strong>192.168.1.2 / ProfitsCRM</div>
+    <div class="meta-item"><strong>GitHub</strong>kshlomodahan-lgtm</div>
+  </div>
+</div>
+
+<!-- ════ TOC ════ -->
+<nav class="toc">
+  <a href="#architecture">ארכיטקטורה</a>
+  <a href="#stack">טכנולוגיות</a>
+  <a href="#db">מסד נתונים</a>
+  <a href="#sps">Stored Procedures</a>
+  <a href="#backend">Backend API</a>
+  <a href="#frontend">Frontend Angular</a>
+  <a href="#auth">אבטחה / Auth</a>
+  <a href="#urls">כתובות</a>
+  <a href="#credentials">פרטי גישה</a>
+</nav>
+
+<div class="content">
+
+<!-- ════ ארכיטקטורה ════ -->
+<section id="architecture">
+  <h2 data-icon="🏗">ארכיטקטורה כללית</h2>
+  <div class="card">
+    <p>SQUADFLOW היא פלטפורמת SaaS מולטי-טננט המאפשרת לבתי תוכנה לבנות מוצרים באמצעות צוותי סוכני AI. הפלטפורמה מורכבת משלוש שכבות:</p>
+  </div>
+  <div class="grid-3">
+    <div class="card">
+      <h4>🖥 Frontend</h4>
+      <p>Angular 22 + Angular Material + PrimeNG<br/>RTL עברית, Dark/Light theme</p>
+    </div>
+    <div class="card">
+      <h4>⚙ Backend</h4>
+      <p>Node.js + Express<br/>REST API, JWT Auth, Multer uploads</p>
+    </div>
+    <div class="card">
+      <h4>🗄 Database</h4>
+      <p>MS-SQL Server 2019<br/>DB: ProfitsCRM @ 192.168.1.2</p>
+    </div>
+  </div>
+
+  <h3>מולטי-טננט</h3>
+  <div class="card">
+    <table>
+      <tr><th>רכיב</th><th>מזהה</th><th>תיאור</th></tr>
+      <tr><td><strong>Platform Admin</strong></td><td><code>TenantID=1</code></td><td>Profits Software Solutions — מנהל את כל הארגונים</td></tr>
+      <tr><td><strong>Tenant</strong></td><td><code>TenantCode=XXX_NNNNNN</code></td><td>ארגון לקוח — URL ייחודי לכניסה</td></tr>
+      <tr><td><strong>URL כניסה</strong></td><td><code>?tenant=PRO_5149577</code></td><td>קוד ארגון בפרמטר URL — ללא שדה בטופס</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ════ STACK ════ -->
+<section id="stack">
+  <h2 data-icon="📦">טכנולוגיות</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Frontend</h4>
+      <div class="stack-item"><div class="stack-icon" style="background:#eff6ff">🅰</div><div class="stack-info"><strong>Angular 22</strong><span>Standalone components, Signals, @if/@for</span></div></div>
+      <div class="stack-item"><div class="stack-icon" style="background:#faf5ff">🎨</div><div class="stack-info"><strong>Angular Material 22</strong><span>Icons, Sidebar, Forms, Navigation</span></div></div>
+      <div class="stack-item"><div class="stack-icon" style="background:#f0fdf4">🌿</div><div class="stack-info"><strong>PrimeNG 21</strong><span>p-table (sort/filter/paginator), p-dialog, p-select</span></div></div>
+      <div class="stack-item"><div class="stack-icon" style="background:#fff7ed">🔤</div><div class="stack-info"><strong>Fonts</strong><span>Noto Sans Hebrew, Exo 2, Share Tech Mono</span></div></div>
+    </div>
+    <div class="card">
+      <h4>Backend</h4>
+      <div class="stack-item"><div class="stack-icon" style="background:#f0fdf4">🟢</div><div class="stack-info"><strong>Node.js 24 + Express</strong><span>REST API, CORS, Helmet</span></div></div>
+      <div class="stack-item"><div class="stack-icon" style="background:#eff6ff">🔐</div><div class="stack-info"><strong>JWT (jsonwebtoken)</strong><span>Token עם tenantId, roleId, userId, fullName</span></div></div>
+      <div class="stack-item"><div class="stack-icon" style="background:#faf5ff">🗄</div><div class="stack-info"><strong>mssql (node-mssql)</strong><span>sql.connect() — חשוב: לא ConnectionPool (בעיית NVarChar)</span></div></div>
+      <div class="stack-item"><div class="stack-icon" style="background:#fff7ed">📁</div><div class="stack-info"><strong>Multer</strong><span>העלאת קבצי לוגו → frontend/assets/logos/</span></div></div>
+    </div>
+  </div>
+  <div class="alert alert-warn">
+    ⚠ חשוב: יש להשתמש ב-<code>sql.connect(config)</code> ולא ב-<code>new sql.ConnectionPool()</code> — הפרש זה גורם לבעיית קידוד NVarChar (עברית נשמרת כ-????)
+  </div>
+</section>
+
+<!-- ════ DB ════ -->
+<section id="db">
+  <h2 data-icon="🗄">מסד נתונים — ProfitsCRM</h2>
+  <p style="margin-bottom:16px">כל הטבלאות מתחילות ב-<code>tbl</code>. עמודות ב-PascalCase. כל טבלה מכילה <code>TenantID</code> למולטי-טננט.</p>
+
+  <h3>טבלאות ליבה</h3>
+  <div class="card">
+    <table>
+      <tr><th>טבלה</th><th>תיאור</th><th>עמודות עיקריות</th></tr>
+      <tr><td><code>tblTenants</code></td><td>ארגונים (לקוחות הפלטפורמה)</td><td>TenantID, TenantCode, CompanyName, Email, Phone, PlanType, MaxUsers, MaxTickets, IsActive, LogoUrl, BusinessNumber, Address, City, Country, ContactName, Phone2, Fax, Website, BankName, BankBranch, BankAccount, AccountingRef, Notes</td></tr>
+      <tr><td><code>tblUsers</code></td><td>משתמשי המערכת</td><td>UserID, TenantID, CustomerID, Username, Email, PasswordHash, PasswordSalt, RoleID, FirstName, LastName, IsActive, MustChangePass</td></tr>
+      <tr><td><code>tblUserRoles</code></td><td>תפקידי משתמשים</td><td>RoleID, RoleName</td></tr>
+      <tr><td><code>tblCustomers</code></td><td>לקוחות הארגון</td><td>CustomerID, TenantID, CustomerCode, CompanyName, Email, Phone, StatusID</td></tr>
+      <tr><td><code>tblContactPersons</code></td><td>אנשי קשר</td><td>ContactID, TenantID, CustomerID, FirstName, LastName, Email, IsPrimary</td></tr>
+      <tr><td><code>tblSystemSettings</code></td><td>הגדרות מערכת per-tenant</td><td>SettingID, TenantID, SettingKey, SettingValue, Description, IsEditable</td></tr>
+      <tr><td><code>tblLoginAudit</code></td><td>היסטוריית כניסות</td><td>AuditID, UserID, Username, TenantID, AttemptedAt, IsSuccess, IPAddress, UserAgent, FailureReason</td></tr>
+      <tr><td><code>tblAuditLog</code></td><td>שינויים בנתונים</td><td>LogID, TenantID, TableName, RecordID, Action, ChangedByID, OldValues, NewValues, ChangedAt</td></tr>
+    </table>
+  </div>
+
+  <h3>סטנדרט שדות</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>ברירות מחדל</h4>
+      <table>
+        <tr><th>סוג</th><th>ברירת מחדל</th></tr>
+        <tr><td>NVarChar / VarChar</td><td><code>''</code> (מחרוזת ריקה)</td></tr>
+        <tr><td>Int / Numeric</td><td><code>0</code></td></tr>
+        <tr><td>DateTime / DateTime2</td><td><code>1901-01-01</code> או <code>GETDATE()</code></td></tr>
+        <tr><td>Bit</td><td><code>1</code> (פעיל)</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h4>אילוצי ייחודיות</h4>
+      <table>
+        <tr><th>טבלה</th><th>Constraint</th></tr>
+        <tr><td>tblTenants</td><td>UNIQUE(TenantCode), UNIQUE(Email)</td></tr>
+        <tr><td>tblCustomers</td><td>UNIQUE(TenantID, CustomerCode)</td></tr>
+        <tr><td>tblCustomers</td><td>UNIQUE(TenantID, Email)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h3>SystemSettings — מפתחות חשובים</h3>
+  <div class="card">
+    <table>
+      <tr><th>SettingKey</th><th>תיאור</th></tr>
+      <tr><td><code>SystemLogo</code></td><td>נתיב לוגו המערכת (rp1.SystemLogo)</td></tr>
+      <tr><td><code>SystemName</code></td><td>שם המערכת (rp1.SystemHeader)</td></tr>
+      <tr><td><code>LoginScreenPromptText</code></td><td>טקסט הנחיה במסך כניסה</td></tr>
+      <tr><td><code>CopyrightText</code></td><td>טקסט Copyright בתחתית</td></tr>
+      <tr><td><code>BrandColor</code></td><td>צבע מותג הארגון (hex)</td></tr>
+      <tr><td><code>MaxDailyFailedLoginAttempts</code></td><td>מספר כישלונות לפני חסימה (ברירת מחדל: 5)</td></tr>
+      <tr><td><code>LoginBlockDurationHours</code></td><td>שעות חסימה (ברירת מחדל: 24)</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ════ STORED PROCEDURES ════ -->
+<section id="sps">
+  <h2 data-icon="⚙">Stored Procedures</h2>
+  <p style="margin-bottom:16px">סטנדרט שמות: <code>sp_</code> + PascalCase. כל SP בעל <code>@ResultCode</code> ו-<code>@ResultMessage</code> כ-OUTPUT.</p>
+  <div class="card">
+    <table>
+      <tr><th>SP</th><th>תיאור</th><th>ResultCodes</th></tr>
+      <tr><td><code>sp_UserLogin</code></td><td>כניסה למערכת + audit log. חייב לקבל TenantID!</td><td>0=הצלחה, 1=שגוי, 2=חסום, 3=לא פעיל, 5=חסום ניסיונות</td></tr>
+      <tr><td><code>sp_GetUserSalt</code></td><td>שליפת Salt לפי TenantID + Username</td><td>—</td></tr>
+      <tr><td><code>sp_OrganizationCreate</code></td><td>יצירת ארגון + הגדרות + AuditLog</td><td>0=הצלחה, 1=קוד תפוס, 2=מייל תפוס, 3=פורמט שגוי, 99=שגיאת שרת</td></tr>
+      <tr><td><code>sp_OrganizationUpdate</code></td><td>עדכון ארגון קיים + AuditLog</td><td>0=הצלחה, 1=לא נמצא, 2=מייל תפוס, 3=לא ניתן לנטרל פלטפורמה, 99=שגיאת שרת</td></tr>
+      <tr><td><code>sp_OrganizationGet</code></td><td>שליפת ארגון בודד + סטטיסטיקות</td><td>0=הצלחה, 1=לא נמצא</td></tr>
+      <tr><td><code>sp_ResetPassword</code></td><td>איפוס סיסמה על ידי מנהל</td><td>—</td></tr>
+      <tr><td><code>sp_CreateCustomer</code></td><td>יצירת לקוח חדש</td><td>—</td></tr>
+      <tr><td><code>sp_CreateTicket</code></td><td>יצירת תקלה חדשה</td><td>—</td></tr>
+    </table>
+  </div>
+  <div class="alert alert-info">
+    🔐 אבטחה: משתמש ה-DB צריך הרשאת EXECUTE בלבד על ה-SPs — ללא גישה ישירה לטבלאות.
+  </div>
+</section>
+
+<!-- ════ BACKEND API ════ -->
+<section id="backend">
+  <h2 data-icon="🔌">Backend API — Node.js</h2>
+  <p style="margin-bottom:16px">שרת: <code>http://localhost:3000</code> | כל route מתחת ל-<code>/api/*</code> מחזיר <code>Content-Type: application/json</code></p>
+
+  <h3>Routes</h3>
+  <div class="card">
+    <table>
+      <tr><th>Method</th><th>Route</th><th>Auth</th><th>תיאור</th></tr>
+      <tr><td><span class="badge badge-green">GET</span></td><td><code>/api/public/tenant/:code</code></td><td>ללא</td><td>פרטי ארגון ציבוריים (שם, לוגו, הגדרות מסך כניסה)</td></tr>
+      <tr><td><span class="badge badge-orange">POST</span></td><td><code>/api/auth/login</code></td><td>ללא</td><td>כניסה למערכת → JWT token</td></tr>
+      <tr><td><span class="badge badge-orange">POST</span></td><td><code>/api/auth/logout</code></td><td>JWT</td><td>התנתקות (stateless)</td></tr>
+      <tr><td><span class="badge badge-green">GET</span></td><td><code>/api/tenants</code></td><td>JWT + TenantID=1</td><td>רשימת כל הארגונים</td></tr>
+      <tr><td><span class="badge badge-green">GET</span></td><td><code>/api/tenants/:id</code></td><td>JWT + TenantID=1</td><td>ארגון בודד (sp_OrganizationGet)</td></tr>
+      <tr><td><span class="badge badge-orange">POST</span></td><td><code>/api/tenants</code></td><td>JWT + TenantID=1</td><td>יצירת ארגון (sp_OrganizationCreate)</td></tr>
+      <tr><td><span class="badge badge-blue">PUT</span></td><td><code>/api/tenants/:id</code></td><td>JWT + TenantID=1</td><td>עדכון ארגון (sp_OrganizationUpdate)</td></tr>
+      <tr><td><span class="badge badge-green">GET</span></td><td><code>/api/stats/platform</code></td><td>JWT + TenantID=1</td><td>סטטיסטיקות דשבורד (ארגונים + משתמשים)</td></tr>
+      <tr><td><span class="badge badge-orange">POST</span></td><td><code>/api/upload/logo</code></td><td>JWT</td><td>העלאת קובץ לוגו → שמירה ב-assets/logos/</td></tr>
+      <tr><td><span class="badge badge-orange">POST</span></td><td><code>/api/admin/reset-password</code></td><td>JWT + RoleID=1</td><td>איפוס סיסמה</td></tr>
+    </table>
+  </div>
+
+  <h3>JWT Payload</h3>
+  <pre>{
+  <span class="key">"userId"</span>:     <span class="val">1</span>,
+  <span class="key">"roleId"</span>:     <span class="val">1</span>,       <span class="comment">// 1=Platform Admin, 2=Org Admin</span>
+  <span class="key">"customerId"</span>: <span class="val">1</span>,
+  <span class="key">"tenantId"</span>:   <span class="val">1</span>,       <span class="comment">// TenantID=1 = Profits (Platform Admin)</span>
+  <span class="key">"fullName"</span>:   <span class="val">"שלמה שלום דהאן"</span>,
+  <span class="key">"roleName"</span>:   <span class="val">"מנהל מערכת"</span>
+}</pre>
+
+  <h3>הצפנת סיסמאות</h3>
+  <pre><span class="comment">// SHA256(password + salt) → base64</span>
+hash = crypto.createHash(<span class="val">'sha256'</span>)
+  .update(password + salt, <span class="val">'utf8'</span>)
+  .digest(<span class="val">'base64'</span>);</pre>
+
+  <h3>קבצי Backend</h3>
+  <div class="card">
+    <table>
+      <tr><th>קובץ</th><th>תיאור</th></tr>
+      <tr><td><code>server.js</code></td><td>אתחול Express, middleware, routes</td></tr>
+      <tr><td><code>db.js</code></td><td>חיבור DB — <strong>חייב להשתמש ב-sql.connect()</strong></td></tr>
+      <tr><td><code>routes/auth.js</code></td><td>login + logout</td></tr>
+      <tr><td><code>routes/tenants.js</code></td><td>CRUD ארגונים דרך SPs</td></tr>
+      <tr><td><code>routes/stats.js</code></td><td>סטטיסטיקות פלטפורמה</td></tr>
+      <tr><td><code>routes/public.js</code></td><td>endpoints ציבוריים (ללא auth)</td></tr>
+      <tr><td><code>routes/upload.js</code></td><td>העלאת קבצים (multer)</td></tr>
+      <tr><td><code>routes/admin.js</code></td><td>פעולות ניהול (reset password)</td></tr>
+      <tr><td><code>middleware/auth.js</code></td><td>בדיקת JWT token</td></tr>
+      <tr><td><code>middleware/platformAdmin.js</code></td><td>בדיקת TenantID=1</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ════ FRONTEND ════ -->
+<section id="frontend">
+  <h2 data-icon="🖥">Frontend — Angular</h2>
+  <p style="margin-bottom:16px">מיקום: <code>C:\Users\Administrator\SQUADFLOW\apps\portal\</code></p>
+
+  <h3>מבנה תיקיות</h3>
+  <pre>src/app/
+├── core/
+│   ├── guards/        auth.guard.ts
+│   ├── interceptors/  auth.interceptor.ts  (Bearer token אוטומטי)
+│   ├── models/        organization.model.ts, auth.model.ts
+│   └── services/      auth.service.ts, organization.service.ts,
+│                      tenant.service.ts, upload.service.ts
+├── features/
+│   ├── login/         מסך כניסה
+│   ├── dashboard/     דשבורד + KPI cards
+│   ├── organizations/ רשימת ארגונים + dialog
+│   ├── users/         משתמשים (stub)
+│   └── settings/      הגדרות (stub)
+├── shared/
+│   └── components/neural-net/  אנימציית Canvas
+└── shell/             Sidebar + Header</pre>
+
+  <h3>מסכים קיימים</h3>
+  <div class="card">
+    <table>
+      <tr><th>מסך</th><th>Route</th><th>תיאור</th></tr>
+      <tr><td><strong>כניסה</strong></td><td><code>/login?tenant=XXX</code></td><td>כניסה עם קוד ארגון ב-URL, לוגו + שם ארגון מה-DB</td></tr>
+      <tr><td><strong>דשבורד</strong></td><td><code>/app/dashboard</code></td><td>KPI cards: ארגונים פעילים/מושהים/פגי תוקף, משתמשים</td></tr>
+      <tr><td><strong>ארגונים</strong></td><td><code>/app/organizations</code></td><td>PrimeNG table: sort, filter, paginator + dialog הוספה/עדכון</td></tr>
+      <tr><td><strong>משתמשים</strong></td><td><code>/app/users</code></td><td>Stub — לפיתוח</td></tr>
+      <tr><td><strong>הגדרות</strong></td><td><code>/app/settings</code></td><td>Stub — לפיתוח</td></tr>
+    </table>
+  </div>
+
+  <h3>Design System</h3>
+  <div class="card">
+    <table>
+      <tr><th>Token</th><th>ערך</th><th>שימוש</th></tr>
+      <tr><td><code>--sf-primary</code></td><td>#0D47FF</td><td>כפתורים, כותרות, accent</td></tr>
+      <tr><td><code>--sf-accent</code></td><td>#00E5FF</td><td>FLOW cyan, highlights</td></tr>
+      <tr><td><code>--sf-bg</code></td><td>#f8fafc</td><td>רקע ראשי</td></tr>
+      <tr><td><code>--sf-bg-card</code></td><td>#ffffff</td><td>כרטיסים</td></tr>
+      <tr><td><code>--sf-text</code></td><td>#0f172a</td><td>טקסט ראשי</td></tr>
+      <tr><td><code>--sf-border</code></td><td>#e2e8f0</td><td>גבולות</td></tr>
+    </table>
+  </div>
+
+  <h3>Proxy Config (dev)</h3>
+  <pre><span class="comment">// proxy.conf.json</span>
+{
+  <span class="key">"/api"</span>:    { <span class="key">"target"</span>: <span class="val">"http://localhost:3000"</span> },
+  <span class="key">"/assets"</span>: { <span class="key">"target"</span>: <span class="val">"http://localhost:3000"</span> }
+}</pre>
+</section>
+
+<!-- ════ AUTH ════ -->
+<section id="auth">
+  <h2 data-icon="🔐">אבטחה ואימות</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h4>זרימת כניסה</h4>
+      <ol style="padding-right:16px;line-height:2">
+        <li>URL: <code>?tenant=PRO_5149577</code></li>
+        <li>שליפת TenantID מ-TenantCode</li>
+        <li><code>sp_GetUserSalt(TenantID, Username)</code></li>
+        <li>חישוב: <code>SHA256(password + salt)</code></li>
+        <li><code>sp_UserLogin(TenantID, Username, Hash, IP, UA)</code></li>
+        <li>JWT נוצר ומוחזר ל-Client</li>
+        <li>כניסה נרשמת ב-<code>tblLoginAudit</code></li>
+      </ol>
+    </div>
+    <div class="card">
+      <h4>הרשאות RoleID</h4>
+      <table>
+        <tr><th>RoleID</th><th>תפקיד</th><th>גישה</th></tr>
+        <tr><td><code>1</code></td><td>Platform Admin</td><td>TenantID=1 בלבד — ניהול ארגונים</td></tr>
+        <tr><td><code>2</code></td><td>Org Admin</td><td>ניהול הארגון שלו</td></tr>
+      </table>
+      <br/>
+      <p style="font-size:.82rem;color:var(--muted)">כל API מוגן: <code>requireAuth</code> מוודא JWT תקין. <code>requirePlatform</code> מוסיף בדיקת TenantID=1.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════ URLs ════ -->
+<section id="urls">
+  <h2 data-icon="🌐">כתובות מערכת</h2>
+  <div class="card">
+    <table>
+      <tr><th>שירות</th><th>כתובת</th><th>הערה</th></tr>
+      <tr><td>Angular (Dev)</td><td><div class="url-box">http://localhost:4200</div></td><td>ng serve --port 4200</td></tr>
+      <tr><td>Node.js API</td><td><div class="url-box">http://localhost:3000</div></td><td>node server.js</td></tr>
+      <tr><td>Platform Admin</td><td><div class="url-box">http://localhost:4200/?tenant=PRO_5149577</div></td><td>כניסת מנהל הפלטפורמה</td></tr>
+      <tr><td>GitHub — SQUADFLOW</td><td><div class="url-box">https://github.com/kshlomodahan-lgtm/SQUADFLOW</div></td><td>Angular + docs</td></tr>
+      <tr><td>GitHub — CRM Backend</td><td><div class="url-box">https://github.com/kshlomodahan-lgtm/CRM</div></td><td>Node.js + DB scripts</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ════ CREDENTIALS ════ -->
+<section id="credentials">
+  <h2 data-icon="🔑">פרטי גישה</h2>
+  <div class="alert alert-warn">⚠ לשמור בסוד — לא לשתף ב-GitHub</div>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Platform Admin</h4>
+      <table>
+        <tr><td>URL</td><td><code>?tenant=PRO_5149577</code></td></tr>
+        <tr><td>Username</td><td><code>admin</code></td></tr>
+        <tr><td>Password</td><td><code>Admin2026</code></td></tr>
+        <tr><td>TenantID</td><td><code>1</code></td></tr>
+        <tr><td>RoleID</td><td><code>1</code></td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h4>Database</h4>
+      <table>
+        <tr><td>Server</td><td><code>192.168.1.2</code></td></tr>
+        <tr><td>Database</td><td><code>ProfitsCRM</code></td></tr>
+        <tr><td>User</td><td><code>sa</code></td></tr>
+        <tr><td>JWT Secret</td><td><code>ProfitsCRM_JWT_Secret_2026!</code></td></tr>
+        <tr><td>Token Expiry</td><td><code>8h</code></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h3>ארגונים רשומים</h3>
+  <div class="card">
+    <table>
+      <tr><th>TenantCode</th><th>שם</th><th>ברירת מחדל admin</th></tr>
+      <tr><td><code>PRO_5149577</code></td><td>Profits Software Solutions</td><td>admin / Admin2026</td></tr>
+      <tr><td><code>HSL_123456</code></td><td>אולפני הרצליה</td><td>admin / 123456 (לשנות)</td></tr>
+      <tr><td><code>IGU_1234567</code></td><td>איגוד הכדורסל בישראל</td><td>admin / 123456 (לשנות)</td></tr>
+      <tr><td><code>ADM_4124143</code></td><td>איי.די.אמ. מרכזי תעשיות</td><td>admin / 123456 (לשנות)</td></tr>
+      <tr><td><code>MIT_1212121</code></td><td>בנק מזרחי טפחות</td><td>admin / 123456 (לשנות)</td></tr>
+      <tr><td><code>MGC_1231441</code></td><td>מג'יק תעשיות תוכנה</td><td>admin / 123456 (לשנות)</td></tr>
+      <tr><td><code>CNT_060969</code></td><td>רשת הקאנטרי</td><td>admin / 123456 (לשנות)</td></tr>
+    </table>
+  </div>
+</section>
+
+</div>
+
+<div style="background:#0f172a;color:rgba(255,255,255,.3);text-align:center;padding:20px;font-size:.75rem;">
+  SQUADFLOW © 2026 Profits Software Solutions Ltd. · תיעוד זה נוצר אוטומטית ב-05/06/2026
+</div>
+</body>
+</html>
