@@ -1,4 +1,5 @@
 node_modules/
+apps/portal/kendo-ui-license.txt
 dist/
 .env
 .env.local
