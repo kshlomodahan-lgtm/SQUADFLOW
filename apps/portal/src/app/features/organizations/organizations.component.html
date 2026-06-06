@@ -13,15 +13,11 @@
 
   <!-- ── Toolbar ──────────────────────────────────────── -->
   <div class="toolbar">
-    <kendo-textbox
-      placeholder="חיפוש לפי שם, קוד, אימייל..."
-      [clearButton]="true"
-      (valueChange)="onSearch($event)"
-      class="search-box">
-      <ng-template kendoTextBoxPrefixTemplate>
-        <mat-icon style="font-size:18px;color:#94a3b8;margin-left:4px">search</mat-icon>
-      </ng-template>
-    </kendo-textbox>
+    <div class="search-wrap">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input class="search-input" type="text" placeholder="חיפוש לפי שם, קוד, אימייל..."
+             (input)="onSearch($any($event.target).value)" />
+    </div>
   </div>
 
   <!-- ── Loading ──────────────────────────────────────── -->

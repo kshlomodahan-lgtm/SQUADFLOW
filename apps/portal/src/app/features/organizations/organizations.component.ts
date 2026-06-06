@@ -7,7 +7,6 @@ import { GridModule, PageChangeEvent } from '@progress/kendo-angular-grid';
 import { SortDescriptor } from '@progress/kendo-data-query';
 import { plusIcon } from '@progress/kendo-svg-icons';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
-import { InputsModule } from '@progress/kendo-angular-inputs';
 
 // Material (icons)
 import { MatIconModule } from '@angular/material/icon';
@@ -22,7 +21,7 @@ import { OrgDialogComponent } from './org-dialog/org-dialog.component';
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    GridModule, ButtonsModule, InputsModule,
+    GridModule, ButtonsModule,
     MatIconModule, MatProgressSpinnerModule,
     OrgDialogComponent,
   ],
