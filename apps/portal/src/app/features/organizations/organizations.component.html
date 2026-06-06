@@ -1,178 +1,138 @@
 <div class="orgs-page">
 
-  <!-- Header -->
+  <!-- ── Header ──────────────────────────────────────── -->
   <div class="page-header">
     <div>
       <h1>ארגונים</h1>
       <p>{{ orgs().length }} ארגונים רשומים במערכת</p>
     </div>
-    <p-button label="ארגון חדש" icon="pi pi-plus" (click)="openAdd()"></p-button>
+    <button kendoButton themeColor="primary" [svgIcon]="addIcon" (click)="openAdd()">
+      ארגון חדש
+    </button>
   </div>
 
-  <!-- Loading -->
+  <!-- ── Toolbar ──────────────────────────────────────── -->
+  <div class="toolbar">
+    <kendo-textbox
+      placeholder="חיפוש לפי שם, קוד, אימייל..."
+      [clearButton]="true"
+      (valueChange)="onSearch($event)"
+      class="search-box">
+      <ng-template kendoTextBoxPrefixTemplate>
+        <mat-icon style="font-size:18px;color:#94a3b8;margin-left:4px">search</mat-icon>
+      </ng-template>
+    </kendo-textbox>
+  </div>
+
+  <!-- ── Loading ──────────────────────────────────────── -->
   @if (loading()) {
     <div class="state-box"><mat-spinner diameter="36" /></div>
   }
 
-  <!-- Error -->
+  <!-- ── Error ────────────────────────────────────────── -->
   @if (!loading() && error()) {
-    <div class="state-box error">
-      <mat-icon>error_outline</mat-icon>
-      {{ error() }}
-      <button class="btn-link" (click)="load()">נסה שנית</button>
-    </div>
+    <div class="state-box error">{{ error() }}</div>
   }
 
-  <!-- PrimeNG Table -->
+  <!-- ── Kendo Grid ────────────────────────────────────── -->
   @if (!loading() && !error()) {
-    <p-table
-      [value]="orgs()"
-      [paginator]="true"
-      [rows]="10"
-      [rowsPerPageOptions]="[10, 25, 50]"
-      [showCurrentPageReport]="true"
-      currentPageReportTemplate="{first}–{last} מתוך {totalRecords} רשומות"
-      [globalFilterFields]="['CompanyName','TenantCode','Email','Phone']"
-      sortField="CompanyName"
-      [sortOrder]="1"
-      styleClass="p-datatable-sm sf-table"
-      [tableStyle]="{'min-width':'700px'}"
-      #dt>
+    <kendo-grid
+      [data]="{ data: gridData.slice(skip, skip + pageSize), total: gridData.length }"
+      [skip]="skip"
+      [pageSize]="pageSize"
+      [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [10, 25, 50] }"
+      [sortable]="{ mode: 'single', allowUnsort: false }"
+      [sort]="sort"
+      [filterable]="false"
+      [reorderable]="true"
+      [resizable]="true"
+      [selectable]="{ mode: 'multiple', checkboxOnly: true }"
+      scrollable="none"
+      (pageChange)="onPageChange($event)"
+      (sortChange)="onSortChange($event)"
+      class="orgs-grid">
 
-      <!-- Caption (search + actions) -->
-      <ng-template #caption>
-        <div class="table-caption">
-          <p-iconfield class="search-field">
-            <p-inputicon styleClass="pi pi-search" />
-            <input pInputText type="text" placeholder="חיפוש לפי שם, קוד, אימייל..."
-                   (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
-          </p-iconfield>
-          <div class="caption-actions">
-            <p-button icon="pi pi-file-export" [text]="true" [rounded]="true"
-                      severity="secondary" pTooltip="ייצוא" tooltipPosition="top" />
-            <p-button icon="pi pi-refresh" [text]="true" [rounded]="true"
-                      severity="secondary" pTooltip="רענן" tooltipPosition="top"
-                      (click)="load()" />
-          </div>
-        </div>
-      </ng-template>
+      <!-- Checkbox -->
+      <kendo-grid-checkbox-column [width]="40" [showSelectAll]="true" />
 
-      <!-- Headers -->
-      <ng-template #header>
-        <tr>
-          <th pSortableColumn="CompanyName" style="min-width:200px">
-            ארגון <p-sortIcon field="CompanyName" />
-          </th>
-          <th pSortableColumn="TenantCode" style="width:140px">
-            קוד ארגון <p-sortIcon field="TenantCode" />
-          </th>
-          <th pSortableColumn="Email">
-            אימייל <p-sortIcon field="Email" />
-          </th>
-          <th pSortableColumn="PlanType" style="width:110px">
-            תוכנית <p-sortIcon field="PlanType" />
-          </th>
-          <th pSortableColumn="UserCount" style="width:110px">
-            משתמשים <p-sortIcon field="UserCount" />
-          </th>
-          <th style="width:110px">תפוגה</th>
-          <th style="min-width:140px">הערות</th>
-          <th pSortableColumn="IsActive" style="width:100px">
-            סטטוס <p-sortIcon field="IsActive" />
-          </th>
-          <th style="width:72px"></th>
-        </tr>
-      </ng-template>
-
-      <!-- Body -->
-      <ng-template #body let-o>
-        <tr>
-          <!-- ארגון -->
-          <td>
-            <div class="org-cell">
-              @if (o.LogoUrl) {
-                <img [src]="o.LogoUrl" [alt]="o.CompanyName" class="org-logo" />
-              } @else {
-                <div class="org-avatar">{{ o.CompanyName.charAt(0) }}</div>
-              }
-              <span class="org-name">{{ o.CompanyName }}</span>
-            </div>
-          </td>
-
-          <!-- קוד -->
-          <td><code class="code-badge">{{ o.TenantCode }}</code></td>
-
-          <!-- אימייל -->
-          <td class="muted">{{ o.Email }}</td>
-
-          <!-- תוכנית -->
-          <td>
-            <p-tag [value]="planLabel(o.PlanType)" [severity]="planSeverity(o.PlanType)" />
-          </td>
-
-          <!-- משתמשים -->
-          <td>
-            <span class="users-count">{{ o.UserCount }}</span>
-            <span class="muted"> / {{ o.MaxUsers }}</span>
-          </td>
-
-          <!-- תפוגה -->
-          <td>
-            <span [class]="daysLeft(o.ExpiresAt) < 30 ? 'expiry-warn' : 'muted'">
-              {{ daysLeft(o.ExpiresAt) }} יום
-            </span>
-          </td>
-
-          <!-- הערות -->
-          <td>
-            @if (o.Notes) {
-              <span class="notes-cell" [title]="o.Notes">{{ o.Notes }}</span>
+      <!-- ארגון -->
+      <kendo-grid-column field="CompanyName" title="ארגון" [width]="220">
+        <ng-template kendoGridCellTemplate let-o>
+          <div class="org-cell">
+            @if (o.LogoUrl) {
+              <img [src]="o.LogoUrl" [alt]="o.CompanyName" class="org-logo" />
             } @else {
-              <span class="muted">—</span>
+              <div class="org-avatar">{{ o.CompanyName.charAt(0) }}</div>
             }
-          </td>
+            <span class="org-name">{{ o.CompanyName }}</span>
+          </div>
+        </ng-template>
+      </kendo-grid-column>
 
-          <!-- סטטוס -->
-          <td>
-            <div class="status-dot-wrap">
-              <span class="status-dot" [class.dot-active]="o.IsActive" [class.dot-inactive]="!o.IsActive"></span>
-              <span class="status-label">{{ o.IsActive ? 'פעיל' : 'מושהה' }}</span>
-            </div>
-          </td>
+      <!-- קוד -->
+      <kendo-grid-column field="TenantCode" title="קוד ארגון" [width]="130">
+        <ng-template kendoGridCellTemplate let-o>
+          <code class="code-badge">{{ o.TenantCode }}</code>
+        </ng-template>
+      </kendo-grid-column>
 
-          <!-- פעולות -->
-          <td>
-            <div class="row-actions">
-              <button class="act-btn act-delete" pTooltip="מחק ארגון" tooltipPosition="top">
-                <i class="pi pi-trash"></i>
-              </button>
-              <button class="act-btn act-edit" pTooltip="ערוך ארגון" tooltipPosition="top"
-                      (click)="openEdit(o)">
-                <i class="pi pi-pencil"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-      </ng-template>
+      <!-- אימייל -->
+      <kendo-grid-column field="Email" title="אימייל" />
 
-      <!-- Empty -->
-      <ng-template #emptymessage>
-        <tr>
-          <td colspan="8">
-            <div class="empty-state">
-              <i class="pi pi-search" style="font-size:2rem;color:#94a3b8"></i>
-              <p>לא נמצאו ארגונים</p>
-            </div>
-          </td>
-        </tr>
-      </ng-template>
+      <!-- תוכנית -->
+      <kendo-grid-column field="PlanType" title="תוכנית" [width]="110">
+        <ng-template kendoGridCellTemplate let-o>
+          <span class="chip" [class]="'chip-' + o.PlanType">{{ planLabel(o.PlanType) }}</span>
+        </ng-template>
+      </kendo-grid-column>
 
-    </p-table>
+      <!-- משתמשים -->
+      <kendo-grid-column field="UserCount" title="משתמשים" [width]="110">
+        <ng-template kendoGridCellTemplate let-o>
+          <span class="users-count">{{ o.UserCount }}</span>
+          <span class="muted"> / {{ o.MaxUsers }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- תפוגה -->
+      <kendo-grid-column field="ExpiresAt" title="תפוגה" [width]="100">
+        <ng-template kendoGridCellTemplate let-o>
+          <span [class]="daysLeft(o.ExpiresAt) < 30 ? 'expiry-warn' : 'muted'">
+            {{ daysLeft(o.ExpiresAt) }} יום
+          </span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- סטטוס -->
+      <kendo-grid-column field="IsActive" title="סטטוס" [width]="100">
+        <ng-template kendoGridCellTemplate let-o>
+          <div class="status-dot-wrap">
+            <span class="status-dot" [class.dot-active]="o.IsActive" [class.dot-inactive]="!o.IsActive"></span>
+            <span class="status-label">{{ o.IsActive ? 'פעיל' : 'מושהה' }}</span>
+          </div>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- פעולות -->
+      <kendo-grid-column title="" [width]="90" [locked]="false">
+        <ng-template kendoGridCellTemplate let-o>
+          <div class="row-actions">
+            <button class="act-btn act-delete" title="מחק ארגון">
+              <i class="pi pi-trash"></i>
+            </button>
+            <button class="act-btn act-edit" title="ערוך ארגון" (click)="openEdit(o)">
+              <i class="pi pi-pencil"></i>
+            </button>
+          </div>
+        </ng-template>
+      </kendo-grid-column>
+
+    </kendo-grid>
   }
 
 </div>
 
-<!-- Dialog הוספה / עדכון -->
+<!-- Dialog -->
 @if (dialogOpen()) {
   <app-org-dialog
     [org]="dialogOrg()"

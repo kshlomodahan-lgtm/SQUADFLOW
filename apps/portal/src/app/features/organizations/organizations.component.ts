@@ -1,15 +1,18 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TableModule } from 'primeng/table';
-import { InputTextModule } from 'primeng/inputtext';
-import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { TooltipModule } from 'primeng/tooltip';
-import { IconFieldModule } from 'primeng/iconfield';
-import { InputIconModule } from 'primeng/inputicon';
+
+// Kendo
+import { GridModule, PageChangeEvent } from '@progress/kendo-angular-grid';
+import { SortDescriptor } from '@progress/kendo-data-query';
+import { plusIcon } from '@progress/kendo-svg-icons';
+import { ButtonsModule } from '@progress/kendo-angular-buttons';
+import { InputsModule } from '@progress/kendo-angular-inputs';
+
+// Material (icons)
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
 import { OrganizationService } from '../../core/services/organization.service';
 import { Organization } from '../../core/models/organization.model';
 import { OrgDialogComponent } from './org-dialog/org-dialog.component';
@@ -19,8 +22,7 @@ import { OrgDialogComponent } from './org-dialog/org-dialog.component';
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    TableModule, InputTextModule, ButtonModule, TagModule, TooltipModule,
-    IconFieldModule, InputIconModule,
+    GridModule, ButtonsModule, InputsModule,
     MatIconModule, MatProgressSpinnerModule,
     OrgDialogComponent,
   ],
@@ -28,9 +30,19 @@ import { OrgDialogComponent } from './org-dialog/org-dialog.component';
   styleUrl:    './organizations.component.scss',
 })
 export class OrganizationsComponent implements OnInit {
-  loading    = signal(true);
-  error      = signal('');
-  orgs       = signal<Organization[]>([]);
+  addIcon = plusIcon;
+  loading = signal(true);
+  error   = signal('');
+  orgs    = signal<Organization[]>([]);
+
+  // Grid state
+  gridData: Organization[] = [];
+  searchTerm = '';
+  skip     = 0;
+  pageSize = 10;
+  sort: SortDescriptor[] = [{ field: 'CompanyName', dir: 'asc' }];
+
+  // Dialog
   dialogOpen = signal(false);
   dialogOrg  = signal<Organization | null>(null);
 
@@ -41,32 +53,44 @@ export class OrganizationsComponent implements OnInit {
   load() {
     this.loading.set(true);
     this.svc.getAll().subscribe({
-      next:  r => { this.orgs.set(r.tenants); this.loading.set(false); },
+      next: r => {
+        this.orgs.set(r.tenants);
+        this.applyFilter();
+        this.loading.set(false);
+      },
       error: () => { this.error.set('שגיאה בטעינת ארגונים'); this.loading.set(false); },
     });
   }
 
-  openAdd() {
-    this.dialogOrg.set(null);
-    this.dialogOpen.set(false);
-    // cycle off/on ← מאלץ Angular ליצור קומפוננטה חדשה לגמרי
-    setTimeout(() => this.dialogOpen.set(true));
+  applyFilter() {
+    const q = this.searchTerm.toLowerCase();
+    this.gridData = q
+      ? this.orgs().filter(o =>
+          o.CompanyName.toLowerCase().includes(q) ||
+          o.TenantCode.toLowerCase().includes(q)  ||
+          o.Email.toLowerCase().includes(q))
+      : [...this.orgs()];
+    this.skip = 0;
   }
 
-  openEdit(o: Organization) {
-    this.dialogOrg.set(o);
-    this.dialogOpen.set(false);
-    setTimeout(() => this.dialogOpen.set(true));
+  onSearch(value: string) {
+    this.searchTerm = value;
+    this.applyFilter();
   }
 
-  onSaved() { this.load(); }
+  onPageChange(e: PageChangeEvent) {
+    this.skip     = e.skip;
+    this.pageSize = e.take;
+  }
+
+  onSortChange(sort: SortDescriptor[]) { this.sort = sort; }
+
+  openAdd()                 { this.dialogOrg.set(null); this.dialogOpen.set(false); setTimeout(() => this.dialogOpen.set(true)); }
+  openEdit(o: Organization) { this.dialogOrg.set(o);    this.dialogOpen.set(false); setTimeout(() => this.dialogOpen.set(true)); }
+  onSaved()                 { this.load(); }
 
   planLabel(p: string) {
     return ({ basic: 'בסיסי', pro: 'מקצועי', enterprise: 'ארגוני' } as any)[p] ?? p;
-  }
-
-  planSeverity(p: string): 'secondary' | 'info' | 'warn' {
-    return ({ basic: 'secondary', pro: 'info', enterprise: 'warn' } as any)[p] ?? 'secondary';
   }
 
   daysLeft(expiry: string) {
