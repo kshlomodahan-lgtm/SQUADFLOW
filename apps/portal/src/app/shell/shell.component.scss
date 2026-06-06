@@ -105,6 +105,28 @@
   &:hover { background: var(--sf-bg-hover); color: var(--sf-text); }
 }
 
+.scheme-picker {
+  display: flex; align-items: center; gap: 5px;
+}
+
+.scheme-dot {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid transparent;
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  cursor: pointer; padding: 0;
+  transition: transform .15s, outline-color .15s;
+
+  &:hover  { transform: scale(1.2); }
+  &.active { outline-color: var(--sf-text); transform: scale(1.1); }
+}
+
+.topbar-sep {
+  width: 1px; height: 20px;
+  background: var(--sf-border);
+  margin: 0 4px;
+}
+
 .user-chip {
   display: flex; align-items: center; gap: 8px;
   padding: 4px 10px 4px 4px;

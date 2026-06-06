@@ -39,6 +39,11 @@ html {
   --sf-radius-lg:     14px;
   --sf-shadow:        0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
   --sf-shadow-md:     0 4px 16px rgba(0,0,0,.08);
+
+  // Grid header (scheme-aware)
+  --sf-grid-hd-bg:     #e8f4fb;
+  --sf-grid-hd-color:  #1e3a5f;
+  --sf-grid-hd-border: #c8dff0;
 }
 
 // ── Body ───────────────────────────────────────────────────
@@ -105,6 +110,64 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+// ── Color Schemes ──────────────────────────────────────────
+// blue = default (already in :root, no override needed)
+
+html[data-scheme="teal"] {
+  --sf-primary:        #0891b2;
+  --sf-primary-hover:  #0e7490;
+  --sf-primary-light:  #e0f7fa;
+  --sf-accent:         #06b6d4;
+  --sf-border-focus:   #0891b2;
+  --sf-grid-hd-bg:     #e0f7fa;
+  --sf-grid-hd-color:  #0c4a6e;
+  --sf-grid-hd-border: #bae6fd;
+}
+
+html[data-scheme="purple"] {
+  --sf-primary:        #7c3aed;
+  --sf-primary-hover:  #6d28d9;
+  --sf-primary-light:  #ede9fe;
+  --sf-accent:         #a78bfa;
+  --sf-border-focus:   #7c3aed;
+  --sf-grid-hd-bg:     #f3f0ff;
+  --sf-grid-hd-color:  #3b0764;
+  --sf-grid-hd-border: #ddd6fe;
+}
+
+html[data-scheme="green"] {
+  --sf-primary:        #059669;
+  --sf-primary-hover:  #047857;
+  --sf-primary-light:  #d1fae5;
+  --sf-accent:         #34d399;
+  --sf-border-focus:   #059669;
+  --sf-grid-hd-bg:     #ecfdf5;
+  --sf-grid-hd-color:  #064e3b;
+  --sf-grid-hd-border: #a7f3d0;
+}
+
+html[data-scheme="rose"] {
+  --sf-primary:        #e11d48;
+  --sf-primary-hover:  #be123c;
+  --sf-primary-light:  #ffe4e6;
+  --sf-accent:         #fb7185;
+  --sf-border-focus:   #e11d48;
+  --sf-grid-hd-bg:     #fff1f2;
+  --sf-grid-hd-color:  #881337;
+  --sf-grid-hd-border: #fecdd3;
+}
+
+html[data-scheme="amber"] {
+  --sf-primary:        #d97706;
+  --sf-primary-hover:  #b45309;
+  --sf-primary-light:  #fef3c7;
+  --sf-accent:         #fbbf24;
+  --sf-border-focus:   #d97706;
+  --sf-grid-hd-bg:     #fffbeb;
+  --sf-grid-hd-color:  #78350f;
+  --sf-grid-hd-border: #fde68a;
+}
 
 // ── Dark Theme ─────────────────────────────────────────────
 html[data-theme="dark"] {

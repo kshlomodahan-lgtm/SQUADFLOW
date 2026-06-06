@@ -43,11 +43,27 @@
 
     <header class="topbar">
       <div class="topbar-start">
+        <!-- Color scheme swatches -->
+        <div class="scheme-picker">
+          @for (s of theme.schemes; track s.id) {
+            <button class="scheme-dot"
+                    [style.background]="s.primary"
+                    [class.active]="theme.scheme() === s.id"
+                    [title]="s.label"
+                    (click)="theme.setScheme(s.id)">
+            </button>
+          }
+        </div>
+
+        <div class="topbar-sep"></div>
+
+        <!-- Light / Dark toggle -->
         <button class="topbar-btn"
-                (click)="theme.toggle()"
+                (click)="theme.toggleMode()"
                 [title]="theme.isDark() ? 'מצב יום' : 'מצב לילה'">
           <mat-icon>{{ theme.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
         </button>
+
         <mat-icon class="topbar-icon">notifications_none</mat-icon>
         <mat-icon class="topbar-icon">help_outline</mat-icon>
       </div>
