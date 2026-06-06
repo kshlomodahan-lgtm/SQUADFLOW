@@ -4,11 +4,11 @@ import { FormsModule } from '@angular/forms';
 
 // Kendo
 import { GridModule, PageChangeEvent } from '@progress/kendo-angular-grid';
-import { SortDescriptor } from '@progress/kendo-data-query';
+import { SortDescriptor, orderBy } from '@progress/kendo-data-query';
 import { plusIcon } from '@progress/kendo-svg-icons';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 
-// Material (icons)
+// Material
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
@@ -34,14 +34,12 @@ export class OrganizationsComponent implements OnInit {
   error   = signal('');
   orgs    = signal<Organization[]>([]);
 
-  // Grid state
   gridData: Organization[] = [];
   searchTerm = '';
-  skip     = 0;
-  pageSize = 10;
+  skip       = 0;
+  pageSize   = 10;
   sort: SortDescriptor[] = [{ field: 'CompanyName', dir: 'asc' }];
 
-  // Dialog
   dialogOpen = signal(false);
   dialogOrg  = signal<Organization | null>(null);
 
@@ -63,12 +61,15 @@ export class OrganizationsComponent implements OnInit {
 
   applyFilter() {
     const q = this.searchTerm.toLowerCase();
-    this.gridData = q
+    const filtered = q
       ? this.orgs().filter(o =>
           o.CompanyName.toLowerCase().includes(q) ||
           o.TenantCode.toLowerCase().includes(q)  ||
           o.Email.toLowerCase().includes(q))
       : [...this.orgs()];
+
+    // מיון עם kendo orderBy
+    this.gridData = orderBy(filtered, this.sort) as Organization[];
     this.skip = 0;
   }
 
@@ -82,7 +83,10 @@ export class OrganizationsComponent implements OnInit {
     this.pageSize = e.take;
   }
 
-  onSortChange(sort: SortDescriptor[]) { this.sort = sort; }
+  onSortChange(sort: SortDescriptor[]) {
+    this.sort = sort;
+    this.applyFilter();   // מחיל מיון על הנתונים
+  }
 
   openAdd()                 { this.dialogOrg.set(null); this.dialogOpen.set(false); setTimeout(() => this.dialogOpen.set(true)); }
   openEdit(o: Organization) { this.dialogOrg.set(o);    this.dialogOpen.set(false); setTimeout(() => this.dialogOpen.set(true)); }
@@ -94,5 +98,9 @@ export class OrganizationsComponent implements OnInit {
 
   daysLeft(expiry: string) {
     return Math.ceil((new Date(expiry).getTime() - Date.now()) / 86400000);
+  }
+
+  get pagedData() {
+    return this.gridData.slice(this.skip, this.skip + this.pageSize);
   }
 }

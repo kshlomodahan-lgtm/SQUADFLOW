@@ -15,17 +15,16 @@
   <div class="toolbar">
     <div class="search-wrap">
       <mat-icon class="search-icon">search</mat-icon>
-      <input class="search-input" type="text" placeholder="חיפוש לפי שם, קוד, אימייל..."
+      <input class="search-input" type="text"
+             placeholder="חיפוש לפי שם, קוד, אימייל..."
              (input)="onSearch($any($event.target).value)" />
     </div>
   </div>
 
-  <!-- ── Loading ──────────────────────────────────────── -->
   @if (loading()) {
     <div class="state-box"><mat-spinner diameter="36" /></div>
   }
 
-  <!-- ── Error ────────────────────────────────────────── -->
   @if (!loading() && error()) {
     <div class="state-box error">{{ error() }}</div>
   }
@@ -33,13 +32,17 @@
   <!-- ── Kendo Grid ────────────────────────────────────── -->
   @if (!loading() && !error()) {
     <kendo-grid
-      [data]="{ data: gridData.slice(skip, skip + pageSize), total: gridData.length }"
+      [data]="{ data: pagedData, total: gridData.length }"
       [skip]="skip"
       [pageSize]="pageSize"
-      [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [10, 25, 50] }"
+      [pageable]="{
+        buttonCount: 5,
+        info: true,
+        type: 'numeric',
+        pageSizes: [10, 25, 50]
+      }"
       [sortable]="{ mode: 'single', allowUnsort: false }"
       [sort]="sort"
-      [filterable]="false"
       [reorderable]="true"
       [resizable]="true"
       [selectable]="{ mode: 'multiple', checkboxOnly: true }"
@@ -48,11 +51,38 @@
       (sortChange)="onSortChange($event)"
       class="orgs-grid">
 
-      <!-- Checkbox -->
-      <kendo-grid-checkbox-column [width]="40" [showSelectAll]="true" />
+      <!-- ── Localization מלא ── -->
+      <kendo-grid-messages
+        pagerItemsPerPage="שורות בעמוד"
+        pagerOf="מתוך"
+        pagerItems="רשומות"
+        pagerFirstPage="עמוד ראשון"
+        pagerLastPage="עמוד אחרון"
+        pagerPreviousPage="הקודם"
+        pagerNextPage="הבא"
+        pagerPage="עמוד"
+        pagerPageNumberInputTitle="מספר עמוד"
+        noRecords="לא נמצאו רשומות"
+        loading="טוען..."
+        sortAscending="מיון עולה"
+        sortDescending="מיון יורד"
+        sortedAscending="ממוין בסדר עולה"
+        sortedDescending="ממוין בסדר יורד"
+        filterContainsOperator="מכיל"
+        filterStartsWithOperator="מתחיל ב"
+        filterEndsWithOperator="מסתיים ב"
+        filterEqOperator="שווה ל"
+        filterClearButton="נקה"
+        filterFilterButton="סנן"
+        selectionCheckboxLabel="בחר שורה"
+        selectAllCheckboxLabel="בחר הכל"
+      />
 
-      <!-- ארגון -->
-      <kendo-grid-column field="CompanyName" title="ארגון" [width]="220">
+      <!-- Checkbox -->
+      <kendo-grid-checkbox-column [width]="44" [showSelectAll]="true" />
+
+      <!-- ארגון — גמיש, קולט את כל השטח הנותר -->
+      <kendo-grid-column field="CompanyName" title="ארגון" [minResizableWidth]="160">
         <ng-template kendoGridCellTemplate let-o>
           <div class="org-cell">
             @if (o.LogoUrl) {
@@ -65,42 +95,33 @@
         </ng-template>
       </kendo-grid-column>
 
-      <!-- קוד -->
-      <kendo-grid-column field="TenantCode" title="קוד ארגון" [width]="130">
+      <!-- קוד ארגון -->
+      <kendo-grid-column field="TenantCode" title="קוד" [width]="120">
         <ng-template kendoGridCellTemplate let-o>
           <code class="code-badge">{{ o.TenantCode }}</code>
         </ng-template>
       </kendo-grid-column>
 
-      <!-- אימייל -->
-      <kendo-grid-column field="Email" title="אימייל" />
+      <!-- אימייל — רוחב קבוע -->
+      <kendo-grid-column field="Email" title='דוא"ל' [width]="210" />
 
       <!-- תוכנית -->
-      <kendo-grid-column field="PlanType" title="תוכנית" [width]="110">
+      <kendo-grid-column field="PlanType" title="תוכנית" [width]="100">
         <ng-template kendoGridCellTemplate let-o>
           <span class="chip" [class]="'chip-' + o.PlanType">{{ planLabel(o.PlanType) }}</span>
         </ng-template>
       </kendo-grid-column>
 
       <!-- משתמשים -->
-      <kendo-grid-column field="UserCount" title="משתמשים" [width]="110">
+      <kendo-grid-column field="UserCount" title="משתמשים" [width]="100">
         <ng-template kendoGridCellTemplate let-o>
           <span class="users-count">{{ o.UserCount }}</span>
           <span class="muted"> / {{ o.MaxUsers }}</span>
         </ng-template>
       </kendo-grid-column>
 
-      <!-- תפוגה -->
-      <kendo-grid-column field="ExpiresAt" title="תפוגה" [width]="100">
-        <ng-template kendoGridCellTemplate let-o>
-          <span [class]="daysLeft(o.ExpiresAt) < 30 ? 'expiry-warn' : 'muted'">
-            {{ daysLeft(o.ExpiresAt) }} יום
-          </span>
-        </ng-template>
-      </kendo-grid-column>
-
       <!-- סטטוס -->
-      <kendo-grid-column field="IsActive" title="סטטוס" [width]="100">
+      <kendo-grid-column field="IsActive" title="סטטוס" [width]="95">
         <ng-template kendoGridCellTemplate let-o>
           <div class="status-dot-wrap">
             <span class="status-dot" [class.dot-active]="o.IsActive" [class.dot-inactive]="!o.IsActive"></span>
@@ -109,26 +130,26 @@
         </ng-template>
       </kendo-grid-column>
 
-      <!-- פעולות -->
-      <kendo-grid-column title="" [width]="90" [locked]="false">
+      <!-- פעולות — קבוע, לא ניתן למיון -->
+      <kendo-grid-column title="" [width]="80" [sortable]="false" [resizable]="false">
         <ng-template kendoGridCellTemplate let-o>
           <div class="row-actions">
-            <button class="act-btn act-delete" title="מחק ארגון">
+            <button class="act-btn act-delete" title="מחק">
               <i class="pi pi-trash"></i>
             </button>
-            <button class="act-btn act-edit" title="ערוך ארגון" (click)="openEdit(o)">
+            <button class="act-btn act-edit" title="ערוך" (click)="openEdit(o)">
               <i class="pi pi-pencil"></i>
             </button>
           </div>
         </ng-template>
       </kendo-grid-column>
 
+
     </kendo-grid>
   }
 
 </div>
 
-<!-- Dialog -->
 @if (dialogOpen()) {
   <app-org-dialog
     [org]="dialogOrg()"
