@@ -18,4 +18,5 @@ export interface LoginResponse {
   message: string;
   token:   string;
   user:    LoginUser;
+  theme?:  { colorScheme: string; darkMode: boolean };
 }

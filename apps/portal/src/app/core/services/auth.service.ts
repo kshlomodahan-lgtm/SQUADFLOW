@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { LoginRequest, LoginResponse, LoginUser } from '../models/auth.model';
+import { ThemeService } from './theme.service';
 
 const TOKEN_KEY = 'sf_token';
 const USER_KEY  = 'sf_user';
@@ -15,7 +16,7 @@ export class AuthService {
   readonly user     = this._user.asReadonly();
   readonly isLoggedIn = computed(() => this._user() !== null);
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router, private theme: ThemeService) {}
 
   login(req: LoginRequest) {
     return this.http.post<LoginResponse>(`${API_BASE}/auth/login`, req).pipe(
@@ -24,6 +25,9 @@ export class AuthService {
           localStorage.setItem(TOKEN_KEY, res.token);
           localStorage.setItem(USER_KEY, JSON.stringify(res.user));
           this._user.set(res.user);
+          if (res.theme) {
+            this.theme.applyFromServer(res.theme.colorScheme, res.theme.darkMode);
+          }
         }
       })
     );

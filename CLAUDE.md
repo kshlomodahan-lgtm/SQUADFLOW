@@ -24,13 +24,13 @@ SQUADFLOW הוא פלטפורמת SaaS רב-שוכרית לניהול צוותי
 - RTL עברית ברירת מחדל, תמיכה ב-LTR אנגלית
 - אין NgModules — כל קובץ standalone: true
 
-### 🔧 Backend .NET Dev
+### 🔧 Backend Node.js Dev
 **אחריות:** כל קוד בתיקיית `backend/`
-- C# .NET 8 Web API
-- שמות טבלאות: `tbl` + PascalCase (tblCustomers, tblLoginAudit)
-- שמות עמודות: PascalCase (CompanyName, TenantCode, IsActive)
+- Node.js 24 + Express — REST API, CORS, Helmet
+- mssql (node-mssql) — **חובה** `sql.connect(config)` ולא `new sql.ConnectionPool()` (גורם לבעיית NVarChar/עברית)
+- JWT (jsonwebtoken) — Token מכיל: tenantId, roleId, userId, fullName
+- Multer — העלאת קבצי לוגו → `frontend/assets/logos/`
 - Stored Procedures עבור לוגיקה עסקית מורכבת
-- JWT Auth + Refresh Tokens
 - Multi-tenant: כל query מסונן לפי TenantID
 
 ### 🗄️ DB Architect

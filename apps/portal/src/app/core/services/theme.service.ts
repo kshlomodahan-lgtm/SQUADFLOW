@@ -1,4 +1,5 @@
 import { Injectable, effect, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 
 export type ThemeMode   = 'light' | 'dark';
 export type ColorScheme = 'blue' | 'teal' | 'purple' | 'green' | 'rose' | 'amber';
@@ -28,7 +29,7 @@ export class ThemeService {
 
   readonly schemes = COLOR_SCHEMES;
 
-  constructor() {
+  constructor(private http: HttpClient) {
     effect(() => {
       const m = this.mode();
       const s = this.scheme();
@@ -39,7 +40,30 @@ export class ThemeService {
     });
   }
 
+  // קריאה מהשרת (אחרי login) — מחליף localStorage
+  applyFromServer(colorScheme: string, darkMode: boolean) {
+    const scheme = (COLOR_SCHEMES.find(s => s.id === colorScheme)?.id ?? 'blue') as ColorScheme;
+    this.scheme.set(scheme);
+    this.mode.set(darkMode ? 'dark' : 'light');
+  }
+
   toggleMode()              { this.mode.update(m => m === 'light' ? 'dark' : 'light'); }
   setScheme(s: ColorScheme) { this.scheme.set(s); }
   isDark()                  { return this.mode() === 'dark'; }
+
+  // שמירת העדפה אישית לשרת
+  saveUserTheme() {
+    return this.http.put('/api/theme/user', {
+      colorScheme: this.scheme(),
+      darkMode:    this.isDark(),
+    });
+  }
+
+  // שמירת ברירת מחדל לארגון (מנהל בלבד)
+  saveOrgTheme() {
+    return this.http.put('/api/theme/org', {
+      colorScheme: this.scheme(),
+      darkMode:    this.isDark(),
+    });
+  }
 }

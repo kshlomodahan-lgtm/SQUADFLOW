@@ -1,0 +1,167 @@
+<div class="settings-page">
+
+  <div class="page-header">
+    <div>
+      <h1>הגדרות</h1>
+      <p>ניהול העדפות המערכת</p>
+    </div>
+  </div>
+
+  <div class="settings-layout">
+
+    <!-- ── Sidebar Nav ──────────────────────────────── -->
+    <nav class="settings-nav">
+      @for (g of groups; track g.id) {
+        <button
+          class="nav-item"
+          [class.active]="activeGroup() === g.id"
+          (click)="selectGroup(g.id)">
+          <span class="nav-icon">
+            <kendo-svg-icon [icon]="g.icon" />
+          </span>
+          <span class="nav-text">{{ g.text }}</span>
+          @if (activeGroup() === g.id) {
+            <span class="nav-indicator"></span>
+          }
+        </button>
+      }
+    </nav>
+
+    <!-- ── Content Area ─────────────────────────────── -->
+    <main class="settings-content">
+
+      <!-- מראה ועיצוב -->
+      @if (activeGroup() === 'theme') {
+        <div class="content-section">
+          <div class="section-header">
+            <h2>מראה ועיצוב</h2>
+            <p>התאם את חווית הממשק לסגנון שלך</p>
+          </div>
+
+          <!-- Color Scheme -->
+          <div class="setting-card">
+            <div class="setting-card-title">ערכת צבעים</div>
+            <div class="setting-card-desc">בחר פלטת צבעים למערכת</div>
+            <div class="scheme-grid">
+              @for (s of schemes; track s.id) {
+                <button
+                  class="scheme-tile"
+                  [class.active]="theme.scheme() === s.id"
+                  (click)="selectScheme(s.id)">
+                  <span class="scheme-swatch" [style.background]="s.primary">
+                    @if (theme.scheme() === s.id) { <span class="scheme-check">✓</span> }
+                  </span>
+                  <span class="scheme-label">{{ s.label }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Dark Mode -->
+          <div class="setting-card">
+            <div class="setting-card-row">
+              <div>
+                <div class="setting-card-title">מצב כהה</div>
+                <div class="setting-card-desc">מתאים לעבודה בסביבה חשוכה</div>
+              </div>
+              <kendo-switch
+                [checked]="theme.isDark()"
+                (valueChange)="toggleDark($event)"
+                onLabel="פעיל"
+                offLabel="כבוי">
+              </kendo-switch>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="setting-actions">
+            <button kendoButton themeColor="primary" (click)="saveUser()" [disabled]="saving()" class="btn-save">
+              @if (saving()) {
+                <kendo-loader type="pulsing" size="small" />
+              } @else { ✓ }
+              שמור העדפה אישית
+            </button>
+
+            @if (isAdmin()) {
+              <button kendoButton fillMode="outline" (click)="saveOrg()" [disabled]="saving()">
+                קבע כברירת מחדל לארגון
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- כללי -->
+      @if (activeGroup() === 'general') {
+        <div class="content-section">
+          <div class="section-header">
+            <h2>הגדרות כלליות</h2>
+            <p>שפה, אזור זמן והגדרות בסיסיות</p>
+          </div>
+          <div class="setting-card coming-soon-card">
+            <span class="coming-soon-badge">בקרוב</span>
+            <p>הגדרות כלליות יתווספו בקרוב</p>
+          </div>
+        </div>
+      }
+
+      <!-- אבטחה -->
+      @if (activeGroup() === 'security') {
+        <div class="content-section">
+          <div class="section-header">
+            <h2>אבטחה</h2>
+            <p>מדיניות סיסמאות וחסימת כניסות</p>
+          </div>
+          <div class="setting-card coming-soon-card">
+            <span class="coming-soon-badge">בקרוב</span>
+            <p>הגדרות אבטחה יתווספו בקרוב</p>
+          </div>
+        </div>
+      }
+
+      <!-- התראות -->
+      @if (activeGroup() === 'notifications') {
+        <div class="content-section">
+          <div class="section-header">
+            <h2>התראות</h2>
+            <p>ניהול העדפות התראות</p>
+          </div>
+          <div class="setting-card coming-soon-card">
+            <span class="coming-soon-badge">בקרוב</span>
+            <p>הגדרות התראות יתווספו בקרוב</p>
+          </div>
+        </div>
+      }
+
+      <!-- ארגון -->
+      @if (activeGroup() === 'organization') {
+        <div class="content-section">
+          <div class="section-header">
+            <h2>הגדרות ארגון</h2>
+            <p>פרטי הארגון וחברי הצוות</p>
+          </div>
+          <div class="setting-card coming-soon-card">
+            <span class="coming-soon-badge">בקרוב</span>
+            <p>הגדרות ארגון יתווספו בקרוב</p>
+          </div>
+        </div>
+      }
+
+      <!-- חיוב -->
+      @if (activeGroup() === 'billing') {
+        <div class="content-section">
+          <div class="section-header">
+            <h2>חיוב ומנוי</h2>
+            <p>תוכנית, תשלומים וחשבוניות</p>
+          </div>
+          <div class="setting-card coming-soon-card">
+            <span class="coming-soon-badge">בקרוב</span>
+            <p>הגדרות חיוב יתווספו בקרוב</p>
+          </div>
+        </div>
+      }
+
+    </main>
+  </div>
+
+</div>
