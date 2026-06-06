@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../core/services/auth.service';
+import { ThemeService } from '../core/services/theme.service';
 
 interface NavItem {
   icon:  string;
@@ -38,7 +39,7 @@ export class ShellComponent {
     { icon: 'settings',       label: 'הגדרות',   route: '/app/settings' },
   ];
 
-  constructor(public auth: AuthService) {}
+  constructor(public auth: AuthService, public theme: ThemeService) {}
 
   logout() { this.auth.logout(); }
 }

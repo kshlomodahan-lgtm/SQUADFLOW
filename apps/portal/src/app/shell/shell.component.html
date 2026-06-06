@@ -43,6 +43,11 @@
 
     <header class="topbar">
       <div class="topbar-start">
+        <button class="topbar-btn"
+                (click)="theme.toggle()"
+                [title]="theme.isDark() ? 'מצב יום' : 'מצב לילה'">
+          <mat-icon>{{ theme.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+        </button>
         <mat-icon class="topbar-icon">notifications_none</mat-icon>
         <mat-icon class="topbar-icon">help_outline</mat-icon>
       </div>

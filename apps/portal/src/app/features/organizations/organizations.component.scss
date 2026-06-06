@@ -12,9 +12,31 @@
 // ── Toolbar ──────────────────────────────────────────────
 .toolbar { margin-bottom: 14px; display: flex; gap: 8px; }
 
-.search-box {
-  width: 340px;
+.search-wrap {
+  display: flex; align-items: center; gap: 6px;
+  width: 340px; direction: rtl;
+  background: var(--sf-bg-card);
+  border: 1px solid var(--sf-border);
+  border-radius: 8px; padding: 6px 12px;
+  transition: border-color .15s, box-shadow .15s;
+
+  &:focus-within {
+    border-color: var(--sf-border-focus);
+    box-shadow: 0 0 0 3px rgba(13,71,255,.12);
+  }
+}
+
+.search-icon {
+  color: var(--sf-text-muted); font-size: 18px;
+  width: 18px !important; height: 18px !important; flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1; border: none; outline: none;
+  background: transparent; color: var(--sf-text);
+  font-size: .875rem; font-family: 'Noto Sans Hebrew', sans-serif;
   direction: rtl;
+  &::placeholder { color: var(--sf-text-muted); }
 }
 
 // ── States ───────────────────────────────────────────────
@@ -53,14 +75,14 @@
   .orgs-grid td.k-table-td {
     text-align: right !important;
     vertical-align: middle !important;
-    border-color: #f0f2f5 !important;
+    border-color: var(--sf-border) !important;
     font-size: .875rem;
-    background: #fff;
+    background: var(--sf-bg-card);
     direction: rtl;
     padding: 8px 12px !important;
   }
 
-  .orgs-grid tr.k-table-row:hover td { background: #f5f8ff !important; }
+  .orgs-grid tr.k-table-row:hover td { background: var(--sf-bg-hover) !important; }
 
   // Paginator — עברית
   .orgs-grid .k-pager {

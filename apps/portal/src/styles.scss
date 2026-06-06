@@ -105,3 +105,65 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+// ── Dark Theme ─────────────────────────────────────────────
+html[data-theme="dark"] {
+  --sf-bg:             #0f172a;
+  --sf-bg-card:        #1e293b;
+  --sf-bg-hover:       #2d3748;
+  --sf-sidebar-bg:     #1e293b;
+  --sf-border:         #334155;
+  --sf-border-focus:   #4d7cff;
+  --sf-text:           #f1f5f9;
+  --sf-text-secondary: #94a3b8;
+  --sf-text-muted:     #475569;
+  --sf-primary-light:  #1e3a5f;
+  --sf-shadow:         0 1px 3px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3);
+  --sf-shadow-md:      0 4px 16px rgba(0,0,0,.5);
+
+  color-scheme: dark;
+
+  // Kendo Grid — dark overrides
+  .k-grid {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+
+  .k-grid-header,
+  .k-grid-header th.k-header {
+    background: #162032 !important;
+    color: #93c5fd !important;
+    border-color: #334155 !important;
+  }
+
+  .k-grid-header .k-grid-header-wrap { background: #162032 !important; }
+
+  .k-table-td {
+    background: #1e293b !important;
+    border-color: #2d3748 !important;
+    color: #f1f5f9 !important;
+  }
+
+  .k-table-row:hover .k-table-td { background: #2d3748 !important; }
+
+  .k-pager {
+    background: #162032 !important;
+    border-color: #334155 !important;
+    color: #94a3b8 !important;
+  }
+
+  .k-pager .k-button { color: #94a3b8; background: transparent; border-color: transparent; }
+  .k-pager .k-button:hover { background: #334155 !important; color: #f1f5f9 !important; }
+  .k-pager .k-selected { background: var(--sf-primary) !important; color: #fff !important; }
+
+  .k-pager .k-dropdown-list .k-input { background: #1e293b; color: #f1f5f9; border-color: #334155; }
+
+  .k-sort-icon { color: #93c5fd; }
+  .k-checkbox  { accent-color: var(--sf-primary); background: #1e293b; }
+
+  .k-column-resizer { background: #334155; }
+
+  // Material components in dark mode
+  .mat-mdc-progress-spinner { --mdc-circular-progress-active-indicator-color: var(--sf-primary); }
+}
