@@ -21,7 +21,7 @@ export class OrganizationService {
     return this.http.put(`${this.base}/${id}`, data);
   }
 
-  toggleActive(id: number, isActive: boolean): Observable<any> {
-    return this.http.put(`${this.base}/${id}`, { IsActive: isActive });
+  toggleActive(id: number): Observable<{ success: boolean; isActive: boolean }> {
+    return this.http.put<{ success: boolean; isActive: boolean }>(`${this.base}/${id}/toggle`, {});
   }
 }

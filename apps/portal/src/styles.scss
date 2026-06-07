@@ -105,6 +105,33 @@ body {
   box-shadow: var(--sf-shadow);
 }
 
+// ── Kendo hierarchy column — hide globally ─────────────────
+// kendoGridDetailTemplate always injects k-hierarchy-col/cell.
+// clip-path: inset(0) clips even when overflow: visible is set.
+col.k-hierarchy-col {
+  width: 0 !important;
+}
+
+.k-hierarchy-cell {
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  overflow: hidden !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  color: transparent !important;
+  opacity: 0 !important;
+  transition: none !important;
+}
+
+.k-hierarchy-cell *,
+.k-hierarchy-cell::before,
+.k-hierarchy-cell::after {
+  display: none !important;
+}
+
 // ── Scrollbar ──────────────────────────────────────────────
 ::-webkit-scrollbar       { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }

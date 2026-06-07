@@ -24,6 +24,7 @@ router.get('/', async (req, res) => {
       LEFT JOIN dbo.tblUsers    u  ON u.TenantID=t.TenantID AND u.IsActive=1 AND u.UserID>0
       LEFT JOIN dbo.tblCustomers c ON c.TenantID=t.TenantID AND c.CustomerID>0
       LEFT JOIN dbo.tblTickets  tk ON tk.TenantID=t.TenantID AND tk.StatusID IN (1,2,3)
+      WHERE t.TenantID > 1
       GROUP BY t.TenantID,t.TenantCode,t.CompanyName,t.Email,t.Phone,
                t.PlanType,t.MaxUsers,t.MaxTickets,t.IsActive,t.LogoUrl,
                t.Notes,t.SubscribedAt,t.ExpiresAt,
@@ -220,6 +221,30 @@ router.put('/:id', async (req, res) => {
     return res.json({ success: true, message: r.output.ResultMessage });
   } catch (err) {
     console.error('PUT /tenants/:id error:', err);
+    return res.status(500).json({ success: false, message: 'שגיאת שרת' });
+  }
+});
+
+// ── PUT /api/tenants/:id/toggle — הפעל/השבת ארגון
+router.put('/:id/toggle', async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (!id || id <= 1) return res.status(400).json({ success: false, message: 'ID לא תקין' });
+  try {
+    const pool = await getPool();
+    const cur = await pool.request()
+      .input('TenantID', sql.Int, id)
+      .query('SELECT IsActive FROM dbo.tblTenants WHERE TenantID=@TenantID');
+    if (!cur.recordset.length) return res.status(404).json({ success: false, message: 'ארגון לא נמצא' });
+
+    const newState = cur.recordset[0].IsActive ? 0 : 1;
+    await pool.request()
+      .input('TenantID', sql.Int, id)
+      .input('IsActive', sql.Bit, newState)
+      .query('UPDATE dbo.tblTenants SET IsActive=@IsActive, UpdatedAt=GETDATE() WHERE TenantID=@TenantID');
+
+    return res.json({ success: true, isActive: newState === 1 });
+  } catch (err) {
+    console.error('PUT /tenants/:id/toggle error:', err);
     return res.status(500).json({ success: false, message: 'שגיאת שרת' });
   }
 });

@@ -1,192 +1,219 @@
-// ── Dialog wrapper ────────────────────────────────────────
+// ── Kendo Dialog overrides ─────────────────────────────────
 :host ::ng-deep {
 
-  // ── Dialog כרטיסיה צפה ─────────────────────────────────
-  .sf-dialog.p-dialog {
-    border-radius: 12px !important;
+  .k-dialog {
+    border-radius: 14px !important;
     overflow: hidden;
-    box-shadow:
-      0 8px 32px rgba(0,0,0,.14),
-      0 2px 8px rgba(0,0,0,.08) !important;
-    border: 1px solid #e0e7ef !important;
+    box-shadow: 0 8px 40px rgba(0,0,0,.16), 0 2px 8px rgba(0,0,0,.08) !important;
+    border: 1px solid var(--sf-border) !important;
+    font-family: 'Noto Sans Hebrew', 'Segoe UI', sans-serif;
   }
 
-  .sf-dialog .p-dialog-header {
-    background: #e8f4fb;
-    color: #1e3a5f;
-    border-radius: 12px 12px 0 0;
-    padding: 7px 14px;
-    font-family: 'Noto Sans Hebrew', sans-serif;
-    font-size: .6rem; font-weight: 400;        // #1 — כותרת קטנה
-    letter-spacing: .5px;
-    text-transform: uppercase;
-    direction: ltr;                             // #2 — LTR כדי ש-X יהיה ימין
-    border-bottom: 1px solid #c8dff0;
-    display: flex; align-items: center;
+  .k-dialog-titlebar {
+    background: var(--sf-bg-card) !important;
+    border-bottom: 1px solid var(--sf-border) !important;
+    padding: 14px 20px !important;
+    direction: rtl;
+    display: flex;
+    align-items: center;
   }
 
-  .sf-dialog .p-dialog-title {
-    flex: 1; direction: rtl; text-align: right;
-    font-size: 1rem !important;
+  .k-dialog-title {
+    font-size: 1.05rem !important;
     font-weight: 700 !important;
-    color: #1e3a5f !important;
+    color: var(--sf-text) !important;
+    flex: 1;
   }
 
-  .sf-dialog .p-dialog-header-close {
-    color: #4a7a9b !important; order: 0;        // #2 — X נשאר ימין (LTR flex-end)
-    &:hover { color: #1e3a5f !important; background: rgba(0,0,0,.06) !important; }
+  .k-dialog-close {
+    color: var(--sf-text-secondary) !important;
+    &:hover { color: var(--sf-text) !important; background: var(--sf-bg-hover) !important; }
   }
 
-  .sf-dialog .p-dialog-content {
-    padding: 0;
-    border-radius: 0;
-    direction: rtl;
-    background: #fff;             // לבן לגמרי
-  }
-
-  .sf-dialog .p-dialog-footer {
-    border-radius: 0 0 12px 12px;
-    background: #fff;
-    border-top: 1px solid #e5e7eb;
-    padding: 12px 20px;
+  .k-dialog-content {
+    padding: 0 !important;
+    background: var(--sf-bg) !important;
     direction: rtl;
   }
 
-  // Line inputs — רק קו תחתון
-  .line-input {
-    border: none !important;
-    border-bottom: 1.5px solid #d1d5db !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    padding: 6px 0 !important;
-    width: 100%;
-    font-family: 'Noto Sans Hebrew', sans-serif;
-    font-size: .9rem;
-    color: #111827;
-    direction: rtl;
-    box-shadow: none !important;
-    transition: border-color .2s;
-
-    &:focus {
-      border-bottom-color: var(--sf-primary) !important;
-      box-shadow: none !important;
-    }
+  .k-dialog-actions {
+    background: var(--sf-bg-card) !important;
+    border-top: 1px solid var(--sf-border) !important;
+    padding: 12px 20px !important;
+    direction: rtl !important;
   }
 
-  // #3 — Select underline only
-  .line-select .p-select,
-  .sf-dialog .p-select {
-    border: none !important;
-    border-bottom: 1.5px solid #d1d5db !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    &.p-focus { border-bottom-color: var(--sf-primary) !important; }
-  }
-
-  // InputNumber — הסר border מה-input הפנימי
-  .p-inputnumber .p-inputnumber-input {
-    border: none !important;
-    border-bottom: 1.5px solid #d1d5db !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 6px 0 !important;
-    width: 100% !important;
+  // Kendo TextBox
+  .k-input {
     font-family: 'Noto Sans Hebrew', sans-serif !important;
     font-size: .9rem !important;
-    direction: ltr !important;
-    text-align: right !important;
-  }
+    direction: rtl !important;
+    border-color: var(--sf-border) !important;
+    border-radius: 8px !important;
+    background: var(--sf-bg-card) !important;
+    color: var(--sf-text) !important;
+    width: 100%;
 
-  .p-inputnumber {
+    &:focus, &.k-focus { border-color: var(--sf-primary) !important; box-shadow: 0 0 0 2px rgba(var(--sf-primary-rgb, 13,71,255),.12) !important; }
+  }
+  .k-input-inner { direction: rtl !important; text-align: right !important; }
+  .k-numerictextbox .k-input-inner { text-align: right !important; }
+
+  // DropDownList
+  .k-dropdownlist {
     width: 100% !important;
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
+    font-family: 'Noto Sans Hebrew', sans-serif !important;
+    direction: rtl;
+    border-radius: 8px !important;
+    border-color: var(--sf-border) !important;
+    background: var(--sf-bg-card) !important;
+    .k-input-value-text { text-align: right; }
+    .k-button-icon { margin-inline-start: auto; margin-inline-end: 0; }
   }
 
-  .p-inputtext {
-    font-family: 'Noto Sans Hebrew', sans-serif;
-    font-size: .9rem;
+  .k-list-item {
+    font-family: 'Noto Sans Hebrew', sans-serif !important;
+    direction: rtl;
+    text-align: right;
+    font-size: .88rem;
   }
+
+  .k-list { direction: rtl; }
+
+  // NumericTextBox
+  .k-numerictextbox { width: 100% !important; }
+
+  // Switch — חובה LTR כדי ש-thumb לא יתנתק ב-RTL context
+  .k-switch { direction: ltr !important; }
+  .k-switch-on .k-switch-thumb-wrap  { border-color: var(--sf-primary) !important; }
+  .k-switch-on .k-switch-track       { background-color: var(--sf-primary) !important; }
+
+  // TextArea
+  .k-textarea { width: 100% !important; font-family: 'Noto Sans Hebrew', sans-serif !important; direction: rtl; font-size: .9rem; border-radius: 8px !important; border-color: var(--sf-border) !important; }
 }
 
-// ── Top grid: פרטי ארגון (ימין) + לוגו (שמאל) ───────────
-.top-grid {
-  display: grid;
-  grid-template-columns: 1fr auto;
+// ── Dialog body: two-column (nav | content) ───────────────
+.org-dialog-body {
+  display: flex;
+  flex-direction: row;
+  min-height: 440px;
   direction: rtl;
-  border-bottom: 1px solid #f0f2f5;
 }
 
-// ── Form section ─────────────────────────────────────────
-.form-section {
-  background: #fff;
-  padding: 16px 20px;
-  border-bottom: 1px solid #f0f2f5;
-
-  &.last { border-bottom: none; }
-}
-
-.logo-section {
-  border-right: 1px solid #f0f2f5;
-  border-bottom: none;
-  min-width: 200px;
+// ── Sidebar Nav ───────────────────────────────────────────
+.org-nav {
+  width: 190px;
+  flex-shrink: 0;
+  border-inline-end: 1px solid var(--sf-border);
+  background: var(--sf-bg-card);
+  padding: 16px 10px;
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
-// ── Section title — מיושר עם עמודת הכותרות ────────────────
-.section-title {
-  display: block;
-  font-size: .82rem; font-weight: 600;   // זהה לכותרות שדות
-  color: var(--sf-primary);
-  margin-bottom: 12px;
-  text-align: right; direction: rtl;
-  i { font-size: .8rem; margin-left: 4px; }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: right;
+  color: var(--sf-text-secondary);
+  font-size: .85rem;
+  font-weight: 500;
+  position: relative;
+  transition: background .15s, color .15s;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+
+  &:hover {
+    background: var(--sf-bg-hover);
+    color: var(--sf-text);
+  }
+
+  &.active {
+    background: var(--sf-primary-light, rgba(13,71,255,.08));
+    color: var(--sf-primary);
+    font-weight: 600;
+
+    .nav-icon { color: var(--sf-primary); }
+  }
 }
 
-// ── 2-column grid within a section ────────────────────────
-.form-grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0 24px;
+.nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: var(--sf-bg);
+  color: var(--sf-text-muted);
+  flex-shrink: 0;
+
+  .nav-item.active & {
+    background: var(--sf-primary-light, rgba(13,71,255,.1));
+    color: var(--sf-primary);
+  }
+}
+
+.nav-text { flex: 1; }
+
+.nav-indicator {
+  position: absolute;
+  inset-inline-end: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  border-radius: 2px 0 0 2px;
+  background: var(--sf-primary);
+}
+
+// ── Content Area ─────────────────────────────────────────
+.org-content {
+  flex: 1;
+  min-width: 0;
+  padding: 24px 28px;
+  overflow-y: auto;
+  background: var(--sf-bg);
   direction: rtl;
 }
 
-// ── Side-by-side sections ──────────────────────────────────
-.side-by-side {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  direction: rtl;
-  border-bottom: 1px solid #f0f2f5;
+.content-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
-.side-section {
-  border-bottom: none !important;
-}
-
-.side-border {
-  border-right: 1px solid #f0f2f5;
+.section-header {
+  margin-bottom: 4px;
+  h3 {
+    font-size: 1rem; font-weight: 700;
+    color: var(--sf-text); margin: 0 0 2px;
+  }
+  p {
+    font-size: .82rem; color: var(--sf-text-muted); margin: 0;
+  }
 }
 
 // ── Form rows ─────────────────────────────────────────────
 .form-row {
   display: grid;
-  grid-template-columns: 140px 1fr;
+  grid-template-columns: 150px 1fr;
   align-items: start;
   gap: 12px;
-  margin-bottom: 14px;
   direction: rtl;
-
-  &:last-child { margin-bottom: 0; }
 }
 
 label {
   font-size: .82rem; font-weight: 600;
-  color: #374151;
-  padding-top: 8px;
+  color: var(--sf-text-secondary);
+  padding-top: 9px;
   text-align: right;
 }
 
@@ -201,16 +228,80 @@ label {
   font-size: .75rem; color: var(--sf-danger); font-weight: 500;
 }
 
-// ── Logo upload ──────────────────────────────────────────
-// ── Logo block (אנכי) ────────────────────────────────────
-.logo-block {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+// ── Segmented Status Control ─────────────────────────────
+.seg-ctrl {
+  display: inline-flex;
+  direction: rtl;
+  align-self: flex-start;
+  border: 1px solid var(--sf-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.seg-btn {
+  padding: 7px 20px;
+  font-size: .82rem;
+  font-weight: 500;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  border: none;
+  background: var(--sf-bg);
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+
+  & + & { border-inline-start: 1px solid var(--sf-border); }
+
+  &:hover:not(.seg-on):not(.seg-off) {
+    background: var(--sf-bg-hover);
+    color: var(--sf-text);
+  }
+
+  &.seg-on {
+    background: #10b981;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  &.seg-off {
+    background: #ef4444;
+    color: #fff;
+    font-weight: 600;
+  }
+}
+
+.ltr-wrap { direction: ltr; display: inline-flex; }
+
+// ── General section — fields + logo side by side ─────────
+.general-layout {
+  display: flex;
+  gap: 24px;
+  direction: rtl;
+}
+
+.general-fields { flex: 1; display: flex; flex-direction: column; gap: 0; }
+
+.logo-aside {
+  flex-shrink: 0;
+  width: 170px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  border-inline-start: 1px solid var(--sf-border);
+  padding-inline-start: 20px;
+}
+
+.logo-label {
+  font-size: .8rem; font-weight: 600;
+  color: var(--sf-text-secondary);
+  align-self: flex-start;
+  margin-bottom: 2px;
 }
 
 .logo-preview-box {
-  width: 160px; height: 160px;
+  width: 140px; height: 140px;
   border: 1px solid var(--sf-border); border-radius: 10px;
-  background: #f8fafc;
+  background: var(--sf-bg-card);
   display: flex; align-items: center; justify-content: center;
 }
 
@@ -219,43 +310,36 @@ label {
 }
 
 .logo-placeholder {
-  width: 160px; height: 160px;
-  border: 1.5px dashed #d1d5db; border-radius: 10px;
+  width: 140px; height: 140px;
+  border: 1.5px dashed var(--sf-border); border-radius: 10px;
   display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 8px; color: #9ca3af;
+  justify-content: center; gap: 8px; color: var(--sf-text-muted);
   font-size: .75rem;
-  i { font-size: 2rem; }
+  kendo-svg-icon { font-size: 2rem; opacity: .4; }
 }
 
-// #5 — כפתורים ברוחב מדויק של התמונה
 .logo-btns {
-  width: 160px;
-  display: flex;
-  justify-content: space-between;
-  direction: rtl;
-  overflow: hidden;
+  width: 140px; display: flex; justify-content: space-between; gap: 6px;
 }
 
-.btn-upload { border-radius: 0 6px 6px 0 !important; }
-.btn-delete { border-radius: 6px 0 0 6px !important; }
-
-.btn-upload {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 10px; border-radius: 6px; cursor: pointer;
-  border: 1px solid var(--sf-border); background: #fff;
-  font-size: .78rem; font-weight: 500; color: var(--sf-text);
-  white-space: nowrap;
+.btn-logo-upload {
+  flex: 1;
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 5px 8px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--sf-border); background: var(--sf-bg-card);
+  font-size: .76rem; font-weight: 500; color: var(--sf-text);
+  font-family: 'Noto Sans Hebrew', sans-serif;
   transition: background .15s, border-color .15s;
   &:hover { background: var(--sf-bg-hover); border-color: var(--sf-primary); color: var(--sf-primary); }
   &.loading { opacity: .7; cursor: wait; }
 }
 
-.btn-delete {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 10px; border-radius: 6px; cursor: pointer;
-  border: 1px solid #fca5a5; background: #fff;
-  font-size: .78rem; font-weight: 500; color: var(--sf-danger);
-  white-space: nowrap;
+.btn-logo-delete {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 5px 8px; border-radius: 6px; cursor: pointer;
+  border: 1px solid #fca5a5; background: var(--sf-bg-card);
+  font-size: .76rem; font-weight: 500; color: var(--sf-danger);
+  font-family: 'Noto Sans Hebrew', sans-serif;
   transition: background .15s;
   &:hover { background: #fef2f2; }
   &:disabled { opacity: .35; cursor: default; pointer-events: none; }
@@ -263,24 +347,48 @@ label {
 
 .logo-hint {
   font-size: .65rem; color: var(--sf-text-muted);
-  direction: ltr; width: 160px; text-align: center;
+  direction: ltr; text-align: center;
 }
-
-// ── Toggle ───────────────────────────────────────────────
-.toggle-row { flex-direction: row; align-items: center; gap: 10px; padding-top: 6px; }
-.toggle-label { font-size: .88rem; color: #374151; font-weight: 500; }
 
 // ── Error banner ─────────────────────────────────────────
 .form-error-banner {
   display: flex; align-items: center; gap: 8px;
   background: #fef2f2; border: 1px solid #fca5a5;
-  border-radius: 6px; padding: 10px 14px;
+  border-radius: 8px; padding: 10px 14px;
   font-size: .83rem; color: #dc2626; font-weight: 500;
-  margin: 12px 20px 0;
-  i { font-size: .9rem; }
+  margin-bottom: 12px;
 }
 
 // ── Dialog footer ─────────────────────────────────────────
 .dialog-footer {
-  display: flex; justify-content: flex-start; gap: 10px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  direction: rtl;
+}
+
+.btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f97316 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 9px !important;
+  padding: 9px 22px !important;
+  font-size: .875rem;
+  font-weight: 600;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  cursor: pointer;
+  transition: background .15s, box-shadow .15s;
+  box-shadow: 0 2px 8px rgba(249,115,22,.3);
+
+  &:hover:not(:disabled) {
+    background: #ea6c0a !important;
+    box-shadow: 0 4px 14px rgba(249,115,22,.4);
+  }
+  &:disabled { opacity: .65; cursor: not-allowed; box-shadow: none; }
+  kendo-loader { display: inline-flex; }
 }

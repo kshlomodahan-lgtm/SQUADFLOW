@@ -10,6 +10,10 @@ const app = express();
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: '*', methods: ['GET','POST','PUT','DELETE'] }));
 app.use(express.json());
+
+// ── Static logos via /api/logos/ (לפני middleware של JSON) ──
+app.use('/api/logos', express.static(path.join(__dirname, '../frontend/assets/logos')));
+
 // UTF-8 רק לתשובות API — לא לקבצים סטטיים
 app.use('/api', (req, res, next) => { res.setHeader('Content-Type', 'application/json; charset=utf-8'); next(); });
 app.use(express.urlencoded({ extended: true }));
@@ -27,6 +31,7 @@ app.use('/api/users',     require('./routes/users'));
 app.use('/api/customers', require('./routes/customers'));
 app.use('/api/tenants',   require('./routes/tenants'));
 app.use('/api/stats',     require('./routes/stats'));
+app.use('/api/counters',  require('./routes/counters'));
 
 // 404
 app.use('/api/{*path}', (_req, res) => res.status(404).json({ success: false, message: 'Endpoint not found' }));

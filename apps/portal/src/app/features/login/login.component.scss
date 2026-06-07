@@ -309,10 +309,10 @@ input[type="password"] {
 }
 
 .hero-cta-text {
-  font-size: .88rem; font-weight: 600;
-  color: rgba(255,255,255,.65);
-  margin-top: 20px; margin-bottom: 0;
-  letter-spacing: .01em;
+  font-size: 1.3rem; font-weight: 800;
+  color: var(--brand);
+  margin-top: 28px; margin-bottom: 0;
+  line-height: 1.2;
 }
 
 .hero-features { display: flex; flex-direction: column; gap: 14px; }

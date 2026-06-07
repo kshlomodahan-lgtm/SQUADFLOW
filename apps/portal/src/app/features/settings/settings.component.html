@@ -38,39 +38,40 @@
             <p>התאם את חווית הממשק לסגנון שלך</p>
           </div>
 
-          <!-- Color Scheme -->
-          <div class="setting-card">
-            <div class="setting-card-title">ערכת צבעים</div>
-            <div class="setting-card-desc">בחר פלטת צבעים למערכת</div>
-            <div class="scheme-grid">
-              @for (s of schemes; track s.id) {
-                <button
-                  class="scheme-tile"
-                  [class.active]="theme.scheme() === s.id"
-                  (click)="selectScheme(s.id)">
-                  <span class="scheme-swatch" [style.background]="s.primary">
-                    @if (theme.scheme() === s.id) { <span class="scheme-check">✓</span> }
-                  </span>
-                  <span class="scheme-label">{{ s.label }}</span>
-                </button>
-              }
-            </div>
-          </div>
+          <div class="theme-cards-grid">
 
-          <!-- Dark Mode -->
-          <div class="setting-card">
-            <div class="setting-card-row">
-              <div>
-                <div class="setting-card-title">מצב כהה</div>
-                <div class="setting-card-desc">מתאים לעבודה בסביבה חשוכה</div>
+            <!-- Color Scheme -->
+            <div class="setting-card">
+              <div class="setting-card-title">ערכת צבעים</div>
+              <div class="scheme-grid">
+                @for (s of schemes; track s.id) {
+                  <button
+                    class="scheme-tile"
+                    [class.active]="theme.scheme() === s.id"
+                    (click)="selectScheme(s.id)">
+                    <span class="scheme-swatch" [style.background]="s.primary">
+                      @if (theme.scheme() === s.id) { <span class="scheme-check">✓</span> }
+                    </span>
+                    <span class="scheme-label">{{ s.label }}</span>
+                  </button>
+                }
               </div>
-              <kendo-switch
-                [checked]="theme.isDark()"
-                (valueChange)="toggleDark($event)"
-                onLabel="פעיל"
-                offLabel="כבוי">
-              </kendo-switch>
             </div>
+
+            <!-- Dark Mode -->
+            <div class="setting-card">
+              <div class="setting-card-title">מצב כהה</div>
+              <div class="setting-card-row">
+                <span class="setting-card-desc">מתאים לעבודה בסביבה חשוכה</span>
+                <kendo-switch
+                  [checked]="theme.isDark()"
+                  (valueChange)="toggleDark($event)"
+                  onLabel="פעיל"
+                  offLabel="כבוי">
+                </kendo-switch>
+              </div>
+            </div>
+
           </div>
 
           <!-- Actions -->
@@ -161,7 +162,629 @@
         </div>
       }
 
+      <!-- מונים -->
+      @if (activeGroup() === 'counters') {
+        <div class="content-section content-section--wide">
+
+          <!-- ══ מסך עריכה ══ -->
+          @if (editScreenOpen() && editingCounter) {
+            <div class="edit-screen">
+
+              <div class="edit-screen-header">
+                <button class="edit-back-btn" (click)="closeEditDialog()">
+                  ← חזרה לרשימה
+                </button>
+                <div class="edit-screen-title">
+                  <span class="edit-screen-key">{{ editingCounter.CounterKey }}</span>
+                  <span class="edit-screen-sub">עריכת מונה</span>
+                </div>
+              </div>
+
+              <form [formGroup]="editForm" novalidate class="edit-screen-body">
+                <div class="edit-screen-layout">
+
+                  <!-- ── Sidebar Nav ── -->
+                  <nav class="edit-screen-nav">
+                    @for (g of editGroups; track g.id) {
+                      <button type="button" class="edit-nav-item"
+                              [class.active]="editActiveGroup() === g.id"
+                              (click)="editActiveGroup.set(g.id)">
+                        <span class="edit-nav-icon">
+                          <kendo-svg-icon [icon]="g.icon" />
+                        </span>
+                        <span class="edit-nav-text">{{ g.text }}</span>
+                        @if (editActiveGroup() === g.id) {
+                          <span class="edit-nav-indicator"></span>
+                        }
+                      </button>
+                    }
+                  </nav>
+
+                  <!-- ── Content ── -->
+                  <div class="edit-screen-content">
+
+                    @if (editActiveGroup() === 'identity') {
+                      <div class="ef-card">
+                        <div class="ef-card-title">פרטי זיהוי</div>
+                        <div class="ef-row">
+                          <span class="ef-label">מזהה מונה</span>
+                          <span class="ef-value ef-mono">{{ editingCounter.CounterID }}</span>
+                        </div>
+                        <div class="ef-row">
+                          <span class="ef-label">מפתח</span>
+                          <span class="ef-value ef-mono ef-bold">{{ editingCounter.CounterKey }}</span>
+                        </div>
+                        <div class="ef-row">
+                          <span class="ef-label">רמת מונה</span>
+                          <span class="ef-value">
+                            <span class="chip" [class]="levelClass(editingCounter.CounterLevel)">
+                              {{ levelLabel(editingCounter.CounterLevel) }}
+                            </span>
+                          </span>
+                        </div>
+                      </div>
+                    }
+
+                    @if (editActiveGroup() === 'basic') {
+                      <div class="ef-card">
+                        <div class="ef-card-title">הגדרות בסיסיות</div>
+                        <div class="ef-row">
+                          <label class="ef-label" for="ef-name">שם מונה <span class="req">*</span></label>
+                          <div class="ef-control">
+                            <input id="ef-name" kendoTextBox formControlName="counterName" placeholder="לדוגמה: חשבוניות מס" />
+                            @if (editForm.get('counterName')?.invalid && editForm.get('counterName')?.touched) {
+                              <small class="err">שדה חובה</small>
+                            }
+                          </div>
+                        </div>
+                        <div class="ef-row">
+                          <label class="ef-label" for="ef-prefix">תחילית (Prefix) <span class="req">*</span></label>
+                          <div class="ef-control">
+                            <input id="ef-prefix" kendoTextBox formControlName="prefix"
+                                   placeholder="INV / LEAD / ORD"
+                                   style="font-family:'Share Tech Mono',monospace;text-transform:uppercase" />
+                            <small class="ef-hint">תחילית שתופיע בפני מספר המסמך</small>
+                            @if (editForm.get('prefix')?.invalid && editForm.get('prefix')?.touched) {
+                              <small class="err">שדה חובה</small>
+                            }
+                          </div>
+                        </div>
+                        <div class="ef-row">
+                          <label class="ef-label" for="ef-datefmt">פורמט תאריך</label>
+                          <div class="ef-control">
+                            <select id="ef-datefmt" class="ef-select" formControlName="dateFormat">
+                              @for (o of dateFormatOptions; track o.value) {
+                                <option [value]="o.value">{{ o.text }}</option>
+                              }
+                            </select>
+                            <small class="ef-hint">
+                              @switch (editForm.get('dateFormat')?.value) {
+                                @case ('NONE')       { ללא תאריך — INV-000042 }
+                                @case ('YEAR')       { שנה — INV-2026-000042 }
+                                @case ('YEAR_MONTH') { שנה+חודש — INV-2026-06-000042 }
+                              }
+                            </small>
+                          </div>
+                        </div>
+                        <div class="ef-row">
+                          <label class="ef-label">סוג פלט</label>
+                          <div class="ef-control">
+                            <div class="seg-ctrl">
+                              <button type="button" class="seg-btn"
+                                      [class.seg-on]="editForm.get('outputType')?.value === 'NUMERIC'"
+                                      (click)="editForm.get('outputType')?.setValue('NUMERIC')">
+                                מספרי — 42
+                              </button>
+                              <button type="button" class="seg-btn"
+                                      [class.seg-on]="editForm.get('outputType')?.value === 'STRING'"
+                                      (click)="editForm.get('outputType')?.setValue('STRING')">
+                                מחרוזת — INV-2026-000042
+                              </button>
+                            </div>
+                            <small class="ef-hint">NUMERIC מחזיר מספר; STRING מחזיר מחרוזת מעוצבת</small>
+                          </div>
+                        </div>
+                      </div>
+                    }
+
+                    @if (editActiveGroup() === 'range') {
+                      <div class="ef-card">
+                        <div class="ef-card-title">טווח ערכים</div>
+                        <div class="ef-row">
+                          <label class="ef-label" for="ef-step">צעד (Step)</label>
+                          <div class="ef-control">
+                            <input id="ef-step" kendoTextBox type="number" formControlName="stepValue"
+                                   min="1" style="max-width:120px" />
+                            <small class="ef-hint">גודל הדילוג בין מספר למספר (בדרך כלל 1)</small>
+                          </div>
+                        </div>
+                        <div class="ef-row">
+                          <label class="ef-label" for="ef-start">ערך התחלה</label>
+                          <div class="ef-control">
+                            <input id="ef-start" kendoTextBox type="number" formControlName="startValue"
+                                   min="0" style="max-width:120px" />
+                            <small class="ef-hint">המספר הראשון שיוקצה</small>
+                          </div>
+                        </div>
+                        <div class="ef-row">
+                          <label class="ef-label" for="ef-max">ערך מקסימלי</label>
+                          <div class="ef-control">
+                            <input id="ef-max" kendoTextBox type="number" formControlName="maxValue"
+                                   min="1" style="max-width:120px" />
+                            <small class="ef-hint">לאחר הגעה לערך זה — המונה ינעל אוטומטית</small>
+                          </div>
+                        </div>
+                      </div>
+                    }
+
+                    @if (editActiveGroup() === 'reset') {
+                      <div class="ef-card">
+                        <div class="ef-card-title">מחזוריות איפוס</div>
+                        <div class="ef-row">
+                          <label class="ef-label" for="ef-reset">תקופת איפוס</label>
+                          <div class="ef-control">
+                            <select id="ef-reset" class="ef-select" formControlName="resetPeriod">
+                              @for (o of resetPeriodOptions; track o.value) {
+                                <option [value]="o.value">{{ o.text }}</option>
+                              }
+                            </select>
+                            <small class="ef-hint">
+                              @switch (editForm.get('resetPeriod')?.value) {
+                                @case ('NEVER')   { המונה לא מתאפס לעולם }
+                                @case ('ANNUAL')  { המונה מתאפס בתחילת כל שנה }
+                                @case ('MONTHLY') { המונה מתאפס בתחילת כל חודש }
+                              }
+                            </small>
+                          </div>
+                        </div>
+                        <div class="ef-row ef-row--readonly">
+                          <span class="ef-label">איפוס אחרון</span>
+                          <span class="ef-value">{{ formatDate(editingCounter.LastResetDate) }}</span>
+                        </div>
+                      </div>
+                    }
+
+                    @if (editActiveGroup() === 'values') {
+                      <div class="ef-card ef-card--info">
+                        <div class="ef-card-title">ערכים נוכחיים</div>
+                        <div class="ef-row ef-row--readonly">
+                          <span class="ef-label">מונה רץ</span>
+                          <span class="counter-badge counter-badge--running">{{ editingCounter.RunningValue }}</span>
+                        </div>
+                        <div class="ef-row ef-row--readonly">
+                          <span class="ef-label">מונה שוטף</span>
+                          <span class="counter-badge counter-badge--current">{{ editingCounter.CurrentValue }}</span>
+                        </div>
+                        <div class="ef-row ef-row--readonly">
+                          <span class="ef-label">נוצר</span>
+                          <span class="ef-value">{{ formatDate(editingCounter.CreatedAt) }}</span>
+                        </div>
+                        <div class="ef-row ef-row--readonly">
+                          <span class="ef-label">עודכן</span>
+                          <span class="ef-value">{{ formatDate(editingCounter.UpdatedAt) }}</span>
+                        </div>
+                      </div>
+                    }
+
+                    @if (editActiveGroup() === 'lock') {
+                      <div class="ef-card">
+                        <div class="ef-card-title">נעילה</div>
+                        <div class="ef-row">
+                          <label class="ef-label">מצב מונה</label>
+                          <div class="ef-control">
+                            <div class="seg-ctrl">
+                              <button type="button" class="seg-btn"
+                                      [class.seg-on]="!editForm.get('isLocked')?.value"
+                                      (click)="editForm.get('isLocked')?.setValue(false)">
+                                ✓ פעיל
+                              </button>
+                              <button type="button" class="seg-btn"
+                                      [class.seg-off]="editForm.get('isLocked')?.value"
+                                      (click)="editForm.get('isLocked')?.setValue(true)">
+                                🔒 נעול
+                              </button>
+                            </div>
+                            <small class="ef-hint">מונה נעול לא ניתן לעריכה, איפוס או הקצאת מספרים</small>
+                          </div>
+                        </div>
+                      </div>
+                    }
+
+                  </div><!-- /edit-screen-content -->
+                </div><!-- /edit-screen-layout -->
+              </form>
+
+              <div class="edit-screen-footer">
+                <button class="btn-save" (click)="submitEditCounter()" [disabled]="editSaving()">
+                  @if (editSaving()) { <kendo-loader type="pulsing" themeColor="secondary" size="small" /> }
+                  @else { ✓ } שמור שינויים
+                </button>
+                <button class="btn-cancel" (click)="closeEditDialog()">ביטול</button>
+              </div>
+
+            </div>
+          }
+
+          <!-- ══ מסך רשימה ══ -->
+          @if (!editScreenOpen()) {
+            <div class="section-header">
+              <h2>ניהול מונים</h2>
+              <p>הגדרת סדרות מספור לחשבוניות, לידים, חוזים ועוד</p>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="counters-toolbar">
+              <div class="level-filter">
+                <button class="level-btn" [class.active]="levelFilter() === 'TENANT'"
+                        (click)="setLevelFilter('TENANT')">ארגון</button>
+                @if (!isPlatformAdmin()) {
+                  <button class="level-btn" [class.active]="levelFilter() === 'CUSTOMER'"
+                          (click)="setLevelFilter('CUSTOMER')">לקוח קצה</button>
+                }
+              </div>
+              <button kendoButton themeColor="primary" [svgIcon]="plusIcon" (click)="openNewDialog()">
+                מונה חדש
+              </button>
+            </div>
+
+
+            @if (countersLoading()) {
+              <div class="state-box"><mat-spinner diameter="32" /></div>
+            }
+            @if (!countersLoading() && countersError()) {
+              <div class="state-box error">{{ countersError() }}</div>
+            }
+
+            @if (!countersLoading() && !countersError()) {
+            <kendo-grid
+              [data]="{ data: counterPagedData, total: counterGridData.length }"
+              [skip]="counterSkip"
+              [pageSize]="counterPageSize"
+              [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [10, 25, 50] }"
+              [sortable]="{ mode: 'single', allowUnsort: false }"
+              [sort]="counterSort"
+              [reorderable]="true"
+              [resizable]="true"
+              [columnMenu]="true"
+              [isDetailExpanded]="isDetailExpanded"
+              scrollable="none"
+              (pageChange)="onCounterPageChange($event)"
+              (sortChange)="onCounterSortChange($event)"
+              class="counters-grid">
+
+              <kendo-grid-messages
+                pagerItemsPerPage="שורות בעמוד" pagerOf="מתוך" pagerItems="רשומות"
+                noRecords="אין מונים מוגדרים" loading="טוען..."
+                columnMenuFilter="סנן" columnMenuSort="מיון" columnMenuColumns="עמודות"
+                columnMenuSortAscending="עולה" columnMenuSortDescending="יורד" />
+
+              <!-- # -->
+              <kendo-grid-column field="CounterID" title="#" [width]="60">
+                <ng-template kendoGridCellTemplate let-c>
+                  <span class="cell-id">{{ c.CounterID }}</span>
+                </ng-template>
+              </kendo-grid-column>
+
+              <!-- מפתח -->
+              <kendo-grid-column field="CounterKey" title="מפתח" [width]="120">
+                <ng-template kendoGridCellTemplate let-c>
+                  <span class="cell-key">{{ c.CounterKey }}</span>
+                </ng-template>
+              </kendo-grid-column>
+
+              <!-- שם מונה -->
+              <kendo-grid-column field="CounterName" title="שם מונה" [width]="160">
+                <ng-template kendoGridCellTemplate let-c>
+                  {{ c.CounterName }}
+                </ng-template>
+              </kendo-grid-column>
+
+              <!-- תחילית -->
+              <kendo-grid-column field="Prefix" title="תחילית" [width]="80">
+                <ng-template kendoGridCellTemplate let-c>
+                  <span class="cell-key">{{ c.Prefix }}</span>
+                </ng-template>
+              </kendo-grid-column>
+
+              <!-- פורמט -->
+              <kendo-grid-column field="DateFormat" title="פורמט" [width]="110">
+                <ng-template kendoGridCellTemplate let-c>
+                  <span class="cell-label">{{ dateFormatLabel(c.DateFormat) }}</span>
+                </ng-template>
+              </kendo-grid-column>
+
+              <!-- צעד / התחלה / מקס -->
+              <kendo-grid-column title="צעד / התח' / מקס" [width]="120" [sortable]="false">
+                <ng-template kendoGridCellTemplate let-c>
+                  <span class="cell-range">{{ c.StepValue }} / {{ c.StartValue }} / {{ c.MaxValue }}</span>
+                </ng-template>
+              </kendo-grid-column>
+
+              <!-- סוג פלט -->
+              <kendo-grid-column field="OutputType" title="פלט" [width]="90">
+                <ng-template kendoGridCellTemplate let-c>
+                  <span class="cell-label">{{ outputTypeLabel(c.OutputType) }}</span>
+                </ng-template>
+              </kendo-grid-column>
+
+              <!-- איפוס -->
+              <kendo-grid-column field="ResetPeriod" title="איפוס" [width]="90">
+                <ng-template kendoGridCellTemplate let-c>
+                  <span class="cell-label">{{ resetPeriodLabel(c.ResetPeriod) }}</span>
+                </ng-template>
+              </kendo-grid-column>
+
+              <!-- רץ -->
+              <kendo-grid-column field="RunningValue" title="רץ" [width]="75" [sortable]="false">
+                <ng-template kendoGridCellTemplate let-c>
+                  <span class="counter-badge counter-badge--running">{{ c.RunningValue }}</span>
+                </ng-template>
+              </kendo-grid-column>
+
+              <!-- שוטף -->
+              <kendo-grid-column field="CurrentValue" title="שוטף" [width]="75" [sortable]="false">
+                <ng-template kendoGridCellTemplate let-c>
+                  <span class="counter-badge counter-badge--current">{{ c.CurrentValue }}</span>
+                </ng-template>
+              </kendo-grid-column>
+
+              <!-- פעולות -->
+              <kendo-grid-column title="" [width]="110" [sortable]="false" [resizable]="false" [columnMenu]="false">
+                <ng-template kendoGridCellTemplate let-c>
+                  <div class="row-actions">
+                    <button class="act-btn act-expand" [class.expanded]="isExpanded(c)"
+                            [title]="isExpanded(c) ? 'כווץ' : 'פרטים'"
+                            (click)="toggleExpand(c)">
+                      <i class="pi" [class.pi-chevron-down]="!isExpanded(c)" [class.pi-chevron-up]="isExpanded(c)"></i>
+                    </button>
+                    <button class="act-btn" [class.act-lock]="!c.IsLocked" [class.act-unlock]="c.IsLocked"
+                            [title]="c.IsLocked ? 'שחרר נעילה' : 'נעל מונה'"
+                            (click)="lockCounter(c)">
+                      <i class="pi" [class.pi-lock]="!c.IsLocked" [class.pi-lock-open]="c.IsLocked"></i>
+                    </button>
+                    <button class="act-btn act-edit" title="עריכה" [disabled]="c.IsLocked"
+                            (click)="openEditDialog(c)">
+                      <i class="pi pi-pencil"></i>
+                    </button>
+                    <button class="act-btn act-reset" title="אפס מונה שוטף" [disabled]="c.IsLocked"
+                            (click)="resetCounter(c)">
+                      <i class="pi pi-refresh"></i>
+                    </button>
+                  </div>
+                </ng-template>
+              </kendo-grid-column>
+
+              <!-- Detail row (הרחבה) -->
+              <ng-template kendoGridDetailTemplate let-c>
+                <div class="counter-detail">
+                  <div class="detail-cards">
+
+                    <div class="setting-card">
+                      <div class="setting-card-title">זיהוי</div>
+                      <div class="detail-row"><span>מזהה</span><strong>{{ c.CounterID }}</strong></div>
+                      <div class="detail-row"><span>מפתח</span><strong class="mono">{{ c.CounterKey }}</strong></div>
+                      <div class="detail-row"><span>רמה</span><span class="chip" [class]="levelClass(c.CounterLevel)">{{ levelLabel(c.CounterLevel) }}</span></div>
+                      <div class="detail-row"><span>סטטוס</span>
+                        <span class="chip" [class]="c.IsLocked ? 'chip-locked' : 'chip-active'">
+                          {{ c.IsLocked ? '🔒 נעול' : '✓ פעיל' }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="setting-card">
+                      <div class="setting-card-title">הגדרות מספור</div>
+                      <div class="detail-row"><span>תחילית</span><strong class="mono">{{ c.Prefix }}</strong></div>
+                      <div class="detail-row"><span>פורמט תאריך</span><strong>{{ dateFormatLabel(c.DateFormat) }}</strong></div>
+                      <div class="detail-row"><span>סוג פלט</span><strong>{{ outputTypeLabel(c.OutputType) }}</strong></div>
+                      <div class="detail-row"><span>צעד</span><strong>{{ c.StepValue }}</strong></div>
+                      <div class="detail-row"><span>טווח</span><strong>{{ c.StartValue }} – {{ c.MaxValue }}</strong></div>
+                      <div class="detail-row"><span>איפוס</span><strong>{{ resetPeriodLabel(c.ResetPeriod) }}</strong></div>
+                    </div>
+
+                    <div class="setting-card">
+                      <div class="setting-card-title">ערכים נוכחיים</div>
+                      <div class="detail-row"><span>מונה רץ</span><span class="counter-badge counter-badge--running">{{ c.RunningValue }}</span></div>
+                      <div class="detail-row"><span>מונה שוטף</span><span class="counter-badge counter-badge--current">{{ c.CurrentValue }}</span></div>
+                      <div class="detail-row"><span>איפוס אחרון</span><strong>{{ formatDate(c.LastResetDate) }}</strong></div>
+                      <div class="detail-row"><span>נוצר</span><strong>{{ formatDate(c.CreatedAt) }}</strong></div>
+                      <div class="detail-row"><span>עודכן</span><strong>{{ formatDate(c.UpdatedAt) }}</strong></div>
+                    </div>
+
+                  </div>
+                </div>
+              </ng-template>
+
+            </kendo-grid>
+          } <!-- /!countersLoading && !countersError -->
+          } <!-- /!editScreenOpen -->
+
+        </div>
+      }
+
     </main>
   </div>
 
 </div>
+
+<!-- ── New Counter Dialog ────────────────────────────────── -->
+@if (newDialogOpen()) {
+  <kendo-dialog title="מונה חדש" [width]="800" [minWidth]="600" (close)="closeNewDialog()">
+
+    <form [formGroup]="newForm" novalidate>
+      <div class="new-dialog-layout">
+
+        <!-- Sidebar nav -->
+        <nav class="edit-screen-nav">
+          @for (g of newGroups; track g.id) {
+            <button type="button" class="edit-nav-item"
+                    [class.active]="newActiveGroup() === g.id"
+                    (click)="newActiveGroup.set(g.id)">
+              <span class="edit-nav-icon"><kendo-svg-icon [icon]="g.icon" /></span>
+              <span class="edit-nav-text">{{ g.text }}</span>
+              @if (newActiveGroup() === g.id) {
+                <span class="edit-nav-indicator"></span>
+              }
+            </button>
+          }
+        </nav>
+
+        <!-- Content -->
+        <div class="new-dialog-content">
+
+          @if (newActiveGroup() === 'basic') {
+            <div class="ef-card">
+              <div class="ef-card-title">הגדרות בסיסיות</div>
+
+              <!-- רמה -->
+              <div class="ef-row">
+                <label class="ef-label">רמת מונה</label>
+                <div class="ef-control">
+                  @if (isPlatformAdmin()) {
+                    <span class="chip chip-tenant">ארגון</span>
+                  } @else {
+                    <div class="seg-ctrl">
+                      <button type="button" class="seg-btn"
+                              [class.seg-on]="newForm.get('counterLevel')?.value === 'TENANT'"
+                              (click)="newForm.get('counterLevel')?.setValue('TENANT')">ארגון</button>
+                      <button type="button" class="seg-btn"
+                              [class.seg-on]="newForm.get('counterLevel')?.value === 'CUSTOMER'"
+                              (click)="newForm.get('counterLevel')?.setValue('CUSTOMER')">לקוח קצה</button>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- מפתח -->
+              <div class="ef-row">
+                <label class="ef-label" for="nf-key">מפתח (Key) <span class="req">*</span></label>
+                <div class="ef-control">
+                  <input id="nf-key" kendoTextBox formControlName="counterKey"
+                         placeholder="INVOICE / LEAD / ORDER"
+                         style="text-transform:uppercase;font-family:'Share Tech Mono',monospace" />
+                  <small class="ef-hint">אותיות גדולות, ספרות ו-_ בלבד. לא ניתן לשינוי לאחר יצירה</small>
+                  @if (newForm.get('counterKey')?.invalid && newForm.get('counterKey')?.touched) {
+                    <small class="err">אותיות גדולות, ספרות ו-_ בלבד</small>
+                  }
+                </div>
+              </div>
+
+              <!-- שם -->
+              <div class="ef-row">
+                <label class="ef-label" for="nf-name">שם מונה <span class="req">*</span></label>
+                <div class="ef-control">
+                  <input id="nf-name" kendoTextBox formControlName="counterName" placeholder="לדוגמה: חשבוניות" />
+                  @if (newForm.get('counterName')?.invalid && newForm.get('counterName')?.touched) {
+                    <small class="err">שדה חובה</small>
+                  }
+                </div>
+              </div>
+
+              <!-- תחילית -->
+              <div class="ef-row">
+                <label class="ef-label" for="nf-prefix">תחילית (Prefix) <span class="req">*</span></label>
+                <div class="ef-control">
+                  <input id="nf-prefix" kendoTextBox formControlName="prefix"
+                         placeholder="INV / LEAD / ORD"
+                         style="text-transform:uppercase;font-family:'Share Tech Mono',monospace" />
+                  <small class="ef-hint">תחילית שתופיע בפני מספר המסמך</small>
+                  @if (newForm.get('prefix')?.invalid && newForm.get('prefix')?.touched) {
+                    <small class="err">שדה חובה</small>
+                  }
+                </div>
+              </div>
+
+              <!-- פורמט תאריך -->
+              <div class="ef-row">
+                <label class="ef-label" for="nf-datefmt">פורמט תאריך</label>
+                <div class="ef-control">
+                  <select id="nf-datefmt" class="ef-select" formControlName="dateFormat">
+                    @for (o of dateFormatOptions; track o.value) {
+                      <option [value]="o.value">{{ o.text }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+
+              <!-- סוג פלט -->
+              <div class="ef-row">
+                <label class="ef-label">סוג פלט</label>
+                <div class="ef-control">
+                  <div class="seg-ctrl">
+                    <button type="button" class="seg-btn"
+                            [class.seg-on]="newForm.get('outputType')?.value === 'NUMERIC'"
+                            (click)="newForm.get('outputType')?.setValue('NUMERIC')">מספרי — 42</button>
+                    <button type="button" class="seg-btn"
+                            [class.seg-on]="newForm.get('outputType')?.value === 'STRING'"
+                            (click)="newForm.get('outputType')?.setValue('STRING')">מחרוזת — INV-2026-000042</button>
+                  </div>
+                  <small class="ef-hint">NUMERIC מחזיר מספר; STRING מחזיר מחרוזת מעוצבת</small>
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (newActiveGroup() === 'range') {
+            <div class="ef-card">
+              <div class="ef-card-title">טווח ערכים</div>
+              <div class="ef-row">
+                <label class="ef-label" for="nf-step">צעד (Step)</label>
+                <div class="ef-control">
+                  <input id="nf-step" kendoTextBox type="number" formControlName="stepValue" min="1" style="max-width:120px" />
+                  <small class="ef-hint">גודל הדילוג בין מספר למספר (בדרך כלל 1)</small>
+                </div>
+              </div>
+              <div class="ef-row">
+                <label class="ef-label" for="nf-start">ערך התחלה</label>
+                <div class="ef-control">
+                  <input id="nf-start" kendoTextBox type="number" formControlName="startValue" min="0" style="max-width:120px" />
+                  <small class="ef-hint">המספר הראשון שיוקצה</small>
+                </div>
+              </div>
+              <div class="ef-row">
+                <label class="ef-label" for="nf-max">ערך מקסימלי</label>
+                <div class="ef-control">
+                  <input id="nf-max" kendoTextBox type="number" formControlName="maxValue" min="1" style="max-width:120px" />
+                  <small class="ef-hint">לאחר הגעה לערך זה — המונה ינעל אוטומטית</small>
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (newActiveGroup() === 'reset') {
+            <div class="ef-card">
+              <div class="ef-card-title">מחזוריות איפוס</div>
+              <div class="ef-row">
+                <label class="ef-label" for="nf-reset">תקופת איפוס</label>
+                <div class="ef-control">
+                  <select id="nf-reset" class="ef-select" formControlName="resetPeriod">
+                    @for (o of resetPeriodOptions; track o.value) {
+                      <option [value]="o.value">{{ o.text }}</option>
+                    }
+                  </select>
+                  <small class="ef-hint">
+                    @switch (newForm.get('resetPeriod')?.value) {
+                      @case ('NEVER')   { המונה לא מתאפס לעולם }
+                      @case ('ANNUAL')  { המונה מתאפס בתחילת כל שנה }
+                      @case ('MONTHLY') { המונה מתאפס בתחילת כל חודש }
+                    }
+                  </small>
+                </div>
+              </div>
+            </div>
+          }
+
+        </div><!-- /new-dialog-content -->
+      </div><!-- /new-dialog-layout -->
+    </form>
+
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-save" (click)="submitNewCounter()" [disabled]="newSaving()">
+          @if (newSaving()) { <kendo-loader type="pulsing" themeColor="secondary" size="small" /> }
+          @else { ✓ } צור מונה
+        </button>
+        <button class="btn-cancel" (click)="closeNewDialog()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}

@@ -1,11 +1,11 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 // Kendo
-import { GridModule, PageChangeEvent } from '@progress/kendo-angular-grid';
+import { GridModule, GridComponent, PageChangeEvent, ExcelModule, PDFModule } from '@progress/kendo-angular-grid';
 import { SortDescriptor, orderBy } from '@progress/kendo-data-query';
-import { plusIcon } from '@progress/kendo-svg-icons';
+import { plusIcon, fileExcelIcon, filePdfIcon } from '@progress/kendo-svg-icons';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 
 // Material
@@ -21,7 +21,7 @@ import { OrgDialogComponent } from './org-dialog/org-dialog.component';
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    GridModule, ButtonsModule,
+    GridModule, ExcelModule, PDFModule, ButtonsModule,
     MatIconModule, MatProgressSpinnerModule,
     OrgDialogComponent,
   ],
@@ -29,7 +29,11 @@ import { OrgDialogComponent } from './org-dialog/org-dialog.component';
   styleUrl:    './organizations.component.scss',
 })
 export class OrganizationsComponent implements OnInit {
-  addIcon = plusIcon;
+  @ViewChild(GridComponent) grid!: GridComponent;
+
+  addIcon    = plusIcon;
+  excelIcon  = fileExcelIcon;
+  pdfIcon    = filePdfIcon;
   loading = signal(true);
   error   = signal('');
   orgs    = signal<Organization[]>([]);
@@ -91,6 +95,37 @@ export class OrganizationsComponent implements OnInit {
   openAdd()                 { this.dialogOrg.set(null); this.dialogOpen.set(false); setTimeout(() => this.dialogOpen.set(true)); }
   openEdit(o: Organization) { this.dialogOrg.set(o);    this.dialogOpen.set(false); setTimeout(() => this.dialogOpen.set(true)); }
   onSaved()                 { this.load(); }
+
+  toggleActive(o: Organization) {
+    this.svc.toggleActive(o.TenantID).subscribe({
+      next: r => {
+        this.orgs.update(list =>
+          list.map(t => t.TenantID === o.TenantID ? { ...t, IsActive: r.isActive } : t)
+        );
+        this.applyFilter();
+      },
+    });
+  }
+
+  expandedIds = new Set<number>();
+
+  toggleDetail(o: Organization, rowIndex: number) {
+    const abs = this.skip + rowIndex;
+    if (this.expandedIds.has(o.TenantID)) {
+      this.grid.collapseRow(abs);
+      this.expandedIds.delete(o.TenantID);
+    } else {
+      this.grid.expandRow(abs);
+      this.expandedIds.add(o.TenantID);
+    }
+  }
+
+  isExpanded(tenantId: number) { return this.expandedIds.has(tenantId); }
+
+  exportExcel() { this.grid.saveAsExcel(); }
+  exportPDF()   { this.grid.saveAsPDF(); }
+
+  allData = () => ({ data: this.gridData });
 
   planLabel(p: string) {
     return ({ basic: 'בסיסי', pro: 'מקצועי', enterprise: 'ארגוני' } as any)[p] ?? p;

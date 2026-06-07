@@ -1,0 +1,321 @@
+:host { display: block; width: 100%; }
+.users-page { width: 100%; }
+
+// ── Header ────────────────────────────────────────────
+.page-header {
+  display: flex;
+  align-items: center;
+  direction: rtl;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.header-titles {
+  h1 { font-size: 1.3rem; font-weight: 700; color: var(--sf-text); margin: 0; }
+  p  { font-size: .83rem; color: var(--sf-text-secondary); margin: 3px 0 0; }
+}
+
+// ── Toolbar ───────────────────────────────────────────
+.toolbar {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.toolbar-right { display: flex; align-items: center; gap: 8px; }
+.toolbar-left  { display: flex; align-items: center; gap: 8px; }
+
+// ── Export Buttons ────────────────────────────────────
+.export-btns {
+  display: flex;
+  gap: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--sf-border);
+}
+
+:host ::ng-deep .export-btns .k-button {
+  border: none !important;
+  border-radius: 0 !important;
+  background: var(--sf-bg-card) !important;
+  color: var(--sf-text-secondary) !important;
+  box-shadow: none !important;
+  padding: 6px 14px !important;
+  font-size: .82rem !important;
+  font-weight: 500 !important;
+  font-family: 'Noto Sans Hebrew', sans-serif !important;
+
+  &:hover { background: var(--sf-bg-hover) !important; }
+  & + .k-button { border-inline-start: 1px solid var(--sf-border) !important; }
+}
+
+:host ::ng-deep .export-btns .btn-excel:hover,
+:host ::ng-deep .export-btns .btn-excel .k-button-text { }
+:host ::ng-deep .export-btns .btn-excel:hover { color: #16a34a !important; }
+:host ::ng-deep .export-btns .btn-pdf:hover   { color: #dc2626 !important; }
+
+.search-wrap {
+  display: flex; align-items: center; gap: 6px;
+  width: 300px; direction: rtl;
+  background: var(--sf-bg-card);
+  border: 1px solid var(--sf-border);
+  border-radius: 8px; padding: 6px 12px;
+  transition: border-color .15s, box-shadow .15s;
+
+  &:focus-within {
+    border-color: var(--sf-border-focus);
+    box-shadow: 0 0 0 3px rgba(13,71,255,.12);
+  }
+}
+
+.search-icon { color: var(--sf-text-muted); font-size: 18px; width: 18px !important; height: 18px !important; flex-shrink: 0; }
+
+.search-input {
+  flex: 1; border: none; outline: none;
+  background: transparent; color: var(--sf-text);
+  font-size: .875rem; font-family: 'Noto Sans Hebrew', sans-serif;
+  direction: rtl;
+  &::placeholder { color: var(--sf-text-muted); }
+}
+
+.rows-label { font-size: .83rem; color: var(--sf-text-secondary); }
+
+.rows-select {
+  border: 1px solid var(--sf-border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: .83rem;
+  color: var(--sf-text);
+  background: var(--sf-bg-card);
+  cursor: pointer;
+  outline: none;
+  &:focus { border-color: var(--sf-border-focus); }
+}
+
+// ── States ────────────────────────────────────────────
+.state-box {
+  display: flex; align-items: center; justify-content: center;
+  padding: 64px; color: var(--sf-text-secondary);
+  &.error { color: var(--sf-danger); }
+}
+
+// ── Kendo Grid overrides ──────────────────────────────
+:host ::ng-deep {
+  .users-grid {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--sf-border);
+    box-shadow: 0 4px 20px rgba(0,0,0,.07), 0 1px 4px rgba(0,0,0,.04);
+    font-family: 'Noto Sans Hebrew', sans-serif;
+    direction: rtl;
+  }
+
+  // Header — צבעוני כמו ארגונים
+  .users-grid .k-grid-header th.k-header {
+    background: var(--sf-grid-hd-bg) !important;
+    color: var(--sf-grid-hd-color) !important;
+    font-weight: 700 !important;
+    font-size: .78rem !important;
+    text-align: right !important;
+    border-bottom: 2px solid var(--sf-grid-hd-border) !important;
+    border-color: var(--sf-grid-hd-border) !important;
+    direction: rtl;
+    padding: 8px 12px !important;
+  }
+
+  .users-grid .k-grid-header {
+    background: var(--sf-grid-hd-bg) !important;
+    border-bottom: 2px solid var(--sf-grid-hd-border) !important;
+  }
+
+  // Column menu icon — כמו ארגונים
+  .users-grid .k-column-menu-button {
+    color: var(--sf-grid-hd-color);
+    opacity: .7;
+    &:hover { opacity: 1; }
+  }
+
+  // Rows
+  .users-grid td.k-table-td {
+    text-align: right !important;
+    vertical-align: middle !important;
+    border-color: var(--sf-border) !important;
+    font-size: .875rem;
+    background: var(--sf-bg-card);
+    direction: rtl;
+    padding: 10px 14px !important;
+  }
+
+  .users-grid tr.k-table-row:hover td { background: var(--sf-bg-hover) !important; }
+
+  // שורת הפרטים — ללא צבע רקע של Kendo
+  .users-grid .k-detail-row > td {
+    background: var(--sf-bg) !important;
+    padding: 4px 0 12px !important;
+    border-bottom: 1px solid var(--sf-border) !important;
+  }
+
+  // Column resize handle
+  .users-grid .k-column-resizer { background: var(--sf-border); width: 1px; opacity: .5; }
+
+  // Paginator
+  .users-grid .k-pager {
+    border-top: 1px solid var(--sf-border);
+    background: var(--sf-bg);
+    direction: rtl;
+    font-family: 'Noto Sans Hebrew', sans-serif;
+    font-size: .82rem;
+    padding: 10px 16px;
+  }
+
+  .users-grid .k-pager-wrap,
+  .users-grid .k-pager { direction: rtl !important; }
+
+  .users-grid .k-sort-icon { margin-right: 4px; }
+}
+
+// ── User Cell ─────────────────────────────────────────
+.user-cell { display: flex; align-items: center; gap: 10px; }
+
+.user-avatar {
+  width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+  background: var(--sf-primary-light); color: var(--sf-primary);
+  font-size: .9rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+
+  &.avatar-inactive {
+    background: #f1f5f9; color: var(--sf-text-muted);
+    text-decoration: line-through;
+  }
+}
+
+.user-info { display: flex; flex-direction: column; gap: 2px; }
+.user-name { font-weight: 600; color: var(--sf-text); font-size: .88rem; line-height: 1.2; }
+.user-username { font-size: .73rem; color: var(--sf-text-muted); font-family: 'Share Tech Mono', monospace; }
+
+// ── Org Tag ───────────────────────────────────────────
+.org-tag { display: flex; align-items: center; gap: 8px; }
+
+.org-logo {
+  width: 28px; height: 28px; border-radius: 6px;
+  object-fit: contain; border: 1px solid var(--sf-border);
+  padding: 2px; background: #fff; flex-shrink: 0;
+}
+
+.org-avatar {
+  width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
+  background: var(--sf-primary-light); color: var(--sf-primary);
+  font-size: .8rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.org-name-sm { font-size: .84rem; font-weight: 600; color: var(--sf-text); line-height: 1.2; }
+.org-code    { font-size: .71rem; color: var(--sf-text-muted); font-family: 'Share Tech Mono', monospace; }
+
+// ── Badges (like reference image) ────────────────────
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 4px 12px; border-radius: 20px;
+  font-size: .74rem; font-weight: 700;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+
+// Status badges
+.badge-active   { background: #16a34a; color: #fff; }
+.badge-inactive { background: #dc2626; color: #fff; }
+.badge-warn     { background: #d97706; color: #fff; }
+
+// Role badges
+.badge-platform { background: #0d47ff; color: #fff; }
+.badge-blue     { background: #3b82f6; color: #fff; }
+.badge-purple   { background: #7c3aed; color: #fff; }
+.badge-gray     { background: #64748b; color: #fff; }
+
+// ── Status Wrap ───────────────────────────────────────
+.status-wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+
+// ── Last Login ────────────────────────────────────────
+.last-login { font-size: .83rem; color: var(--sf-text); }
+.last-login.never { color: var(--sf-text-muted); font-style: italic; }
+
+// ── Master-Detail Card ────────────────────────────────
+.user-detail-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 16px 12px;
+  direction: rtl;
+  background: var(--sf-bg);
+}
+
+.detail-group {
+  background: var(--sf-bg-card);
+  border: 1px solid var(--sf-border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  min-width: 200px;
+  flex: 1;
+  box-shadow: 0 4px 16px rgba(0,0,0,.07), 0 1px 4px rgba(0,0,0,.04);
+}
+
+.detail-group-title {
+  font-size: .71rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--sf-text-muted);
+  margin-bottom: 10px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.detail-fields { display: flex; flex-direction: column; gap: 6px; }
+.detail-field  { display: flex; align-items: center; gap: 8px; }
+
+.df-label {
+  font-size: .75rem;
+  color: var(--sf-text-muted);
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.df-val  { font-size: .83rem; color: var(--sf-text); font-weight: 500; }
+.df-mono { font-family: 'Share Tech Mono', monospace; font-size: .8rem; }
+
+
+// ── דיאלוג פרטי משתמש ────────────────────────────────
+.detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 0;
+  direction: rtl;
+}
+
+.detail-footer {
+  display: flex;
+  gap: 10px;
+  direction: rtl;
+  width: 100%;
+}
+
+// ── Actions ───────────────────────────────────────────
+.row-actions { display: flex; align-items: center; gap: 4px; }
+.act-btn {
+  background: none; border: none; cursor: pointer;
+  width: 30px; height: 30px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+  i { font-size: .9rem; }
+}
+.act-expand { color: var(--sf-text-secondary); &:hover { background: var(--sf-bg-hover); color: var(--sf-primary); }
+  i { transition: transform .2s; }
+  &.expanded i { transform: rotate(180deg); }
+}
+.act-edit   { color: #3b82f6; &:hover { background: #eff6ff; } }
+.act-lock   { color: #ef4444; &:hover { background: #fef2f2; } }
+.act-unlock { color: #16a34a; &:hover { background: #f0fdf4; } }

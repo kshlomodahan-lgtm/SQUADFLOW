@@ -2,7 +2,7 @@
 
   <!-- ── Header ──────────────────────────────────────── -->
   <div class="page-header">
-    <div>
+    <div class="header-titles">
       <h1>ארגונים</h1>
       <p>{{ orgs().length }} ארגונים רשומים במערכת</p>
     </div>
@@ -18,6 +18,14 @@
       <input class="search-input" type="text"
              placeholder="חיפוש לפי שם, קוד, אימייל..."
              (input)="onSearch($any($event.target).value)" />
+    </div>
+    <div class="export-btns">
+      <button kendoButton fillMode="outline" [svgIcon]="excelIcon" (click)="exportExcel()" class="btn-export btn-excel" title="ייצוא לאקסל">
+        Excel
+      </button>
+      <button kendoButton fillMode="outline" [svgIcon]="pdfIcon" (click)="exportPDF()" class="btn-export btn-pdf" title="ייצוא ל-PDF">
+        PDF
+      </button>
     </div>
   </div>
 
@@ -46,10 +54,46 @@
       [reorderable]="true"
       [resizable]="true"
       [selectable]="{ mode: 'multiple', checkboxOnly: true }"
+      [columnMenu]="true"
       scrollable="none"
       (pageChange)="onPageChange($event)"
       (sortChange)="onSortChange($event)"
       class="orgs-grid">
+
+      <kendo-grid-pdf fileName="ארגונים.pdf" [allPages]="true" paperSize="A4" [landscape]="true" margin="1cm" [repeatHeaders]="true">
+      </kendo-grid-pdf>
+
+      <kendo-grid-excel fileName="ארגונים.xlsx" [fetchData]="allData">
+        <!-- פרטי ארגון -->
+        <kendo-excelexport-column field="CompanyName"   title="שם ארגון"        [width]="200" />
+        <kendo-excelexport-column field="TenantCode"    title="קוד ארגון"       [width]="120" />
+        <kendo-excelexport-column field="BusinessNumber" title="ח.פ / ע.מ"      [width]="120" />
+        <kendo-excelexport-column field="ContactName"   title="איש קשר"         [width]="150" />
+        <kendo-excelexport-column field="Email"         title='דוא"ל'           [width]="200" />
+        <kendo-excelexport-column field="Phone"         title="טלפון"           [width]="120" />
+        <kendo-excelexport-column field="Phone2"        title="טלפון 2"         [width]="120" />
+        <kendo-excelexport-column field="Fax"           title="פקס"             [width]="120" />
+        <kendo-excelexport-column field="Website"       title="אתר אינטרנט"     [width]="160" />
+        <!-- כתובת -->
+        <kendo-excelexport-column field="Address"       title="כתובת"           [width]="200" />
+        <kendo-excelexport-column field="City"          title="עיר"             [width]="120" />
+        <kendo-excelexport-column field="Country"       title="מדינה"           [width]="120" />
+        <!-- מנוי -->
+        <kendo-excelexport-column field="PlanType"      title="תוכנית"          [width]="100" />
+        <kendo-excelexport-column field="IsActive"      title="פעיל"            [width]="80" />
+        <kendo-excelexport-column field="SubscribedAt"  title="תאריך הצטרפות"  [width]="140" />
+        <kendo-excelexport-column field="ExpiresAt"     title="תפוגת מנוי"     [width]="140" />
+        <kendo-excelexport-column field="MaxUsers"      title="מקס משתמשים"    [width]="120" />
+        <kendo-excelexport-column field="UserCount"     title="משתמשים בפועל"  [width]="120" />
+        <kendo-excelexport-column field="MaxTickets"    title="מקס טיקטים"     [width]="120" />
+        <!-- חשבונאות -->
+        <kendo-excelexport-column field="BankName"      title="בנק"             [width]="120" />
+        <kendo-excelexport-column field="BankBranch"    title="סניף"            [width]="80" />
+        <kendo-excelexport-column field="BankAccount"   title="חשבון בנק"       [width]="140" />
+        <kendo-excelexport-column field="AccountingRef" title="אסמכתא חשבונאית" [width]="150" />
+        <!-- הערות -->
+        <kendo-excelexport-column field="Notes"         title="הערות"           [width]="250" />
+      </kendo-grid-excel>
 
       <!-- ── Localization מלא ── -->
       <kendo-grid-messages
@@ -76,13 +120,59 @@
         filterFilterButton="סנן"
         selectionCheckboxLabel="בחר שורה"
         selectAllCheckboxLabel="בחר הכל"
+        columnMenuFilter="סנן"
+        columnMenuSort="מיון"
+        columnMenuColumns="עמודות"
+        columnMenuSortAscending="עולה"
+        columnMenuSortDescending="יורד"
       />
 
-      <!-- Checkbox -->
-      <kendo-grid-checkbox-column [width]="44" [showSelectAll]="true" />
+      <!-- הרחבת שורה — Kendo built-in detail expansion -->
+      <ng-template kendoGridDetailTemplate let-o>
+        <div class="org-detail-card">
+          <div class="detail-group">
+            <div class="detail-group-title">פרטי קשר</div>
+            <div class="detail-fields">
+              <div class="detail-field"><span class="df-label">איש קשר</span><span class="df-val">{{ o.ContactName }}</span></div>
+              <div class="detail-field"><span class="df-label">טלפון</span><span class="df-val">{{ o.Phone }}</span></div>
+              @if (o.Phone2) { <div class="detail-field"><span class="df-label">טלפון 2</span><span class="df-val">{{ o.Phone2 }}</span></div> }
+              @if (o.Fax)    { <div class="detail-field"><span class="df-label">פקס</span><span class="df-val">{{ o.Fax }}</span></div> }
+              @if (o.Website){ <div class="detail-field"><span class="df-label">אתר</span><span class="df-val"><a [href]="o.Website" target="_blank" rel="noopener">{{ o.Website }}</a></span></div> }
+            </div>
+          </div>
+          <div class="detail-group">
+            <div class="detail-group-title">כתובת</div>
+            <div class="detail-fields">
+              @if (o.Address){ <div class="detail-field"><span class="df-label">רחוב</span><span class="df-val">{{ o.Address }}</span></div> }
+              @if (o.City)   { <div class="detail-field"><span class="df-label">עיר</span><span class="df-val">{{ o.City }}</span></div> }
+              @if (o.Country){ <div class="detail-field"><span class="df-label">מדינה</span><span class="df-val">{{ o.Country }}</span></div> }
+              @if (o.BusinessNumber){ <div class="detail-field"><span class="df-label">ח.פ / ע.מ</span><span class="df-val">{{ o.BusinessNumber }}</span></div> }
+            </div>
+          </div>
+          <div class="detail-group">
+            <div class="detail-group-title">מנוי ובנק</div>
+            <div class="detail-fields">
+              <div class="detail-field"><span class="df-label">הצטרפות</span><span class="df-val">{{ o.SubscribedAt | date:'dd/MM/yyyy' }}</span></div>
+              <div class="detail-field"><span class="df-label">תפוגה</span><span class="df-val">{{ o.ExpiresAt | date:'dd/MM/yyyy' }}</span></div>
+              <div class="detail-field"><span class="df-label">מקס. כרטיסים</span><span class="df-val">{{ o.MaxTickets }}</span></div>
+              @if (o.BankName){ <div class="detail-field"><span class="df-label">בנק</span><span class="df-val">{{ o.BankName }} / {{ o.BankBranch }}</span></div> }
+              @if (o.AccountingRef){ <div class="detail-field"><span class="df-label">אסמכתא</span><span class="df-val">{{ o.AccountingRef }}</span></div> }
+            </div>
+          </div>
+          @if (o.Notes) {
+            <div class="detail-group detail-group-full">
+              <div class="detail-group-title">הערות</div>
+              <p class="detail-notes">{{ o.Notes }}</p>
+            </div>
+          }
+        </div>
+      </ng-template>
 
-      <!-- ארגון — גמיש, קולט את כל השטח הנותר -->
-      <kendo-grid-column field="CompanyName" title="ארגון" [minResizableWidth]="160">
+      <!-- Checkbox -->
+      <kendo-grid-checkbox-column [width]="56" [showSelectAll]="true" [columnMenu]="false" />
+
+      <!-- ארגון — רוחב קבוע -->
+      <kendo-grid-column field="CompanyName" title="ארגון" [width]="280" [minResizableWidth]="160">
         <ng-template kendoGridCellTemplate let-o>
           <div class="org-cell">
             @if (o.LogoUrl) {
@@ -102,8 +192,8 @@
         </ng-template>
       </kendo-grid-column>
 
-      <!-- אימייל — רוחב קבוע -->
-      <kendo-grid-column field="Email" title='דוא"ל' [width]="210" />
+      <!-- אימייל — גמיש, קולט שטח נותר -->
+      <kendo-grid-column field="Email" title='דוא"ל' [minResizableWidth]="140" />
 
       <!-- תוכנית -->
       <kendo-grid-column field="PlanType" title="תוכנית" [width]="100">
@@ -131,11 +221,21 @@
       </kendo-grid-column>
 
       <!-- פעולות — קבוע, לא ניתן למיון -->
-      <kendo-grid-column title="" [width]="80" [sortable]="false" [resizable]="false">
-        <ng-template kendoGridCellTemplate let-o>
+      <kendo-grid-column title="" [width]="104" [sortable]="false" [resizable]="false" [columnMenu]="false">
+        <ng-template kendoGridCellTemplate let-o let-rowIndex="rowIndex">
           <div class="row-actions">
-            <button class="act-btn act-delete" title="מחק">
-              <i class="pi pi-trash"></i>
+            <button class="act-btn act-expand"
+                    [class.expanded]="isExpanded(o.TenantID)"
+                    [title]="isExpanded(o.TenantID) ? 'סגור' : 'פרטים'"
+                    (click)="toggleDetail(o, rowIndex)">
+              <i class="pi" [class.pi-chevron-down]="!isExpanded(o.TenantID)" [class.pi-chevron-up]="isExpanded(o.TenantID)"></i>
+            </button>
+            <button class="act-btn"
+                    [class.act-lock]="o.IsActive"
+                    [class.act-unlock]="!o.IsActive"
+                    [title]="o.IsActive ? 'השבת' : 'הפעל'"
+                    (click)="toggleActive(o)">
+              <i class="pi" [class.pi-lock]="o.IsActive" [class.pi-lock-open]="!o.IsActive"></i>
             </button>
             <button class="act-btn act-edit" title="ערוך" (click)="openEdit(o)">
               <i class="pi pi-pencil"></i>

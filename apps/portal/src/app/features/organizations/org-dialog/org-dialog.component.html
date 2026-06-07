@@ -1,232 +1,344 @@
-<p-dialog
-  [header]="title"
-  [(visible)]="visible"
-  (visibleChange)="!$event && close()"
-  [modal]="true"
-  [draggable]="true"
-  [resizable]="false"
-  [style]="{width:'900px'}"
-  styleClass="sf-dialog">
+<kendo-dialog [title]="title" (close)="close()" [width]="860" [minWidth]="600">
 
-  <form [formGroup]="form" novalidate>
+  <div class="org-dialog-body">
 
-    @if (errorMsg) {
-      <div class="form-error-banner">
-        <i class="pi pi-exclamation-circle"></i>{{ errorMsg }}
-      </div>
-    }
-
-    <!-- ══ שורה עליונה: פרטי ארגון (ימין) + לוגו (שמאל) ══ -->
-    <div class="top-grid">
-
-      <!-- ימין — פרטי ארגון -->
-      <div class="form-section">
-        <div class="section-title">פרטי ארגון</div>
-
-        @if (!isEdit) {
-          <div class="form-row">
-            <label>קוד ארגון <span class="req">*</span></label>
-            <div class="input-col">
-              <input pInputText formControlName="tenantCode"
-                     placeholder="לדוגמה: ABC_12345" class="line-input"
-                     (input)="onTenantCodeInput($event)" />
-              @if (form.get('tenantCode')?.hasError('required') && form.get('tenantCode')?.touched) {
-                <small class="err">שדה חובה</small>
-              }
-              @if (form.get('tenantCode')?.hasError('pattern') && form.get('tenantCode')?.touched) {
-                <small class="err">פורמט: ABC_12345</small>
-              }
-            </div>
-          </div>
-        }
-
-        <div class="form-row">
-          <label>שם חברה <span class="req">*</span></label>
-          <div class="input-col">
-            <input pInputText formControlName="companyName" class="line-input" />
-            @if (form.get('companyName')?.invalid && form.get('companyName')?.touched) {
-              <small class="err">שדה חובה</small>
-            }
-          </div>
-        </div>
-
-        <div class="form-row">
-          <label>מספר עוסק / ח.פ.</label>
-          <div class="input-col">
-            <input pInputText formControlName="businessNumber" class="line-input" placeholder="123456789" />
-          </div>
-        </div>
-      </div>
-
-      <!-- שמאל — לוגו -->
-      <div class="form-section logo-section">
-        <div class="section-title">לוגו חברה</div>
-        <div class="logo-block">
-          @if (logoPreview) {
-            <div class="logo-preview-box">
-              <img [src]="logoPreview" alt="לוגו" class="logo-preview-img" />
-            </div>
-          } @else {
-            <div class="logo-placeholder">
-              <i class="pi pi-image"></i>
-              <span>אין לוגו</span>
-            </div>
+    <!-- ── Sidebar Nav ── -->
+    <nav class="org-nav">
+      @for (g of groups; track g.id) {
+        <button
+          type="button"
+          class="nav-item"
+          [class.active]="activeGroup() === g.id"
+          (click)="activeGroup.set(g.id)">
+          <span class="nav-icon">
+            <kendo-svg-icon [icon]="g.icon" />
+          </span>
+          <span class="nav-text">{{ g.text }}</span>
+          @if (activeGroup() === g.id) {
+            <span class="nav-indicator"></span>
           }
-          <div class="logo-btns">
-            <label class="btn-upload" [class.loading]="uploading">
-              @if (uploading) { <i class="pi pi-spin pi-spinner"></i> }
-              @else { <i class="pi pi-upload"></i> העלאה }
-              <input type="file" accept=".png,.jpg,.jpeg,.svg,.webp"
-                     (change)="onLogoSelect($event)" style="display:none" />
-            </label>
-            <button type="button" class="btn-delete" [disabled]="!logoPreview" (click)="removeLogo()">
-              <i class="pi pi-trash"></i> מחיקה
-            </button>
-          </div>
-          <small class="logo-hint">PNG &nbsp;·&nbsp; JPG &nbsp;·&nbsp; SVG &nbsp;·&nbsp; max 2MB</small>
-        </div>
-      </div>
+        </button>
+      }
+    </nav>
 
-    </div>
+    <!-- ── Content Area ── -->
+    <div class="org-content">
+      <form [formGroup]="form" novalidate>
 
-    <!-- ══ פרטי איש קשר + כתובת (זה לצד זה) ══ -->
-    <div class="side-by-side">
+        @if (errorMsg) {
+          <div class="form-error-banner">⚠ {{ errorMsg }}</div>
+        }
 
-      <div class="form-section side-section">
-        <div class="section-title">פרטי איש קשר</div>
-        <div class="form-row">
-          <label>איש קשר</label>
-          <div class="input-col"><input pInputText formControlName="contactName" class="line-input" /></div>
-        </div>
-        <div class="form-row">
-          <label>דוא"ל <span class="req">*</span></label>
-          <div class="input-col">
-            <input pInputText formControlName="email" type="email" class="line-input" />
-            @if (form.get('email')?.invalid && form.get('email')?.touched) {
-              <small class="err">כתובת דוא"ל לא תקינה</small>
-            }
-          </div>
-        </div>
-        <div class="form-row">
-          <label>טלפון</label>
-          <div class="input-col"><input pInputText formControlName="phone" class="line-input" placeholder="050-0000000" /></div>
-        </div>
-        <div class="form-row">
-          <label>טלפון 2</label>
-          <div class="input-col"><input pInputText formControlName="phone2" class="line-input" placeholder="050-0000000" /></div>
-        </div>
-        <div class="form-row">
-          <label>פקס</label>
-          <div class="input-col"><input pInputText formControlName="fax" class="line-input" placeholder="03-0000000" /></div>
-        </div>
-        <div class="form-row">
-          <label>אתר אינטרנט</label>
-          <div class="input-col"><input pInputText formControlName="website" class="line-input" placeholder="www.example.com" /></div>
-        </div>
-      </div>
+        <!-- ══ פרטי ארגון ══ -->
+        @if (activeGroup() === 'general') {
+          <div class="content-section">
+            <div class="section-header">
+              <h3>פרטי ארגון</h3>
+              <p>מידע בסיסי ולוגו</p>
+            </div>
 
-      <div class="form-section side-section side-border">
-        <div class="section-title">כתובת</div>
-        <div class="form-row">
-          <label>כתובת</label>
-          <div class="input-col"><input pInputText formControlName="address" class="line-input" placeholder="רחוב ומספר" /></div>
-        </div>
-        <div class="form-row">
-          <label>עיר</label>
-          <div class="input-col"><input pInputText formControlName="city" class="line-input" /></div>
-        </div>
-        <div class="form-row">
-          <label>מדינה</label>
-          <div class="input-col"><input pInputText formControlName="country" class="line-input" /></div>
-        </div>
-      </div>
+            <div class="general-layout">
+              <div class="general-fields">
 
-    </div>
+                @if (!isEdit) {
+                  <div class="form-row">
+                    <label>קוד ארגון <span class="req">*</span></label>
+                    <div class="input-col">
+                      <input kendoTextBox formControlName="tenantCode"
+                             placeholder="לדוגמה: ABC_12345"
+                             (input)="onTenantCodeInput($event)" />
+                      @if (form.get('tenantCode')?.hasError('required') && form.get('tenantCode')?.touched) {
+                        <small class="err">שדה חובה</small>
+                      }
+                      @if (form.get('tenantCode')?.hasError('pattern') && form.get('tenantCode')?.touched) {
+                        <small class="err">פורמט: ABC_12345</small>
+                      }
+                    </div>
+                  </div>
+                }
 
-    <!-- ══ פרטי בנק + הנהלת חשבונות (זה לצד זה) ══ -->
-    <div class="side-by-side">
+                <div class="form-row">
+                  <label>שם חברה <span class="req">*</span></label>
+                  <div class="input-col">
+                    <input kendoTextBox formControlName="companyName" />
+                    @if (form.get('companyName')?.invalid && form.get('companyName')?.touched) {
+                      <small class="err">שדה חובה</small>
+                    }
+                  </div>
+                </div>
 
-      <div class="form-section side-section">
-        <div class="section-title">פרטי בנק</div>
-        <div class="form-row">
-          <label>בנק</label>
-          <div class="input-col"><input pInputText formControlName="bankName" class="line-input" placeholder="שם הבנק" /></div>
-        </div>
-        <div class="form-row">
-          <label>סניף</label>
-          <div class="input-col"><input pInputText formControlName="bankBranch" class="line-input" placeholder="מספר סניף" /></div>
-        </div>
-        <div class="form-row">
-          <label>מספר חשבון</label>
-          <div class="input-col"><input pInputText formControlName="bankAccount" class="line-input" /></div>
-        </div>
-      </div>
+                <div class="form-row">
+                  <label>מספר עוסק / ח.פ.</label>
+                  <div class="input-col">
+                    <input kendoTextBox formControlName="businessNumber" placeholder="123456789" />
+                  </div>
+                </div>
 
-      <div class="form-section side-section side-border">
-        <div class="section-title">הנהלת חשבונות</div>
-        <div class="form-row">
-          <label>מספר בהנה"ח</label>
-          <div class="input-col"><input pInputText formControlName="accountingRef" class="line-input" placeholder="מספר בהנהלת חשבונות" /></div>
-        </div>
-      </div>
+              </div>
 
-    </div>
-
-    <!-- ══ תוכנית ומגבלות ══ -->
-    <div class="form-section">
-      <div class="section-title">תוכנית ומגבלות</div>
-      <div class="form-grid-2">
-        <div class="form-row">
-          <label>תוכנית</label>
-          <div class="input-col">
-            <p-select formControlName="planType" [options]="plans"
-                      optionLabel="label" optionValue="value" styleClass="line-select w-full" />
-          </div>
-        </div>
-        <div class="form-row">
-          <label>מקסימום משתמשים</label>
-          <div class="input-col">
-            <p-inputnumber formControlName="maxUsers" [min]="1" [max]="9999" styleClass="w-full" />
-          </div>
-        </div>
-        <div class="form-row">
-          <label>מקסימום תקלות</label>
-          <div class="input-col">
-            <p-inputnumber formControlName="maxTickets" [min]="1" [max]="999999" styleClass="w-full" />
-          </div>
-        </div>
-        @if (isEdit) {
-          <div class="form-row">
-            <label>סטטוס</label>
-            <div class="input-col toggle-row">
-              <p-toggleswitch formControlName="isActive" />
-              <span class="toggle-label">{{ form.get('isActive')?.value ? 'פעיל' : 'מושהה' }}</span>
+              <!-- לוגו -->
+              <div class="logo-aside">
+                <div class="logo-label">לוגו חברה</div>
+                @if (logoPreview) {
+                  <div class="logo-preview-box">
+                    <img [src]="logoPreview" alt="לוגו" class="logo-preview-img" />
+                  </div>
+                } @else {
+                  <div class="logo-placeholder">
+                    <kendo-svg-icon [icon]="groups[0].icon" />
+                    <span>אין לוגו</span>
+                  </div>
+                }
+                <div class="logo-btns">
+                  <label class="btn-logo-upload" [class.loading]="uploading">
+                    @if (uploading) { <span class="spin">⏳</span> } @else { ↑ }
+                    העלאה
+                    <input type="file" accept=".png,.jpg,.jpeg,.svg,.webp"
+                           (change)="onLogoSelect($event)" style="display:none" />
+                  </label>
+                  <button type="button" class="btn-logo-delete"
+                          [disabled]="!logoPreview" (click)="removeLogo()">
+                    🗑 מחיקה
+                  </button>
+                </div>
+                <small class="logo-hint">PNG · JPG · SVG · max 2MB</small>
+              </div>
             </div>
           </div>
         }
-      </div>
+
+        <!-- ══ פרטי קשר ══ -->
+        @if (activeGroup() === 'contact') {
+          <div class="content-section">
+            <div class="section-header">
+              <h3>פרטי קשר</h3>
+              <p>אנשי קשר, דוא"ל וטלפונים</p>
+            </div>
+
+            <div class="form-row">
+              <label>איש קשר</label>
+              <div class="input-col">
+                <input kendoTextBox formControlName="contactName" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>דוא"ל <span class="req">*</span></label>
+              <div class="input-col">
+                <input kendoTextBox formControlName="email" type="email" />
+                @if (form.get('email')?.invalid && form.get('email')?.touched) {
+                  <small class="err">כתובת דוא"ל לא תקינה</small>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>טלפון</label>
+              <div class="input-col">
+                <input kendoTextBox formControlName="phone" placeholder="050-0000000" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>טלפון 2</label>
+              <div class="input-col">
+                <input kendoTextBox formControlName="phone2" placeholder="050-0000000" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>פקס</label>
+              <div class="input-col">
+                <input kendoTextBox formControlName="fax" placeholder="03-0000000" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>אתר אינטרנט</label>
+              <div class="input-col">
+                <input kendoTextBox formControlName="website" placeholder="www.example.com" />
+              </div>
+            </div>
+
+          </div>
+        }
+
+        <!-- ══ כתובת ══ -->
+        @if (activeGroup() === 'address') {
+          <div class="content-section">
+            <div class="section-header">
+              <h3>כתובת</h3>
+              <p>כתובת מפתח הארגון</p>
+            </div>
+
+            <div class="form-row">
+              <label>כתובת</label>
+              <div class="input-col">
+                <input kendoTextBox formControlName="address" placeholder="רחוב ומספר" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>עיר</label>
+              <div class="input-col">
+                <input kendoTextBox formControlName="city" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>מדינה</label>
+              <div class="input-col">
+                <input kendoTextBox formControlName="country" />
+              </div>
+            </div>
+
+          </div>
+        }
+
+        <!-- ══ מנוי ומגבלות ══ -->
+        @if (activeGroup() === 'plan') {
+          <div class="content-section">
+            <div class="section-header">
+              <h3>מנוי ומגבלות</h3>
+              <p>תוכנית, מכסות וסטטוס ארגון</p>
+            </div>
+
+            <div class="form-row">
+              <label>תוכנית</label>
+              <div class="input-col">
+                <kendo-dropdownlist
+                  formControlName="planType"
+                  [data]="plans"
+                  textField="label"
+                  valueField="value"
+                  [valuePrimitive]="true">
+                </kendo-dropdownlist>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>מקסימום משתמשים</label>
+              <div class="input-col">
+                <kendo-numerictextbox
+                  formControlName="maxUsers"
+                  [min]="1" [max]="9999"
+                  [decimals]="0"
+                  format="n0">
+                </kendo-numerictextbox>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>מקסימום תקלות</label>
+              <div class="input-col">
+                <kendo-numerictextbox
+                  formControlName="maxTickets"
+                  [min]="1" [max]="999999"
+                  [decimals]="0"
+                  format="n0">
+                </kendo-numerictextbox>
+              </div>
+            </div>
+
+            @if (isEdit) {
+              <div class="form-row">
+                <label>סטטוס</label>
+                <div class="input-col">
+                  <div class="seg-ctrl">
+                    <button type="button" class="seg-btn"
+                            [class.seg-on]="!!form.get('isActive')?.value"
+                            (click)="form.get('isActive')?.setValue(true)">
+                      ✓ פעיל
+                    </button>
+                    <button type="button" class="seg-btn"
+                            [class.seg-off]="!form.get('isActive')?.value"
+                            (click)="form.get('isActive')?.setValue(false)">
+                      ✗ מושהה
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+
+          </div>
+        }
+
+        <!-- ══ בנק ══ -->
+        @if (activeGroup() === 'bank') {
+          <div class="content-section">
+            <div class="section-header">
+              <h3>פרטי חיוב</h3>
+              <p>פרטי בנק, אשראי ואמצעי תשלום</p>
+            </div>
+
+            <div class="form-row">
+              <label>בנק</label>
+              <div class="input-col">
+                <input kendoTextBox formControlName="bankName" placeholder="שם הבנק" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>סניף</label>
+              <div class="input-col">
+                <input kendoTextBox formControlName="bankBranch" placeholder="מספר סניף" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>מספר חשבון</label>
+              <div class="input-col">
+                <input kendoTextBox formControlName="bankAccount" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>מספר בהנה"ח</label>
+              <div class="input-col">
+                <input kendoTextBox formControlName="accountingRef" placeholder="מספר בהנהלת חשבונות" />
+              </div>
+            </div>
+
+          </div>
+        }
+
+        <!-- ══ הערות ══ -->
+        @if (activeGroup() === 'notes') {
+          <div class="content-section">
+            <div class="section-header">
+              <h3>הערות</h3>
+              <p>הערות חופשיות על הארגון</p>
+            </div>
+
+            <kendo-textarea
+              formControlName="notes"
+              [rows]="8"
+              resizable="vertical"
+              placeholder="הערות אופציונליות...">
+            </kendo-textarea>
+
+          </div>
+        }
+
+      </form>
     </div>
 
-    <!-- ══ הערות ══ -->
-    <div class="form-section last">
-      <div class="form-row">
-        <label>הערות</label>
-        <div class="input-col">
-          <textarea pTextarea formControlName="notes" rows="2" autoResize="true"
-                    placeholder="הערות אופציונליות..." class="line-input w-full"></textarea>
-        </div>
-      </div>
-    </div>
+  </div>
 
-  </form>
-
-  <ng-template #footer>
+  <kendo-dialog-actions>
     <div class="dialog-footer">
-      <p-button label="ביטול" severity="secondary" [outlined]="true"
-                (click)="close()" [disabled]="saving" />
-      <p-button [label]="isEdit ? 'שמור שינויים' : 'צור ארגון'"
-                icon="pi pi-check" [loading]="saving" (click)="save()" />
+      <button kendoButton class="btn-save" (click)="save()" [disabled]="saving || uploading">
+        @if (saving || uploading) {
+          <kendo-loader type="pulsing" size="small" />
+        } @else {
+          ✓
+        }
+        {{ uploading ? 'ממתין להעלאת לוגו...' : isEdit ? 'שמור שינויים' : 'צור ארגון' }}
+      </button>
+      <button kendoButton fillMode="outline" (click)="close()" [disabled]="saving">
+        ביטול
+      </button>
     </div>
-  </ng-template>
+  </kendo-dialog-actions>
 
-</p-dialog>
+</kendo-dialog>

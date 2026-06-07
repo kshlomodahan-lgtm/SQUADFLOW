@@ -1,113 +1,293 @@
-<div class="dashboard">
+<div class="dash-page">
 
-  <!-- ── Hero Banner ── -->
-  <div class="hero-banner">
-    <div class="hero-content">
-      <div class="hero-greeting">{{ greeting }},</div>
+  <!-- ── Hero Banner ──────────────────────────────────────── -->
+  <div class="hero">
+    <div class="hero-left">
+      <p class="hero-greeting">{{ greeting }},</p>
       <h1 class="hero-name">{{ auth.user()?.fullName }}</h1>
       <p class="hero-sub">סקירת פעילות הפלטפורמה בזמן אמת</p>
     </div>
-    <div class="hero-badge">
-      <span class="pulse-dot"></span>
-      מערכת פעילה
+    <div class="hero-right">
+      @if (stats()) {
+        <div class="hero-stat">
+          <span class="hero-stat-num">{{ stats()!.orgs.total }}</span>
+          <span class="hero-stat-label">ארגונים</span>
+        </div>
+        <div class="hero-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-num">{{ stats()!.users.total }}</span>
+          <span class="hero-stat-label">משתמשים</span>
+        </div>
+        <div class="hero-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-num">{{ stats()!.orgs.active }}</span>
+          <span class="hero-stat-label">פעילים</span>
+        </div>
+      }
+      <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        מערכת פעילה
+      </div>
     </div>
   </div>
 
+  <!-- ── Loader ─────────────────────────────────────────── -->
   @if (loading()) {
     <div class="loader-wrap">
       <kendo-loader type="pulsing" themeColor="primary" size="large" />
     </div>
   }
 
+  @if (!loading() && error()) {
+    <div class="dash-error">
+      <span class="dash-error-icon">⚠</span>
+      {{ error() }}
+    </div>
+  }
+
   @if (!loading() && stats()) {
 
-    <!-- ── ארגונים ── -->
-    <div class="section-label">
-      <kendo-svg-icon [icon]="icons.buildings" />
-      ארגונים
-    </div>
+    <!-- ── KPI Row ─────────────────────────────────────── -->
+    <div class="kpi-row">
 
-    <div class="kpi-grid">
-
-      <div class="kpi-card card-blue clickable" routerLink="/app/organizations">
-        <div class="kpi-bg-icon"><kendo-svg-icon [icon]="icons.buildings" /></div>
+      <!-- ארגונים: סה"כ -->
+      <div class="kpi-card kpi-blue clickable" routerLink="/app/organizations">
+        <div class="kpi-watermark"><kendo-svg-icon [icon]="icons['buildings']" /></div>
         <div class="kpi-top">
           <span class="kpi-num">{{ stats()!.orgs.total }}</span>
-          <kendo-svg-icon [icon]="icons.arrowRight" class="kpi-link-arrow" />
+          <kendo-svg-icon [icon]="icons['arrow']" class="kpi-arrow" />
         </div>
         <div class="kpi-label">סה"כ ארגונים</div>
-        <span class="kpi-badge">לחץ לניהול ←</span>
+        <span class="kpi-chip">לחץ לניהול ←</span>
       </div>
 
-      <div class="kpi-card card-green">
-        <div class="kpi-bg-icon"><kendo-svg-icon [icon]="icons.checkCircle" /></div>
-        <div class="kpi-top">
-          <span class="kpi-num">{{ stats()!.orgs.active }}</span>
-        </div>
+      <!-- ארגונים: פעילים -->
+      <div class="kpi-card kpi-green">
+        <div class="kpi-watermark"><kendo-svg-icon [icon]="icons['check']" /></div>
+        <div class="kpi-top"><span class="kpi-num">{{ stats()!.orgs.active }}</span></div>
         <div class="kpi-label">ארגונים פעילים</div>
-        <span class="kpi-badge badge-ok">● פעיל</span>
+        <span class="kpi-chip kpi-chip-ok">● פעיל</span>
       </div>
 
-      <div class="kpi-card" [class]="stats()!.orgs.expiring > 0 ? 'card-amber' : 'card-slate'">
-        <div class="kpi-bg-icon"><kendo-svg-icon [icon]="icons.clock" /></div>
-        <div class="kpi-top">
-          <span class="kpi-num">{{ stats()!.orgs.expiring }}</span>
-        </div>
+      <!-- ארגונים: פגי תוקף -->
+      <div class="kpi-card" [class]="stats()!.orgs.expiring > 0 ? 'kpi-amber' : 'kpi-slate'">
+        <div class="kpi-watermark"><kendo-svg-icon [icon]="icons['clock']" /></div>
+        <div class="kpi-top"><span class="kpi-num">{{ stats()!.orgs.expiring }}</span></div>
         <div class="kpi-label">פגי תוקף בחודש</div>
-        <span class="kpi-badge" [class.badge-warn]="stats()!.orgs.expiring > 0">
+        <span class="kpi-chip" [class.kpi-chip-warn]="stats()!.orgs.expiring > 0">
           {{ stats()!.orgs.expiring > 0 ? '⚠ דורש טיפול' : '✓ תקין' }}
         </span>
       </div>
 
-      <div class="kpi-card" [class]="stats()!.orgs.inactive > 0 ? 'card-red' : 'card-slate'">
-        <div class="kpi-bg-icon"><kendo-svg-icon [icon]="icons.cancel" /></div>
-        <div class="kpi-top">
-          <span class="kpi-num">{{ stats()!.orgs.inactive }}</span>
-        </div>
-        <div class="kpi-label">ארגונים מושהים</div>
-        <span class="kpi-badge" [class.badge-warn]="stats()!.orgs.inactive > 0">
-          {{ stats()!.orgs.inactive > 0 ? '✕ לא פעיל' : '✓ תקין' }}
-        </span>
-      </div>
-
-    </div>
-
-    <!-- ── משתמשים ── -->
-    <div class="section-label" style="margin-top: 36px">
-      <kendo-svg-icon [icon]="icons.user" />
-      משתמשים
-    </div>
-
-    <div class="kpi-grid">
-
-      <div class="kpi-card card-purple clickable" routerLink="/app/users">
-        <div class="kpi-bg-icon"><kendo-svg-icon [icon]="icons.user" /></div>
+      <!-- משתמשים: סה"כ -->
+      <div class="kpi-card kpi-purple clickable" routerLink="/app/users">
+        <div class="kpi-watermark"><kendo-svg-icon [icon]="icons['user']" /></div>
         <div class="kpi-top">
           <span class="kpi-num">{{ stats()!.users.total }}</span>
-          <kendo-svg-icon [icon]="icons.arrowRight" class="kpi-link-arrow" />
+          <kendo-svg-icon [icon]="icons['arrow']" class="kpi-arrow" />
         </div>
         <div class="kpi-label">סה"כ משתמשים</div>
-        <span class="kpi-badge">לחץ לניהול ←</span>
+        <span class="kpi-chip">לחץ לניהול ←</span>
       </div>
 
-      <div class="kpi-card card-teal">
-        <div class="kpi-bg-icon"><kendo-svg-icon [icon]="icons.checkCircle" /></div>
-        <div class="kpi-top">
-          <span class="kpi-num">{{ stats()!.users.active }}</span>
-        </div>
+      <!-- משתמשים: פעילים -->
+      <div class="kpi-card kpi-teal">
+        <div class="kpi-watermark"><kendo-svg-icon [icon]="icons['check']" /></div>
+        <div class="kpi-top"><span class="kpi-num">{{ stats()!.users.active }}</span></div>
         <div class="kpi-label">משתמשים פעילים</div>
-        <span class="kpi-badge badge-ok">● פעיל</span>
+        <span class="kpi-chip kpi-chip-ok">● פעיל</span>
       </div>
 
-      <div class="kpi-card" [class]="stats()!.users.inactive > 0 ? 'card-red' : 'card-slate'">
-        <div class="kpi-bg-icon"><kendo-svg-icon [icon]="icons.eyeSlash" /></div>
-        <div class="kpi-top">
-          <span class="kpi-num">{{ stats()!.users.inactive }}</span>
+    </div>
+
+    <!-- ── Main content row ────────────────────────────── -->
+    <div class="main-row">
+
+      <!-- LEFT COLUMN: chart + recent orgs -->
+      <div class="main-left">
+
+        <!-- Area Chart: גדילת ארגונים -->
+        <div class="dash-card">
+          <div class="card-hd">
+            <div class="card-hd-title">גדילת ארגונים</div>
+            <div class="card-hd-sub">6 חודשים אחרונים</div>
+          </div>
+          <kendo-chart class="area-chart">
+            <kendo-chart-area [background]="'transparent'" [margin]="{ top: 0, bottom: 0 }" />
+            <kendo-chart-legend [visible]="false" />
+            <kendo-chart-tooltip [visible]="true" format="{0} ארגונים חדשים" />
+            <kendo-chart-series>
+              <kendo-chart-series-item
+                type="area"
+                [data]="growthData"
+                [color]="'#3b82f6'"
+                [opacity]="0.25"
+                [line]="{ color: '#0d47ff', width: 2.5 }"
+                [markers]="{ visible: true, size: 6, background: '#0d47ff', border: { color: '#fff', width: 2 } }">
+              </kendo-chart-series-item>
+            </kendo-chart-series>
+            <kendo-chart-category-axis>
+              <kendo-chart-category-axis-item
+                [categories]="growthCategories"
+                [majorGridLines]="{ visible: false }"
+                [minorGridLines]="{ visible: false }">
+                <kendo-chart-category-axis-item-labels [color]="'#64748b'" [font]="'12px Noto Sans Hebrew, sans-serif'" />
+              </kendo-chart-category-axis-item>
+            </kendo-chart-category-axis>
+            <kendo-chart-value-axis>
+              <kendo-chart-value-axis-item [min]="0" [majorUnit]="1">
+                <kendo-chart-value-axis-item-labels [color]="'#64748b'" [font]="'11px Noto Sans Hebrew, sans-serif'" />
+              </kendo-chart-value-axis-item>
+            </kendo-chart-value-axis>
+          </kendo-chart>
         </div>
-        <div class="kpi-label">משתמשים לא פעילים</div>
-        <span class="kpi-badge" [class.badge-warn]="stats()!.users.inactive > 0">
-          {{ stats()!.users.inactive > 0 ? '✕ לא פעיל' : '✓ תקין' }}
-        </span>
+
+        <!-- Recent Orgs Table -->
+        <div class="dash-card">
+          <div class="card-hd">
+            <div class="card-hd-title">ארגונים אחרונים</div>
+            <a class="card-hd-link" routerLink="/app/organizations">הצג הכל ←</a>
+          </div>
+          <table class="mini-table">
+            <thead>
+              <tr>
+                <th>ארגון</th>
+                <th>קוד</th>
+                <th>תוכנית</th>
+                <th>סטטוס</th>
+                <th>הצטרפות</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (o of stats()!.recentOrgs; track o.TenantID) {
+                <tr>
+                  <td class="org-name-cell">{{ o.CompanyName }}</td>
+                  <td><code class="code-tag">{{ o.TenantCode }}</code></td>
+                  <td>
+                    <span class="plan-dot" [style.background]="planColor(o.PlanType)"></span>
+                    {{ planLabel(o.PlanType) }}
+                  </td>
+                  <td>
+                    <span class="status-pill" [class.pill-active]="o.IsActive" [class.pill-inactive]="!o.IsActive">
+                      {{ o.IsActive ? 'פעיל' : 'מושהה' }}
+                    </span>
+                  </td>
+                  <td class="date-cell">{{ formatDate(o.SubscribedAt) }}</td>
+                </tr>
+              }
+              @if (stats()!.recentOrgs.length === 0) {
+                <tr><td colspan="5" class="empty-row">אין ארגונים עדיין</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: summary + donut -->
+      <div class="main-right">
+
+        <!-- Summary Card -->
+        <div class="dash-card">
+          <div class="card-hd">
+            <div class="card-hd-title">סיכום פלטפורמה</div>
+          </div>
+
+          <div class="summary-list">
+
+            <!-- Orgs row -->
+            <div class="summary-item">
+              <div class="summary-icon si-blue"><kendo-svg-icon [icon]="icons['buildings']" /></div>
+              <div class="summary-body">
+                <div class="summary-row">
+                  <span class="summary-label">ארגונים</span>
+                  <span class="summary-value">{{ stats()!.orgs.active }} / {{ stats()!.orgs.total }}</span>
+                  <span class="summary-pct">{{ orgActiveRatio() }}%</span>
+                </div>
+                <div class="summary-bar-track">
+                  <div class="summary-bar-fill sb-blue" [style.width.%]="orgActiveRatio()"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Users row -->
+            <div class="summary-item">
+              <div class="summary-icon si-purple"><kendo-svg-icon [icon]="icons['user']" /></div>
+              <div class="summary-body">
+                <div class="summary-row">
+                  <span class="summary-label">משתמשים</span>
+                  <span class="summary-value">{{ stats()!.users.active }} / {{ stats()!.users.total }}</span>
+                  <span class="summary-pct">{{ userActiveRatio() }}%</span>
+                </div>
+                <div class="summary-bar-track">
+                  <div class="summary-bar-fill sb-purple" [style.width.%]="userActiveRatio()"></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Alerts -->
+          <div class="alerts-section">
+            <div class="alert-item" [class.alert-warn]="stats()!.orgs.expiring > 0" [class.alert-ok]="stats()!.orgs.expiring === 0">
+              <kendo-svg-icon [icon]="icons['clock']" class="alert-icon" />
+              <span>{{ stats()!.orgs.expiring }} ארגונים פגי תוקף בחודש הקרוב</span>
+            </div>
+            <div class="alert-item" [class.alert-warn]="stats()!.orgs.inactive > 0" [class.alert-ok]="stats()!.orgs.inactive === 0">
+              <kendo-svg-icon [icon]="icons['cancel']" class="alert-icon" />
+              <span>{{ stats()!.orgs.inactive }} ארגונים מושהים</span>
+            </div>
+            <div class="alert-item" [class.alert-warn]="stats()!.users.inactive > 0" [class.alert-ok]="stats()!.users.inactive === 0">
+              <kendo-svg-icon [icon]="icons['cancel']" class="alert-icon" />
+              <span>{{ stats()!.users.inactive }} משתמשים לא פעילים</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Donut Chart: Plan Mix -->
+        <div class="dash-card">
+          <div class="card-hd">
+            <div class="card-hd-title">מיקס תוכניות</div>
+            <div class="card-hd-sub">לפי ארגון</div>
+          </div>
+
+          @if (planDonutData.length > 0) {
+            <kendo-chart class="donut-chart">
+              <kendo-chart-area [background]="'transparent'" />
+              <kendo-chart-legend position="bottom" [visible]="true"
+                [labels]="{ font: '12px Noto Sans Hebrew, sans-serif', color: '#64748b' }" />
+              <kendo-chart-series>
+                <kendo-chart-series-item
+                  type="donut"
+                  [data]="planDonutData"
+                  field="count"
+                  categoryField="plan"
+                  colorField="color"
+                  [holeSize]="65"
+                  [padding]="4">
+                  <kendo-chart-series-item-labels
+                    [visible]="false">
+                  </kendo-chart-series-item-labels>
+                </kendo-chart-series-item>
+              </kendo-chart-series>
+              <kendo-chart-tooltip [visible]="true" format="{0} ארגונים" />
+            </kendo-chart>
+          } @else {
+            <div class="empty-chart">אין נתונים עדיין</div>
+          }
+
+          <!-- Plan Legend -->
+          <div class="plan-legend">
+            @for (p of planDonutData; track p.plan) {
+              <div class="plan-legend-item">
+                <span class="plan-dot-lg" [style.background]="p.color"></span>
+                <span class="plan-leg-name">{{ p.plan }}</span>
+                <span class="plan-leg-count">{{ p.count }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
       </div>
 
     </div>

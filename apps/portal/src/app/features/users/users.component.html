@@ -1,0 +1,190 @@
+<div class="users-page">
+
+  <div class="page-header">
+    <div class="header-titles">
+      <h1>משתמשים</h1>
+      <p>{{ users().length }} משתמשים במערכת</p>
+    </div>
+    <button kendoButton themeColor="primary" [svgIcon]="addIcon" (click)="openAdd()">משתמש חדש</button>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input class="search-input" type="text"
+             placeholder="חיפוש לפי שם, מייל, ארגון..."
+             (input)="onSearch($any($event.target).value)" />
+    </div>
+    <div class="export-btns">
+      <button kendoButton fillMode="outline" [svgIcon]="excelIcon" (click)="exportExcel()" class="btn-export btn-excel">Excel</button>
+      <button kendoButton fillMode="outline" [svgIcon]="pdfIcon"   (click)="exportPDF()"   class="btn-export btn-pdf">PDF</button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="state-box"><kendo-loader type="converging-spinner" size="medium" /></div>
+  }
+  @if (!loading() && error()) {
+    <div class="state-box error">{{ error() }}</div>
+  }
+
+  @if (!loading() && !error()) {
+    <kendo-grid
+      [data]="{ data: pagedData, total: gridData.length }"
+      [skip]="skip" [pageSize]="pageSize"
+      [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [10, 25, 50] }"
+      [sortable]="{ mode: 'single', allowUnsort: false }"
+      [sort]="sort"
+      [reorderable]="true" [resizable]="true"
+      [selectable]="{ mode: 'multiple', checkboxOnly: true }"
+      [columnMenu]="true"
+      scrollable="none"
+      (pageChange)="onPageChange($event)"
+      (sortChange)="onSortChange($event)"
+      class="users-grid">
+
+      <!-- הרחבת שורה — Kendo built-in detail expansion -->
+      <ng-template kendoGridDetailTemplate let-u>
+        <div class="user-detail-card">
+          <div class="detail-group">
+            <div class="detail-group-title">פרטי משתמש</div>
+            <div class="detail-fields">
+              <div class="detail-field"><span class="df-label">שם מלא</span><span class="df-val">{{ u.FullName }}</span></div>
+              <div class="detail-field"><span class="df-label">שם משתמש</span><span class="df-val df-mono">{{ u.Username }}</span></div>
+              <div class="detail-field"><span class="df-label">דוא"ל</span><span class="df-val">{{ u.Email }}</span></div>
+            </div>
+          </div>
+          <div class="detail-group">
+            <div class="detail-group-title">תפקיד וארגון</div>
+            <div class="detail-fields">
+              <div class="detail-field"><span class="df-label">תפקיד</span><span class="df-val">{{ u.RoleName }}</span></div>
+              <div class="detail-field"><span class="df-label">ארגון</span><span class="df-val">{{ u.OrgName }}</span></div>
+              <div class="detail-field"><span class="df-label">קוד ארגון</span><span class="df-val df-mono">{{ u.TenantCode }}</span></div>
+            </div>
+          </div>
+          <div class="detail-group">
+            <div class="detail-group-title">סטטוס</div>
+            <div class="detail-fields">
+              <div class="detail-field"><span class="df-label">מצב</span>
+                <span class="badge" [class.badge-active]="u.IsActive" [class.badge-inactive]="!u.IsActive">{{ u.IsActive ? 'פעיל' : 'מושהה' }}</span>
+              </div>
+              <div class="detail-field"><span class="df-label">כניסה אחרונה</span><span class="df-val">{{ formatLastLogin(u.LastLoginAt) }}</span></div>
+              @if (u.MustChangePass) {
+                <div class="detail-field"><span class="df-label">שינוי סיסמה</span><span class="badge badge-warn">נדרש</span></div>
+              }
+            </div>
+          </div>
+        </div>
+      </ng-template>
+
+      <kendo-grid-pdf fileName="משתמשים.pdf" [allPages]="true" paperSize="A4" [landscape]="true" margin="1cm" [repeatHeaders]="true" />
+      <kendo-grid-excel fileName="משתמשים.xlsx" [fetchData]="allData">
+        <kendo-excelexport-column field="FullName"    title="שם מלא"       [width]="160" />
+        <kendo-excelexport-column field="Username"    title="שם משתמש"     [width]="120" />
+        <kendo-excelexport-column field="Email"       title='דוא"ל'        [width]="200" />
+        <kendo-excelexport-column field="OrgName"     title="ארגון"        [width]="160" />
+        <kendo-excelexport-column field="RoleName"    title="תפקיד"        [width]="120" />
+        <kendo-excelexport-column field="IsActive"    title="פעיל"         [width]="60"  />
+        <kendo-excelexport-column field="LastLoginAt" title="כניסה אחרונה" [width]="140" />
+      </kendo-grid-excel>
+
+      <kendo-grid-messages
+        pagerItemsPerPage="שורות בעמוד" pagerOf="מתוך" pagerItems="רשומות"
+        pagerFirstPage="עמוד ראשון" pagerLastPage="עמוד אחרון"
+        pagerPreviousPage="הקודם" pagerNextPage="הבא"
+        pagerPage="עמוד" pagerPageNumberInputTitle="מספר עמוד"
+        noRecords="לא נמצאו משתמשים" loading="טוען..."
+        sortAscending="מיון עולה" sortDescending="מיון יורד"
+        sortedAscending="ממוין בסדר עולה" sortedDescending="ממוין בסדר יורד"
+        selectionCheckboxLabel="בחר שורה" selectAllCheckboxLabel="בחר הכל"
+        columnMenuFilter="סנן" columnMenuSort="מיון" columnMenuColumns="עמודות"
+        columnMenuSortAscending="עולה" columnMenuSortDescending="יורד"
+      />
+
+      <kendo-grid-checkbox-column [width]="44" [showSelectAll]="true" [columnMenu]="false" />
+
+      @if (isPlatform()) {
+        <kendo-grid-column field="OrgName" title="ארגון" [width]="240">
+          <ng-template kendoGridCellTemplate let-u>
+            <div class="org-tag">
+              @if (u.LogoUrl) {
+                <img [src]="u.LogoUrl" [alt]="u.OrgName" class="org-logo" />
+              } @else {
+                <div class="org-avatar">{{ u.OrgName?.charAt(0) }}</div>
+              }
+              <div>
+                <div class="org-name-sm">{{ u.OrgName }}</div>
+                <div class="org-code">{{ u.TenantCode }}</div>
+              </div>
+            </div>
+          </ng-template>
+        </kendo-grid-column>
+      }
+
+      <kendo-grid-column field="FullName" title="שם" [minResizableWidth]="160">
+        <ng-template kendoGridCellTemplate let-u>
+          <div class="user-cell">
+            <div class="user-avatar" [class.avatar-inactive]="!u.IsActive">{{ u.FullName ? u.FullName.charAt(0) : '?' }}</div>
+            <div class="user-info">
+              <span class="user-name">{{ u.FullName }}</span>
+              <span class="user-username">&#64;{{ u.Username }}</span>
+            </div>
+          </div>
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-column field="Email" title='דוא"ל' [width]="220" />
+
+      <kendo-grid-column field="RoleName" title="תפקיד" [width]="140">
+        <ng-template kendoGridCellTemplate let-u>
+          <span class="badge" [class]="roleClass(u.RoleName)">{{ u.RoleName }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-column field="LastLoginAt" title="כניסה אחרונה" [width]="145">
+        <ng-template kendoGridCellTemplate let-u>
+          <span class="last-login" [class.never]="!hasLogin(u.LastLoginAt)">{{ formatLastLogin(u.LastLoginAt) }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-column field="IsActive" title="סטטוס" [width]="160">
+        <ng-template kendoGridCellTemplate let-u>
+          <div class="status-wrap">
+            <span class="badge" [class.badge-active]="u.IsActive" [class.badge-inactive]="!u.IsActive">{{ u.IsActive ? 'פעיל' : 'מושהה' }}</span>
+            @if (u.MustChangePass) { <span class="badge badge-warn">סיסמה</span> }
+          </div>
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-column title="" [width]="104" [sortable]="false" [resizable]="false" [columnMenu]="false">
+        <ng-template kendoGridCellTemplate let-u let-rowIndex="rowIndex">
+          <div class="row-actions">
+            <button class="act-btn act-expand"
+                    [class.expanded]="isExpanded(u.UserID)"
+                    [title]="isExpanded(u.UserID) ? 'סגור' : 'פרטים'"
+                    (click)="toggleDetail(u, rowIndex)">
+              <i class="pi" [class.pi-chevron-down]="!isExpanded(u.UserID)" [class.pi-chevron-up]="isExpanded(u.UserID)"></i>
+            </button>
+            <button class="act-btn" [class.act-lock]="u.IsActive" [class.act-unlock]="!u.IsActive"
+                    [title]="u.IsActive ? 'השבת' : 'הפעל'" (click)="toggleActive(u)">
+              <i class="pi" [class.pi-lock]="u.IsActive" [class.pi-lock-open]="!u.IsActive"></i>
+            </button>
+            <button class="act-btn act-edit" title="ערוך" (click)="openEdit(u)">
+              <i class="pi pi-pencil"></i>
+            </button>
+          </div>
+        </ng-template>
+      </kendo-grid-column>
+
+    </kendo-grid>
+  }
+
+</div>
+
+@if (dialogOpen()) {
+  <app-user-dialog
+    [user]="dialogUser()"
+    [isPlatform]="isPlatform()"
+    (closed)="dialogOpen.set(false)"
+    (saved)="onSaved(); dialogOpen.set(false)" />
+}

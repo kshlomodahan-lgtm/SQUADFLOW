@@ -1,0 +1,139 @@
+<kendo-dialog [title]="title" [width]="560" (close)="close()">
+
+  @if (loading()) {
+    <div class="dialog-loading">
+      <kendo-loader type="converging-spinner" size="medium" />
+    </div>
+  } @else {
+
+    <form [formGroup]="form" novalidate class="user-form">
+
+      @if (errorMsg) {
+        <div class="error-banner">{{ errorMsg }}</div>
+      }
+
+      <!-- ארגון — platform בלבד ביצירה -->
+      @if (isPlatform && !isEdit) {
+        <div class="form-row">
+          <label class="field-label">ארגון <span class="req">*</span></label>
+          <div class="field-wrap">
+            <kendo-dropdownlist
+              formControlName="tenantId"
+              [data]="orgs"
+              textField="CompanyName"
+              valueField="TenantID"
+              [valuePrimitive]="true"
+              [defaultItem]="{ TenantID: null, CompanyName: 'בחר ארגון...' }" />
+            @if (orgErr) { <small class="err-msg">שדה חובה</small> }
+          </div>
+        </div>
+      }
+
+      <!-- שם פרטי + שם משפחה -->
+      <div class="form-row-2">
+        <div class="form-row">
+          <label class="field-label">שם פרטי <span class="req">*</span></label>
+          <div class="field-wrap">
+            <kendo-textbox formControlName="firstName" placeholder="שם פרטי" />
+            @if (firstNameErr) { <small class="err-msg">שדה חובה</small> }
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="field-label">שם משפחה <span class="req">*</span></label>
+          <div class="field-wrap">
+            <kendo-textbox formControlName="lastName" placeholder="שם משפחה" />
+            @if (lastNameErr) { <small class="err-msg">שדה חובה</small> }
+          </div>
+        </div>
+      </div>
+
+      <!-- שם משתמש — רק בהוספה -->
+      @if (!isEdit) {
+        <div class="form-row">
+          <label class="field-label">שם משתמש <span class="req">*</span></label>
+          <div class="field-wrap">
+            <kendo-textbox formControlName="username" placeholder="אותיות לטיניות, ספרות, נקודה, מקף" />
+            @if (usernameErr) {
+              <small class="err-msg">שדה חובה — אותיות לטיניות/ספרות/נקודה/מקף בלבד</small>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- אימייל -->
+      <div class="form-row">
+        <label class="field-label">דוא"ל <span class="req">*</span></label>
+        <div class="field-wrap">
+          <kendo-textbox formControlName="email" placeholder="user@domain.com" />
+          @if (emailErr) { <small class="err-msg">כתובת מייל לא תקינה</small> }
+        </div>
+      </div>
+
+      <!-- סיסמה — רק בהוספה -->
+      @if (!isEdit) {
+        <div class="form-row">
+          <label class="field-label">סיסמה <span class="req">*</span></label>
+          <div class="field-wrap">
+            <kendo-textbox formControlName="password" placeholder="לפחות 6 תווים" [type]="'password'" />
+            @if (passwordErr) { <small class="err-msg">סיסמה חייבת להיות לפחות 6 תווים</small> }
+          </div>
+        </div>
+      }
+
+      <!-- תפקיד -->
+      <div class="form-row">
+        <label class="field-label">תפקיד <span class="req">*</span></label>
+        <div class="field-wrap">
+          <kendo-dropdownlist
+            formControlName="roleId"
+            [data]="roles"
+            textField="RoleName"
+            valueField="RoleID"
+            [valuePrimitive]="true" />
+          @if (roleErr) { <small class="err-msg">שדה חובה</small> }
+        </div>
+      </div>
+
+      <!-- סטטוס — רק בעריכה -->
+      @if (isEdit) {
+        <div class="form-row">
+          <label class="field-label">סטטוס</label>
+          <div class="field-wrap">
+            <div class="seg-ctrl">
+              <button type="button" class="seg-btn"
+                      [class.seg-on]="!!form.get('isActive')?.value"
+                      (click)="form.get('isActive')?.setValue(true)">
+                ✓ פעיל
+              </button>
+              <button type="button" class="seg-btn"
+                      [class.seg-off]="!form.get('isActive')?.value"
+                      (click)="form.get('isActive')?.setValue(false)">
+                ✗ מושהה
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+    </form>
+
+  }
+
+  <kendo-dialog-actions>
+    <div class="dialog-footer">
+      <button kendoButton class="btn-save" (click)="save()" [disabled]="saving || loading()">
+        @if (saving) {
+          <kendo-loader type="pulsing" size="small" />
+        } @else {
+          ✓
+        }
+        {{ isEdit ? 'שמור שינויים' : 'צור משתמש' }}
+      </button>
+      <button kendoButton fillMode="outline" (click)="close()" [disabled]="saving" class="btn-cancel">
+        ביטול
+      </button>
+    </div>
+  </kendo-dialog-actions>
+
+</kendo-dialog>

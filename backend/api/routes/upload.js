@@ -32,7 +32,7 @@ router.post('/logo', requireAuth, upload.single('logo'), (req, res) => {
   if (!req.file)
     return res.status(400).json({ success: false, message: 'קובץ לא תקין או חסר' });
 
-  const logoUrl = `assets/logos/${req.file.filename}`;
+  const logoUrl = `/api/logos/${req.file.filename}`;
   return res.json({ success: true, logoUrl });
 });
 

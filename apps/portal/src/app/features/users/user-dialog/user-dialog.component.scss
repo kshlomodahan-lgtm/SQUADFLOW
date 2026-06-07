@@ -1,0 +1,192 @@
+// ── Dialog Layout ────────────────────────────────────
+.dialog-loading {
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px;
+}
+
+.user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 0;
+  direction: rtl;
+}
+
+// ── Error Banner ─────────────────────────────────────
+.error-banner {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  color: #dc2626;
+  padding: 10px 14px;
+  font-size: .85rem;
+}
+
+// ── Form Rows ─────────────────────────────────────────
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  direction: rtl;
+}
+
+.field-label {
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  text-align: right;
+
+  .req { color: var(--sf-danger); margin-right: 2px; }
+}
+
+.field-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  kendo-textbox,
+  kendo-dropdownlist { width: 100%; }
+}
+
+.full-width { width: 100%; }
+
+.err-msg {
+  color: var(--sf-danger);
+  font-size: .78rem;
+}
+
+// ── Segmented Status Control ─────────────────────────────
+.seg-ctrl {
+  display: inline-flex;
+  direction: rtl;
+  align-self: flex-start;
+  border: 1px solid var(--sf-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.seg-btn {
+  padding: 7px 20px;
+  font-size: .82rem;
+  font-weight: 500;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  border: none;
+  background: var(--sf-bg);
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+
+  & + & { border-inline-start: 1px solid var(--sf-border); }
+
+  &:hover:not(.seg-on):not(.seg-off) {
+    background: var(--sf-bg-hover);
+    color: var(--sf-text);
+  }
+
+  &.seg-on {
+    background: #10b981;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  &.seg-off {
+    background: #ef4444;
+    color: #fff;
+    font-weight: 600;
+  }
+}
+
+.ltr-wrap { direction: ltr; display: inline-flex; }
+
+:host ::ng-deep {
+  .k-dialog {
+    border-radius: 14px !important;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,.16), 0 2px 8px rgba(0,0,0,.08) !important;
+    border: 1px solid var(--sf-border) !important;
+    font-family: 'Noto Sans Hebrew', sans-serif;
+  }
+
+  .k-dialog-titlebar {
+    background: var(--sf-bg-card) !important;
+    border-bottom: 1px solid var(--sf-border) !important;
+    padding: 14px 20px !important;
+    direction: rtl;
+  }
+
+  .k-dialog-title {
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    color: var(--sf-text) !important;
+  }
+
+  .k-dialog-close {
+    color: var(--sf-text-secondary) !important;
+    &:hover { color: var(--sf-text) !important; background: var(--sf-bg-hover) !important; }
+  }
+
+  .k-dialog-content {
+    padding: 24px 28px !important;
+    background: var(--sf-bg) !important;
+    direction: rtl;
+  }
+
+  .k-dialog-actions {
+    background: var(--sf-bg-card) !important;
+    border-top: 1px solid var(--sf-border) !important;
+    padding: 12px 20px !important;
+    direction: rtl !important;
+  }
+
+  // TextBox
+  .k-textbox { background: var(--sf-bg-card); border-color: var(--sf-border); border-radius: 8px; direction: rtl !important; }
+  .k-textbox:focus-within { border-color: var(--sf-border-focus); box-shadow: 0 0 0 3px rgba(13,71,255,.1); }
+  .k-input-inner { direction: rtl !important; text-align: right !important; }
+
+  // DropDownList
+  .k-dropdownlist {
+    background: var(--sf-bg-card); border-color: var(--sf-border); border-radius: 8px;
+    direction: rtl;
+    .k-input-value-text { text-align: right; }
+  }
+
+  // Switch — חובה LTR כדי ש-thumb לא יתנתק ב-RTL context
+  .k-switch { direction: ltr !important; }
+  .k-switch-on .k-switch-track { background: var(--sf-success); }
+}
+
+// ── Footer ───────────────────────────────────────────
+.dialog-footer {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  direction: rtl;
+}
+
+.btn-save {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #f97316 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 9px !important;
+  padding: 9px 22px !important;
+  font-size: .875rem; font-weight: 600;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  box-shadow: 0 2px 8px rgba(249,115,22,.3);
+  &:hover:not(:disabled) { background: #ea6c0a !important; box-shadow: 0 4px 14px rgba(249,115,22,.4); }
+  &:disabled { opacity: .65; cursor: not-allowed; box-shadow: none; }
+  kendo-loader { display: inline-flex; }
+}
+
+.btn-cancel {
+  border-color: var(--sf-border) !important;
+  color: var(--sf-text-secondary) !important;
+}
