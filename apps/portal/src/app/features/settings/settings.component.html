@@ -61,15 +61,15 @@
             <!-- Dark Mode -->
             <div class="setting-card">
               <div class="setting-card-title">מצב כהה</div>
-              <div class="setting-card-row">
-                <span class="setting-card-desc">מתאים לעבודה בסביבה חשוכה</span>
-                <kendo-switch
-                  [checked]="theme.isDark()"
-                  (valueChange)="toggleDark($event)"
-                  onLabel="פעיל"
-                  offLabel="כבוי">
-                </kendo-switch>
+              <div class="seg-ctrl" style="margin-bottom:12px">
+                <button type="button" class="seg-btn"
+                        [class.seg-on]="theme.isDark()"
+                        (click)="!theme.isDark() && theme.toggleMode()">✓ פעיל</button>
+                <button type="button" class="seg-btn"
+                        [class.seg-on]="!theme.isDark()"
+                        (click)="theme.isDark() && theme.toggleMode()">כבוי</button>
               </div>
+              <span class="setting-card-desc">מתאים לעבודה בסביבה חשוכה</span>
             </div>
 
           </div>
@@ -215,21 +215,37 @@
                           <span class="ef-value ef-mono ef-bold">{{ editingCounter.CounterKey }}</span>
                         </div>
                         <div class="ef-row">
-                          <span class="ef-label">מוצר (ProductID)</span>
-                          <span class="ef-value">
-                            @if (editingCounter.ProductID > 0) {
-                              <span class="chip chip-product">{{ editingCounter.ProductID }}</span>
-                            } @else {
-                              <span class="ef-value" style="color:var(--sf-text-muted)">0 — ללא מוצר</span>
-                            }
-                          </span>
-                        </div>
-                        <div class="ef-row">
                           <span class="ef-label">רמת מונה</span>
                           <span class="ef-value">
                             <span class="chip" [class]="levelClass(editingCounter.CounterLevel)">
                               {{ levelLabel(editingCounter.CounterLevel) }}
                             </span>
+                          </span>
+                        </div>
+                        <div class="ef-row">
+                          <span class="ef-label">ארגון</span>
+                          <span class="ef-value">
+                            <span class="chip chip-tenant">{{ editingCounter.TenantName || 'ללא ארגון' }}</span>
+                          </span>
+                        </div>
+                        <div class="ef-row">
+                          <span class="ef-label">לקוח</span>
+                          <span class="ef-value">
+                            @if (editingCounter.CustomerID > 0) {
+                              <span class="chip chip-customer">{{ editingCounter.CustomerName }}</span>
+                            } @else {
+                              <span style="color:var(--sf-text-muted)">ללא לקוח</span>
+                            }
+                          </span>
+                        </div>
+                        <div class="ef-row">
+                          <span class="ef-label">מוצר</span>
+                          <span class="ef-value">
+                            @if (editingCounter.ProductID > 0) {
+                              <span class="chip chip-product">{{ editingCounter.ProductName }}</span>
+                            } @else {
+                              <span style="color:var(--sf-text-muted)">ללא מוצר</span>
+                            }
                           </span>
                         </div>
                       </div>
@@ -576,14 +592,22 @@
                       <div class="setting-card-title">זיהוי</div>
                       <div class="detail-row"><span>מזהה</span><strong>{{ c.CounterID }}</strong></div>
                       <div class="detail-row"><span>מפתח</span><strong class="mono">{{ c.CounterKey }}</strong></div>
-                      <div class="detail-row"><span>מוצר</span>
-                        @if (c.ProductID > 0) {
-                          <span class="chip chip-product">{{ c.ProductID }}</span>
+                      <div class="detail-row"><span>רמה</span><span class="chip" [class]="levelClass(c.CounterLevel)">{{ levelLabel(c.CounterLevel) }}</span></div>
+                      <div class="detail-row"><span>ארגון</span><span class="chip chip-tenant">{{ c.TenantName || 'ללא ארגון' }}</span></div>
+                      <div class="detail-row"><span>לקוח</span>
+                        @if (c.CustomerID > 0) {
+                          <span class="chip chip-customer">{{ c.CustomerName }}</span>
                         } @else {
-                          <span style="color:var(--sf-text-muted)">0 — כללי</span>
+                          <span style="color:var(--sf-text-muted)">ללא לקוח</span>
                         }
                       </div>
-                      <div class="detail-row"><span>רמה</span><span class="chip" [class]="levelClass(c.CounterLevel)">{{ levelLabel(c.CounterLevel) }}</span></div>
+                      <div class="detail-row"><span>מוצר</span>
+                        @if (c.ProductID > 0) {
+                          <span class="chip chip-product">{{ c.ProductName }}</span>
+                        } @else {
+                          <span style="color:var(--sf-text-muted)">ללא מוצר</span>
+                        }
+                      </div>
                       <div class="detail-row"><span>סטטוס</span>
                         <span class="chip" [class]="c.IsLocked ? 'chip-locked' : 'chip-active'">
                           {{ c.IsLocked ? '🔒 נעול' : '✓ פעיל' }}
@@ -659,28 +683,49 @@
               <div class="ef-row">
                 <label class="ef-label">רמת מונה</label>
                 <div class="ef-control">
-                  @if (isPlatformAdmin()) {
-                    <span class="chip chip-tenant">ארגון</span>
-                  } @else {
-                    <div class="seg-ctrl">
+                  <div class="seg-ctrl">
+                    @if (isPlatformAdmin()) {
                       <button type="button" class="seg-btn"
-                              [class.seg-on]="newForm.get('counterLevel')?.value === 'TENANT'"
-                              (click)="newForm.get('counterLevel')?.setValue('TENANT')">ארגון</button>
-                      <button type="button" class="seg-btn"
-                              [class.seg-on]="newForm.get('counterLevel')?.value === 'CUSTOMER'"
-                              (click)="newForm.get('counterLevel')?.setValue('CUSTOMER')">לקוח קצה</button>
-                    </div>
-                  }
+                              [class.seg-on]="newForm.get('counterLevel')?.value === 'PLATFORM'"
+                              (click)="newForm.get('counterLevel')?.setValue('PLATFORM')">פלטפורמה</button>
+                    }
+                    <button type="button" class="seg-btn"
+                            [class.seg-on]="newForm.get('counterLevel')?.value === 'TENANT'"
+                            (click)="newForm.get('counterLevel')?.setValue('TENANT')">ארגון</button>
+                    <button type="button" class="seg-btn"
+                            [class.seg-on]="newForm.get('counterLevel')?.value === 'CUSTOMER'"
+                            (click)="newForm.get('counterLevel')?.setValue('CUSTOMER')">לקוח</button>
+                    <button type="button" class="seg-btn"
+                            [class.seg-on]="newForm.get('counterLevel')?.value === 'PRODUCT'"
+                            (click)="newForm.get('counterLevel')?.setValue('PRODUCT')">מוצר</button>
+                  </div>
+                  <small class="ef-hint" style="margin-top:6px">
+                    פלטפורמה — כל המערכת &nbsp;|&nbsp; ארגון — לפי טננט &nbsp;|&nbsp; לקוח — לפי לקוח קצה &nbsp;|&nbsp; מוצר — לפי מוצר
+                  </small>
+                </div>
+              </div>
+
+              <!-- ארגון -->
+              <div class="ef-row">
+                <span class="ef-label">ארגון</span>
+                <div class="ef-control">
+                  <span class="chip chip-tenant">{{ auth.user()?.companyName || 'ללא ארגון' }}</span>
+                </div>
+              </div>
+
+              <!-- לקוח -->
+              <div class="ef-row">
+                <span class="ef-label">לקוח (CustomerID)</span>
+                <div class="ef-control">
+                  <span class="ef-value" style="color:var(--sf-text-muted)">0 — כללי (ללא קשר ללקוח ספציפי)</span>
                 </div>
               </div>
 
               <!-- מוצר -->
               <div class="ef-row">
-                <label class="ef-label" for="nf-product">מוצר (ProductID)</label>
+                <span class="ef-label">מוצר (ProductID)</span>
                 <div class="ef-control">
-                  <input id="nf-product" kendoTextBox type="number" formControlName="productID"
-                         min="0" style="max-width:120px" />
-                  <small class="ef-hint">0 = מונה ארגוני כללי | מספר מוצר = מונה ספציפי למוצר</small>
+                  <span class="ef-value" style="color:var(--sf-text-muted)">0 — כללי (ללא קשר למוצר ספציפי)</span>
                 </div>
               </div>
 

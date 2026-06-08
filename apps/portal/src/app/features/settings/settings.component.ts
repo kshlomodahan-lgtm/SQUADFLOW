@@ -143,7 +143,7 @@ export class SettingsComponent {
 
   constructor(
     public  theme:      ThemeService,
-    private auth:       AuthService,
+    public  auth:       AuthService,
     private notif:      NotificationService,
     private counterSvc: CounterService,
     private fb:         FormBuilder,
@@ -243,6 +243,7 @@ export class SettingsComponent {
   private initNewForm() {
     this.newForm = this.fb.group({
       counterLevel: ['TENANT'],
+      customerID:   [0, [Validators.required, Validators.min(0)]],
       productID:    [0, [Validators.required, Validators.min(0)]],
       counterKey:   ['', [Validators.required, Validators.pattern(/^[A-Z0-9_]+$/)]],
       counterName:  ['', Validators.required],

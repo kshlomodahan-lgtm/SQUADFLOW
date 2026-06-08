@@ -416,19 +416,25 @@ BEGIN
     SET NOCOUNT ON
     BEGIN TRY
         SELECT
-            CounterID,
-            TenantID, CustomerID, ProductID, CounterLevel, CounterKey,
-            CounterName, Prefix, DateFormat, TextPrefix,
-            StepValue, StartValue, MaxValue,
-            OutputType, IsLocked, RunningValue, CurrentValue,
-            ResetPeriod, LastResetDate,
-            CreatedAt, UpdatedAt
-        FROM dbo.tblCounters
-        WHERE TenantID   = @TenantID
-          AND CustomerID = @CustomerID
-          AND (@ProductID   = -1 OR ProductID   = @ProductID)
-          AND (@CounterLevel = '' OR CounterLevel = @CounterLevel)
-        ORDER BY CounterLevel, ProductID, CounterKey
+            c.CounterID,
+            c.TenantID,  t.CompanyName                              AS TenantName,
+            c.CustomerID, ISNULL(cu.CompanyName, N'ללא לקוח')      AS CustomerName,
+            c.ProductID,  ISNULL(p.ProductName,  N'ללא מוצר')      AS ProductName,
+            c.CounterLevel, c.CounterKey,
+            c.CounterName, c.Prefix, c.DateFormat, c.TextPrefix,
+            c.StepValue, c.StartValue, c.MaxValue,
+            c.OutputType, c.IsLocked, c.RunningValue, c.CurrentValue,
+            c.ResetPeriod, c.LastResetDate,
+            c.CreatedAt, c.UpdatedAt
+        FROM dbo.tblCounters c
+        LEFT JOIN dbo.tblTenants  t  ON t.TenantID   = c.TenantID
+        LEFT JOIN dbo.tblCustomers cu ON cu.CustomerID = c.CustomerID AND c.CustomerID > 0
+        LEFT JOIN dbo.tblProducts  p  ON p.ProductID   = c.ProductID  AND c.ProductID  > 0
+        WHERE c.TenantID   = @TenantID
+          AND c.CustomerID = @CustomerID
+          AND (@ProductID   = -1 OR c.ProductID   = @ProductID)
+          AND (@CounterLevel = '' OR c.CounterLevel = @CounterLevel)
+        ORDER BY c.CounterLevel, c.ProductID, c.CounterKey
 
         SET @ResultCode    = 0
         SET @ResultMessage = N'OK'

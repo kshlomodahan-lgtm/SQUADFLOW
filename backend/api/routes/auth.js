@@ -80,16 +80,19 @@ router.post('/login', async (req, res) => {
       return res.status(httpCode).json({ success: false, code: ResultCode, message: msg });
     }
 
-    // שלוף שם מלא ותפקיד
+    // שלוף שם מלא, תפקיד ושם ארגון
     const userInfo = await (await getPool()).request()
-      .input('UserID', sql.Int, UserID)
-      .query(`SELECT FirstName, LastName, ur.RoleName
+      .input('UserID',   sql.Int, UserID)
+      .input('TenantID', sql.Int, TenantID)
+      .query(`SELECT u.FirstName, u.LastName, ur.RoleName, t.CompanyName
               FROM dbo.tblUsers u
-              JOIN dbo.tblUserRoles ur ON ur.RoleID = u.RoleID
+              JOIN dbo.tblUserRoles ur ON ur.RoleID   = u.RoleID
+              JOIN dbo.tblTenants   t  ON t.TenantID  = @TenantID
               WHERE u.UserID = @UserID`);
 
-    const { FirstName, LastName, RoleName } = userInfo.recordset[0];
-    const fullName = `${FirstName} ${LastName}`.trim();
+    const { FirstName, LastName, RoleName, CompanyName } = userInfo.recordset[0];
+    const fullName    = `${FirstName} ${LastName}`.trim();
+    const companyName = CompanyName || '';
 
     // שלוף theme פעיל (User → Org → Platform)
     const themeResult = await (await getPool()).request()
@@ -100,7 +103,7 @@ router.post('/login', async (req, res) => {
 
     // יצור JWT Token
     const token = jwt.sign(
-      { userId: UserID, roleId: RoleID, customerId: CustomerID, tenantId: TenantID, fullName, roleName: RoleName },
+      { userId: UserID, roleId: RoleID, customerId: CustomerID, tenantId: TenantID, fullName, roleName: RoleName, companyName },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '8h' }
     );
@@ -109,7 +112,7 @@ router.post('/login', async (req, res) => {
       success: true,
       message: ResultMessage,
       token,
-      user: { userId: UserID, roleId: RoleID, customerId: CustomerID, tenantId: TenantID, fullName, roleName: RoleName },
+      user: { userId: UserID, roleId: RoleID, customerId: CustomerID, tenantId: TenantID, fullName, roleName: RoleName, companyName },
       theme: { colorScheme: theme.ColorScheme, darkMode: !!theme.DarkMode }
     });
 

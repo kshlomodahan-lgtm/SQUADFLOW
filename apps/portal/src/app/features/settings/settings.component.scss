@@ -4,14 +4,14 @@
 .settings-page {
   display: flex;
   flex-direction: column;
-  gap: 0;
   height: 100%;
+  background: var(--sf-bg);
 }
 
 .page-header {
-  padding: 28px 32px 20px;
-  border-bottom: 1px solid var(--sf-border);
-  background: var(--sf-bg-card);
+  padding: 20px 32px 16px;
+  border-bottom: none;
+  background: var(--sf-bg);
 
   h1 {
     font-size: 1.5rem;
@@ -34,6 +34,12 @@
   flex: 1;
   min-height: 0;
   gap: 0;
+  margin: 0 24px 24px;
+  background: var(--sf-bg-card);
+  border: 1px solid var(--sf-border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 6px rgba(0,0,0,.04);
 }
 
 /* ─── Sidebar Nav ─── */
@@ -118,7 +124,6 @@
   min-width: 0;
   padding: 32px;
   overflow-y: auto;
-  background: var(--sf-bg);
 }
 
 .content-section {
@@ -186,7 +191,12 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  align-items: start;
+  align-items: stretch;
+
+  .setting-card {
+    display: flex;
+    flex-direction: column;
+  }
 }
 
 /* ─── Color Scheme Grid ─── */
@@ -561,15 +571,6 @@
   padding: 20px 24px;
   overflow-y: auto;
   direction: rtl;
-
-  .ef-card {
-    border: none;
-    border-radius: 0;
-    padding: 0;
-    background: transparent;
-    box-shadow: none;
-    &:hover { box-shadow: none; }
-  }
 }
 
 .form-row {
@@ -779,16 +780,6 @@
   flex: 1;
   padding: 24px;
   overflow-y: auto;
-
-  .ef-card {
-    border: none;
-    border-radius: 0;
-    padding: 0;
-    background: transparent;
-    box-shadow: none;
-
-    &:hover { box-shadow: none; }
-  }
 }
 
 /* Edit Field Card */

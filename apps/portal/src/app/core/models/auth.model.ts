@@ -5,12 +5,13 @@ export interface LoginRequest {
 }
 
 export interface LoginUser {
-  userId:     number;
-  roleId:     number;
-  customerId: number;
-  tenantId:   number;
-  fullName:   string;
-  roleName:   string;
+  userId:      number;
+  roleId:      number;
+  customerId:  number;
+  tenantId:    number;
+  fullName:    string;
+  roleName:    string;
+  companyName: string;
 }
 
 export interface LoginResponse {
