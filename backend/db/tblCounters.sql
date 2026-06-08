@@ -10,6 +10,7 @@ BEGIN
         CounterID     BIGINT             NOT NULL  IDENTITY(1,1)  CONSTRAINT PK_tblCounters PRIMARY KEY,
         TenantID      INT                NOT NULL  DEFAULT 0,  -- 0 = פלטפורמה
         CustomerID    INT                NOT NULL  DEFAULT 0,  -- 0 = לא ברמת לקוח
+        ProductID     INT                NOT NULL  DEFAULT 0,  -- 0 = לא ברמת מוצר
         CounterLevel  VARCHAR(10)        NOT NULL  CONSTRAINT DF_Counters_Level        DEFAULT 'TENANT',
         CounterKey    VARCHAR(30)        NOT NULL,
         CounterName   NVARCHAR(100)      NOT NULL,
@@ -28,9 +29,8 @@ BEGIN
         CreatedAt     DATETIME2          NOT NULL  CONSTRAINT DF_Counters_CreatedAt    DEFAULT GETDATE(),
         UpdatedAt     DATETIME2          NOT NULL  CONSTRAINT DF_Counters_UpdatedAt    DEFAULT GETDATE(),
 
-        CONSTRAINT UQ_tblCounters_Key     UNIQUE (TenantID, CustomerID, CounterLevel, CounterKey),
-        CONSTRAINT UQ_tblCounters_Tenant  UNIQUE (TenantID, CustomerID, CounterID),
-        CONSTRAINT CK_tblCounters_Level       CHECK (CounterLevel IN ('PLATFORM','TENANT','CUSTOMER')),
+        CONSTRAINT UQ_tblCounters_Key     UNIQUE (TenantID, CustomerID, ProductID, CounterKey),
+        CONSTRAINT CK_tblCounters_Level       CHECK (CounterLevel IN ('PLATFORM','TENANT','CUSTOMER','PRODUCT')),
         CONSTRAINT CK_tblCounters_DateFormat  CHECK (DateFormat    IN ('NONE','YEAR','YEAR_MONTH','TEXT')),
         CONSTRAINT CK_tblCounters_OutputType  CHECK (OutputType    IN ('NUMERIC','STRING')),
         CONSTRAINT CK_tblCounters_ResetPeriod CHECK (ResetPeriod   IN ('NEVER','ANNUAL','MONTHLY')),
@@ -46,20 +46,43 @@ ELSE
     PRINT 'tblCounters — כבר קיימת, דילוג'
 GO
 
--- הוספת IsLocked לטבלה קיימת (migration)
+-- ── Migrations לטבלה קיימת ────────────────────────────────────
 IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.tblCounters') AND name = 'IsLocked')
     ALTER TABLE dbo.tblCounters ADD IsLocked BIT NOT NULL CONSTRAINT DF_Counters_IsLocked DEFAULT 0
 GO
 
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.tblCounters') AND name = 'ProductID')
+BEGIN
+    ALTER TABLE dbo.tblCounters ADD ProductID INT NOT NULL CONSTRAINT DF_Counters_ProductID DEFAULT 0
+
+    -- עדכון unique constraint לכלול ProductID
+    IF EXISTS (SELECT 1 FROM sys.key_constraints WHERE name = 'UQ_tblCounters_Key')
+        ALTER TABLE dbo.tblCounters DROP CONSTRAINT UQ_tblCounters_Key
+    IF EXISTS (SELECT 1 FROM sys.key_constraints WHERE name = 'UQ_tblCounters_Tenant')
+        ALTER TABLE dbo.tblCounters DROP CONSTRAINT UQ_tblCounters_Tenant
+
+    ALTER TABLE dbo.tblCounters
+        ADD CONSTRAINT UQ_tblCounters_Key UNIQUE (TenantID, CustomerID, ProductID, CounterKey)
+
+    -- עדכון CHECK constraint לכלול PRODUCT
+    IF EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = 'CK_tblCounters_Level')
+        ALTER TABLE dbo.tblCounters DROP CONSTRAINT CK_tblCounters_Level
+    ALTER TABLE dbo.tblCounters
+        ADD CONSTRAINT CK_tblCounters_Level CHECK (CounterLevel IN ('PLATFORM','TENANT','CUSTOMER','PRODUCT'))
+
+    PRINT 'tblCounters — ProductID נוסף בהצלחה'
+END
+GO
+
 -- הערה: יצירת מונים נעשית בכל מודול בנפרד בעת בנייתו.
--- אין seed גלובלי — כל רכיב מוסיף את המונה שלו.
 
 -- ============================================================
--- sp_CounterCreate — יצירת מונה חדש (ידנית ממסך הגדרות)
+-- sp_CounterCreate — יצירת מונה חדש
 -- ============================================================
 CREATE OR ALTER PROCEDURE dbo.sp_CounterCreate
     @TenantID       INT,
     @CustomerID     INT           = 0,
+    @ProductID      INT           = 0,
     @CounterLevel   VARCHAR(10)   = 'TENANT',
     @CounterKey     VARCHAR(30),
     @CounterName    NVARCHAR(100),
@@ -80,7 +103,7 @@ BEGIN
         IF EXISTS (
             SELECT 1 FROM dbo.tblCounters
             WHERE TenantID = @TenantID AND CustomerID = @CustomerID
-              AND CounterLevel = @CounterLevel AND CounterKey = @CounterKey
+              AND ProductID = @ProductID AND CounterKey = @CounterKey
         )
         BEGIN
             SET @ResultCode    = 1
@@ -89,11 +112,11 @@ BEGIN
         END
 
         INSERT INTO dbo.tblCounters
-            (TenantID, CustomerID, CounterLevel, CounterKey, CounterName,
+            (TenantID, CustomerID, ProductID, CounterLevel, CounterKey, CounterName,
              Prefix, DateFormat, TextPrefix, StepValue, StartValue, MaxValue,
              OutputType, RunningValue, CurrentValue, ResetPeriod)
         VALUES
-            (@TenantID, @CustomerID, @CounterLevel, @CounterKey, @CounterName,
+            (@TenantID, @CustomerID, @ProductID, @CounterLevel, @CounterKey, @CounterName,
              @Prefix, @DateFormat, @TextPrefix, @StepValue, @StartValue, @MaxValue,
              @OutputType, 0, 0, @ResetPeriod)
 
@@ -113,10 +136,11 @@ GO
 CREATE OR ALTER PROCEDURE dbo.sp_CounterNext
     @TenantID         INT,
     @CustomerID       INT           = 0,
+    @ProductID        INT           = 0,
     @CounterLevel     VARCHAR(10)   = 'TENANT',
     @CounterKey       VARCHAR(30),
     @CurrentValue     INT           OUTPUT,
-    @CurrentFormatted NVARCHAR(50)  OUTPUT,  -- '-0001' (זמני עד אישור)
+    @CurrentFormatted NVARCHAR(50)  OUTPUT,
     @ResultCode       INT           OUTPUT,
     @ResultMessage    NVARCHAR(200) OUTPUT
 AS
@@ -126,7 +150,7 @@ BEGIN
         IF NOT EXISTS (
             SELECT 1 FROM dbo.tblCounters
             WHERE TenantID = @TenantID AND CustomerID = @CustomerID
-              AND CounterLevel = @CounterLevel AND CounterKey = @CounterKey
+              AND ProductID = @ProductID AND CounterKey = @CounterKey
         )
         BEGIN
             SET @ResultCode    = 1
@@ -140,7 +164,7 @@ BEGIN
             LastResetDate = CAST(GETDATE() AS DATE),
             UpdatedAt     = GETDATE()
         WHERE TenantID = @TenantID AND CustomerID = @CustomerID
-          AND CounterLevel = @CounterLevel AND CounterKey = @CounterKey
+          AND ProductID = @ProductID AND CounterKey = @CounterKey
           AND (
               (ResetPeriod = 'ANNUAL'  AND (LastResetDate IS NULL OR YEAR(LastResetDate) < YEAR(GETDATE())))
            OR (ResetPeriod = 'MONTHLY' AND (LastResetDate IS NULL OR
@@ -152,7 +176,7 @@ BEGIN
         IF EXISTS (
             SELECT 1 FROM dbo.tblCounters
             WHERE TenantID = @TenantID AND CustomerID = @CustomerID
-              AND CounterLevel = @CounterLevel AND CounterKey = @CounterKey
+              AND ProductID = @ProductID AND CounterKey = @CounterKey
               AND (CurrentValue + StepValue) > MaxValue
         )
         BEGIN
@@ -161,19 +185,18 @@ BEGIN
             RETURN
         END
 
-        -- הגדל
         UPDATE dbo.tblCounters
         SET CurrentValue = CurrentValue + StepValue,
             UpdatedAt    = GETDATE()
         WHERE TenantID = @TenantID AND CustomerID = @CustomerID
-          AND CounterLevel = @CounterLevel AND CounterKey = @CounterKey
+          AND ProductID = @ProductID AND CounterKey = @CounterKey
 
         SELECT
             @CurrentValue     = CurrentValue,
             @CurrentFormatted = '-' + RIGHT('0000' + CAST(CurrentValue AS VARCHAR), 4)
         FROM dbo.tblCounters
         WHERE TenantID = @TenantID AND CustomerID = @CustomerID
-          AND CounterLevel = @CounterLevel AND CounterKey = @CounterKey
+          AND ProductID = @ProductID AND CounterKey = @CounterKey
 
         SET @ResultCode    = 0
         SET @ResultMessage = N'מספר שוטף הוקצה בהצלחה'
@@ -191,10 +214,11 @@ GO
 CREATE OR ALTER PROCEDURE dbo.sp_CounterConfirm
     @TenantID         INT,
     @CustomerID       INT           = 0,
+    @ProductID        INT           = 0,
     @CounterLevel     VARCHAR(10)   = 'TENANT',
     @CounterKey       VARCHAR(30),
     @RunningValue     INT           OUTPUT,
-    @RunningFormatted NVARCHAR(50)  OUTPUT,  -- 'INV-2026-000042' (קבוע לנצח)
+    @RunningFormatted NVARCHAR(50)  OUTPUT,
     @ResultCode       INT           OUTPUT,
     @ResultMessage    NVARCHAR(200) OUTPUT
 AS
@@ -220,7 +244,7 @@ BEGIN
             @CurrRunning = RunningValue
         FROM dbo.tblCounters
         WHERE TenantID = @TenantID AND CustomerID = @CustomerID
-          AND CounterLevel = @CounterLevel AND CounterKey = @CounterKey
+          AND ProductID = @ProductID AND CounterKey = @CounterKey
 
         IF @Prefix IS NULL
         BEGIN
@@ -240,12 +264,12 @@ BEGIN
         SET RunningValue = RunningValue + StepValue,
             UpdatedAt    = GETDATE()
         WHERE TenantID = @TenantID AND CustomerID = @CustomerID
-          AND CounterLevel = @CounterLevel AND CounterKey = @CounterKey
+          AND ProductID = @ProductID AND CounterKey = @CounterKey
 
         SELECT @RunningValue = RunningValue
         FROM   dbo.tblCounters
         WHERE  TenantID = @TenantID AND CustomerID = @CustomerID
-          AND  CounterLevel = @CounterLevel AND CounterKey = @CounterKey
+          AND  ProductID = @ProductID AND CounterKey = @CounterKey
 
         DECLARE @DatePart NVARCHAR(20) = ''
         IF      @DateFormat = 'YEAR'
@@ -258,7 +282,7 @@ BEGIN
 
         IF @OutputType = 'NUMERIC'
             SET @RunningFormatted = CAST(@RunningValue AS NVARCHAR(50))
-        ELSE -- STRING
+        ELSE
             SET @RunningFormatted = @Prefix + '-' + @DatePart
                                   + RIGHT('000000' + CAST(@RunningValue AS VARCHAR), 6)
 
@@ -273,11 +297,12 @@ END
 GO
 
 -- ============================================================
--- sp_CounterReset — איפוס מונה שוטף ידני (מסך הגדרות)
+-- sp_CounterReset — איפוס מונה שוטף ידני
 -- ============================================================
 CREATE OR ALTER PROCEDURE dbo.sp_CounterReset
     @TenantID       INT,
     @CustomerID     INT           = 0,
+    @ProductID      INT           = 0,
     @CounterLevel   VARCHAR(10)   = 'TENANT',
     @CounterKey     VARCHAR(30),
     @ResultCode     INT           OUTPUT,
@@ -291,7 +316,7 @@ BEGIN
             LastResetDate = CAST(GETDATE() AS DATE),
             UpdatedAt     = GETDATE()
         WHERE TenantID = @TenantID AND CustomerID = @CustomerID
-          AND CounterLevel = @CounterLevel AND CounterKey = @CounterKey
+          AND ProductID = @ProductID AND CounterKey = @CounterKey
 
         IF @@ROWCOUNT = 0
         BEGIN
@@ -311,11 +336,12 @@ END
 GO
 
 -- ============================================================
--- sp_CounterUpdate — עדכון הגדרות מונה (מסך הגדרות)
+-- sp_CounterUpdate — עדכון הגדרות מונה
 -- ============================================================
 CREATE OR ALTER PROCEDURE dbo.sp_CounterUpdate
     @TenantID       INT,
     @CustomerID     INT           = 0,
+    @ProductID      INT           = 0,
     @CounterLevel   VARCHAR(10)   = 'TENANT',
     @CounterKey     VARCHAR(30),
     @CounterName    NVARCHAR(100),
@@ -345,13 +371,16 @@ BEGIN
             ResetPeriod   = @ResetPeriod,
             UpdatedAt     = GETDATE()
         WHERE TenantID = @TenantID AND CustomerID = @CustomerID
-          AND CounterLevel = @CounterLevel AND CounterKey = @CounterKey
-          AND IsLocked = 0  -- אסור לעדכן מונה נעול
+          AND ProductID = @ProductID AND CounterKey = @CounterKey
+          AND IsLocked = 0
 
         IF @@ROWCOUNT = 0
         BEGIN
-            -- בדוק אם לא נמצא או נעול
-            IF EXISTS (SELECT 1 FROM dbo.tblCounters WHERE TenantID=@TenantID AND CustomerID=@CustomerID AND CounterLevel=@CounterLevel AND CounterKey=@CounterKey AND IsLocked=1)
+            IF EXISTS (
+                SELECT 1 FROM dbo.tblCounters
+                WHERE TenantID=@TenantID AND CustomerID=@CustomerID
+                  AND ProductID=@ProductID AND CounterKey=@CounterKey AND IsLocked=1
+            )
             BEGIN
                 SET @ResultCode    = 3
                 SET @ResultMessage = N'המונה נעול — שחרר נעילה לפני עריכה'
@@ -373,12 +402,13 @@ END
 GO
 
 -- ============================================================
--- sp_CounterList — רשימת מונים (מסך הגדרות)
+-- sp_CounterList — רשימת מונים
 -- ============================================================
 CREATE OR ALTER PROCEDURE dbo.sp_CounterList
     @TenantID       INT,
     @CustomerID     INT           = 0,
-    @CounterLevel   VARCHAR(10)   = '',    -- '' = כל הרמות
+    @ProductID      INT           = -1,   -- -1 = כל המוצרים
+    @CounterLevel   VARCHAR(10)   = '',   -- '' = כל הרמות
     @ResultCode     INT           OUTPUT,
     @ResultMessage  NVARCHAR(200) OUTPUT
 AS
@@ -387,7 +417,7 @@ BEGIN
     BEGIN TRY
         SELECT
             CounterID,
-            TenantID, CustomerID, CounterLevel, CounterKey,
+            TenantID, CustomerID, ProductID, CounterLevel, CounterKey,
             CounterName, Prefix, DateFormat, TextPrefix,
             StepValue, StartValue, MaxValue,
             OutputType, IsLocked, RunningValue, CurrentValue,
@@ -396,8 +426,9 @@ BEGIN
         FROM dbo.tblCounters
         WHERE TenantID   = @TenantID
           AND CustomerID = @CustomerID
+          AND (@ProductID   = -1 OR ProductID   = @ProductID)
           AND (@CounterLevel = '' OR CounterLevel = @CounterLevel)
-        ORDER BY CounterLevel, CounterKey
+        ORDER BY CounterLevel, ProductID, CounterKey
 
         SET @ResultCode    = 0
         SET @ResultMessage = N'OK'
@@ -415,6 +446,7 @@ GO
 CREATE OR ALTER PROCEDURE dbo.sp_CounterLock
     @TenantID       INT,
     @CustomerID     INT           = 0,
+    @ProductID      INT           = 0,
     @CounterLevel   VARCHAR(10)   = 'TENANT',
     @CounterKey     VARCHAR(30),
     @IsLocked       BIT,
@@ -427,10 +459,10 @@ BEGIN
         UPDATE dbo.tblCounters
         SET IsLocked  = @IsLocked,
             UpdatedAt = GETDATE()
-        WHERE TenantID    = @TenantID
-          AND CustomerID  = @CustomerID
-          AND CounterLevel= @CounterLevel
-          AND CounterKey  = @CounterKey
+        WHERE TenantID   = @TenantID
+          AND CustomerID = @CustomerID
+          AND ProductID  = @ProductID
+          AND CounterKey = @CounterKey
 
         IF @@ROWCOUNT = 0
         BEGIN

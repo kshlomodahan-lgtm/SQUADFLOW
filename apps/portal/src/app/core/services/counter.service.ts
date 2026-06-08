@@ -9,9 +9,9 @@ interface ApiResponse<T> { success: boolean; data: T; message: string; }
 export class CounterService {
   constructor(private http: HttpClient) {}
 
-  getAll(level = '', customerId = 0): Observable<ApiResponse<Counter[]>> {
+  getAll(level = '', customerId = 0, productId = -1): Observable<ApiResponse<Counter[]>> {
     return this.http.get<ApiResponse<Counter[]>>(
-      `/api/counters?level=${level}&customerId=${customerId}`
+      `/api/counters?level=${level}&customerId=${customerId}&productId=${productId}`
     );
   }
 
@@ -23,15 +23,15 @@ export class CounterService {
     return this.http.put<ApiResponse<null>>(`/api/counters/${counterKey}`, payload);
   }
 
-  lock(counterKey: string, isLocked: boolean, counterLevel: string, customerId = 0): Observable<ApiResponse<null>> {
+  lock(counterKey: string, isLocked: boolean, counterLevel: string, customerId = 0, productId = 0): Observable<ApiResponse<null>> {
     return this.http.put<ApiResponse<null>>(`/api/counters/${counterKey}/lock`, {
-      counterLevel, customerID: customerId, isLocked
+      counterLevel, customerID: customerId, productID: productId, isLocked
     });
   }
 
-  reset(counterKey: string, counterLevel: string, customerId = 0): Observable<ApiResponse<null>> {
+  reset(counterKey: string, counterLevel: string, customerId = 0, productId = 0): Observable<ApiResponse<null>> {
     return this.http.put<ApiResponse<null>>(`/api/counters/${counterKey}/reset`, {
-      counterLevel, customerID: customerId
+      counterLevel, customerID: customerId, productID: productId
     });
   }
 }

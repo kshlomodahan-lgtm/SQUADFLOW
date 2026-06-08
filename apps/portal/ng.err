@@ -1,0 +1,180 @@
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8001: 'kendo-tabstrip' is not a known element:
+1. If 'kendo-tabstrip' is an Angular component, then verify that it is included in the '@Component.imports' of this component.
+2. If 'kendo-tabstrip' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/settings/settings.component.html:10:2:
+[37m      10 │   [32m<kendo-tabstrip>[37m
+         ╵   [32m~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component SettingsComponent.
+
+    src/app/features/settings/settings.component.ts:22:15:
+[37m      22 │   templateUrl: [32m'./settings.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8001: 'kendo-tabstrip-tab' is not a known element:
+1. If 'kendo-tabstrip-tab' is an Angular component, then verify that it is included in the '@Component.imports' of this component.
+2. If 'kendo-tabstrip-tab' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/settings/settings.component.html:13:4:
+[37m      13 │     [32m<kendo-tabstrip-tab title="מראה ועיצוב" [selecte[37md]="...
+         ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component SettingsComponent.
+
+    src/app/features/settings/settings.component.ts:22:15:
+[37m      22 │   templateUrl: [32m'./settings.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8002: Can't bind to 'selected' since it isn't a known property of 'kendo-tabstrip-tab'.
+1. If 'kendo-tabstrip-tab' is an Angular component and it has 'selected' input, then verify that it is included in the '@Component.imports' of this component.
+2. If 'kendo-tabstrip-tab' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.
+3. To allow any property add 'NO_ERRORS_SCHEMA' to the '@Component.schemas' of this component.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/settings/settings.component.html:13:44:
+[37m      13 │ ...endo-tabstrip-tab title="מראה וע[32mיצוב" [select[37med]="true">
+         ╵                                    [32m~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component SettingsComponent.
+
+    src/app/features/settings/settings.component.ts:22:15:
+[37m      22 │   templateUrl: [32m'./settings.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8001: 'mat-spinner' is not a known element:
+1. If 'mat-spinner' is an Angular component, then verify that it is included in the '@Component.imports' of this component.
+2. If 'mat-spinner' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/settings/settings.component.html:58:31:
+[37m      58 │               @if (saving()) { [32m<mat-spinner diameter="16" />[37m }
+         ╵                                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component SettingsComponent.
+
+    src/app/features/settings/settings.component.ts:22:15:
+[37m      22 │   templateUrl: [32m'./settings.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'savedMsg' does not exist on type 'SettingsComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/settings/settings.component.html:69:17:
+[37m      69 │             @if ([32msavedMsg[37m()) {
+         ╵                  [32m~~~~~~~~[0m
+
+  Error occurs in the template of component SettingsComponent.
+
+    src/app/features/settings/settings.component.ts:22:15:
+[37m      22 │   templateUrl: [32m'./settings.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'savedMsg' does not exist on type 'SettingsComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/settings/settings.component.html:70:41:
+[37m      70 │               <span class="saved-msg">{{ [32msavedMsg[37m() }}</span>
+         ╵                                          [32m~~~~~~~~[0m
+
+  Error occurs in the template of component SettingsComponent.
+
+    src/app/features/settings/settings.component.ts:22:15:
+[37m      22 │   templateUrl: [32m'./settings.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8001: 'kendo-tabstrip-tab' is not a known element:
+1. If 'kendo-tabstrip-tab' is an Angular component, then verify that it is included in the '@Component.imports' of this component.
+2. If 'kendo-tabstrip-tab' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/settings/settings.component.html:79:4:
+[37m      79 │     [32m<kendo-tabstrip-tab title="כלל[37mי">
+         ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component SettingsComponent.
+
+    src/app/features/settings/settings.component.ts:22:15:
+[37m      22 │   templateUrl: [32m'./settings.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2322: Type '"light"' is not assignable to type 'LoaderThemeColor'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/settings/settings.component.html:80:45:
+[37m      80 │ ...   <kendo-loader type="pulsing" [32mthemeColor[37m="light" size="small" />
+         ╵                                    [32m~~~~~~~~~~[0m
+
+  Error occurs in the template of component SettingsComponent.
+
+    src/app/features/settings/settings.component.ts:22:15:
+[37m      22 │   templateUrl: [32m'./settings.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2322: Type '"light"' is not assignable to type 'LoaderThemeColor'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/settings/settings.component.html:80:45:
+[37m      80 │ ...   <kendo-loader type="pulsing" [32mthemeColor[37m="light" size="small" />
+         ╵                                    [32m~~~~~~~~~~[0m
+
+  Error occurs in the template of component SettingsComponent.
+
+    src/app/features/settings/settings.component.ts:22:15:
+[37m      22 │   templateUrl: [32m'./settings.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2322: Type '"light"' is not assignable to type 'LoaderThemeColor'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/settings/settings.component.html:80:45:
+[37m      80 │ ...   <kendo-loader type="pulsing" [32mthemeColor[37m="light" size="small" />
+         ╵                                    [32m~~~~~~~~~~[0m
+
+  Error occurs in the template of component SettingsComponent.
+
+    src/app/features/settings/settings.component.ts:23:15:
+[37m      23 │   templateUrl: [32m'./settings.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2322: Type '"light"' is not assignable to type 'LoaderThemeColor'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/settings/settings.component.html:80:45:
+[37m      80 │ ...   <kendo-loader type="pulsing" [32mthemeColor[37m="light" size="small" />
+         ╵                                    [32m~~~~~~~~~~[0m
+
+  Error occurs in the template of component SettingsComponent.
+
+    src/app/features/settings/settings.component.ts:23:15:
+[37m      23 │   templateUrl: [32m'./settings.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2322: Type '"light"' is not assignable to type 'LoaderThemeColor'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/settings/settings.component.html:80:45:
+[37m      80 │ ...   <kendo-loader type="pulsing" [32mthemeColor[37m="light" size="small" />
+         ╵                                    [32m~~~~~~~~~~[0m
+
+  Error occurs in the template of component SettingsComponent.
+
+    src/app/features/settings/settings.component.ts:23:15:
+[37m      23 │   templateUrl: [32m'./settings.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2322: Type '"light"' is not assignable to type 'LoaderThemeColor'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/settings/settings.component.html:80:45:
+[37m      80 │ ...   <kendo-loader type="pulsing" [32mthemeColor[37m="light" size="small" />
+         ╵                                    [32m~~~~~~~~~~[0m
+
+  Error occurs in the template of component SettingsComponent.
+
+    src/app/features/settings/settings.component.ts:23:15:
+[37m      23 │   templateUrl: [32m'./settings.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+

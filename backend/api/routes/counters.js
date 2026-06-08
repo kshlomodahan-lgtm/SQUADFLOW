@@ -5,16 +5,18 @@ const requireAuth = require('../middleware/auth');
 
 router.use(requireAuth);
 
-// ── GET /api/counters?level=TENANT&customerId=0
+// ── GET /api/counters?level=TENANT&customerId=0&productId=0
 router.get('/', async (req, res) => {
   const tenantId   = req.user.tenantId;
   const customerId = parseInt(req.query.customerId ?? '0');
+  const productId  = parseInt(req.query.productId  ?? '-1');  // -1 = כל המוצרים
   const level      = req.query.level ?? '';
 
   try {
     const r = await (await getPool()).request()
       .input ('TenantID',     sql.Int,         tenantId)
       .input ('CustomerID',   sql.Int,         customerId)
+      .input ('ProductID',    sql.Int,         productId)
       .input ('CounterLevel', sql.VarChar(10), level)
       .output('ResultCode',   sql.Int)
       .output('ResultMessage',sql.NVarChar(200))
@@ -34,7 +36,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   const tenantId = req.user.tenantId;
   const {
-    customerID = 0, counterLevel = 'TENANT',
+    customerID = 0, productID = 0, counterLevel = 'TENANT',
     counterKey, counterName, prefix,
     dateFormat = 'NONE', textPrefix = '',
     stepValue = 1, startValue = 1, maxValue = 999999,
@@ -48,6 +50,7 @@ router.post('/', async (req, res) => {
     const r = await (await getPool()).request()
       .input ('TenantID',     sql.Int,          tenantId)
       .input ('CustomerID',   sql.Int,          customerID)
+      .input ('ProductID',    sql.Int,          productID)
       .input ('CounterLevel', sql.VarChar(10),  counterLevel)
       .input ('CounterKey',   sql.VarChar(30),  counterKey.toUpperCase())
       .input ('CounterName',  sql.NVarChar(100),counterName)
@@ -78,7 +81,7 @@ router.put('/:counterKey', async (req, res) => {
   const tenantId    = req.user.tenantId;
   const counterKey  = req.params.counterKey;
   const {
-    customerID = 0, counterLevel = 'TENANT',
+    customerID = 0, productID = 0, counterLevel = 'TENANT',
     counterName, prefix, dateFormat, textPrefix = '',
     stepValue, startValue, maxValue, outputType = 'NUMERIC', resetPeriod
   } = req.body;
@@ -87,6 +90,7 @@ router.put('/:counterKey', async (req, res) => {
     const r = await (await getPool()).request()
       .input ('TenantID',     sql.Int,          tenantId)
       .input ('CustomerID',   sql.Int,          customerID)
+      .input ('ProductID',    sql.Int,          productID)
       .input ('CounterLevel', sql.VarChar(10),  counterLevel)
       .input ('CounterKey',   sql.VarChar(30),  counterKey)
       .input ('CounterName',  sql.NVarChar(100),counterName)
@@ -116,12 +120,13 @@ router.put('/:counterKey', async (req, res) => {
 router.put('/:counterKey/lock', async (req, res) => {
   const tenantId   = req.user.tenantId;
   const counterKey = req.params.counterKey;
-  const { customerID = 0, counterLevel = 'TENANT', isLocked } = req.body;
+  const { customerID = 0, productID = 0, counterLevel = 'TENANT', isLocked } = req.body;
 
   try {
     const r = await (await getPool()).request()
       .input ('TenantID',     sql.Int,         tenantId)
       .input ('CustomerID',   sql.Int,         customerID)
+      .input ('ProductID',    sql.Int,         productID)
       .input ('CounterLevel', sql.VarChar(10), counterLevel)
       .input ('CounterKey',   sql.VarChar(30), counterKey)
       .input ('IsLocked',     sql.Bit,         isLocked ? 1 : 0)
@@ -143,12 +148,13 @@ router.put('/:counterKey/lock', async (req, res) => {
 router.put('/:counterKey/reset', async (req, res) => {
   const tenantId   = req.user.tenantId;
   const counterKey = req.params.counterKey;
-  const { customerID = 0, counterLevel = 'TENANT' } = req.body;
+  const { customerID = 0, productID = 0, counterLevel = 'TENANT' } = req.body;
 
   try {
     const r = await (await getPool()).request()
       .input ('TenantID',     sql.Int,         tenantId)
       .input ('CustomerID',   sql.Int,         customerID)
+      .input ('ProductID',    sql.Int,         productID)
       .input ('CounterLevel', sql.VarChar(10), counterLevel)
       .input ('CounterKey',   sql.VarChar(30), counterKey)
       .output('ResultCode',   sql.Int)

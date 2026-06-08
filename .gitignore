@@ -8,6 +8,12 @@ dist/
 .vscode/settings.json
 *.log
 *.err
+*-err.txt
+*-out.txt
+ng-err.txt
+ng-out.txt
+backend-err.txt
+backend-out.txt
 ss-*.png
 ss-tmp.js
 test-theme.js

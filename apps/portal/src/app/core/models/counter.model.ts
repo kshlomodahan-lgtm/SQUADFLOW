@@ -2,6 +2,7 @@ export interface Counter {
   CounterID:    number;
   TenantID:     number;
   CustomerID:   number;
+  ProductID:    number;
   CounterLevel: string;
   CounterKey:   string;
   CounterName:  string;
