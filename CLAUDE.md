@@ -357,7 +357,7 @@ theme.schemes               // COLOR_SCHEMES[]
 - ❌ אין `console.log` בקוד production
 - ❌ `SortDescriptor` לא מ-`kendo-angular-grid` — מ-`kendo-data-query`
 - ❌ `--ignore-scripts` נדרש בהתקנת kendo packages
-- ❌ אין push ל-main ישירות — branch + PR
+- ✅ מותר push ל-main ישירות לנוהל גיבוי לילי (nightly backup) — commit + push בלבד, ללא force push
 - ❌ **אסור `kendo-switch`** — ב-RTL context ה-thumb מתנתק. תחליף: seg-ctrl
 - ❌ `seg-ctrl` שייך לדיאלוגי עריכה/הוספה בלבד — במסכי רשימה (גריד) משתמשים ב-badge בלבד
 - ✅ **חובה** `import '@progress/kendo-angular-intl/locales/he/all'` כ-**שורה ראשונה** ב-`src/main.ts` — בלעדיו Kendo Charts / NumericTextBox / Paginator קורסים בשקט עם "Missing locale info for 'he'"
