@@ -1,0 +1,232 @@
+<kendo-dialog [title]="title" [width]="820" [minWidth]="600" (close)="close()">
+
+  <div class="prod-dialog-body">
+
+    <!-- Sidebar Nav -->
+    <nav class="prod-nav">
+      @for (g of groups; track g.id) {
+        <button class="nav-item" [class.active]="activeGroup() === g.id" (click)="activeGroup.set(g.id)" type="button">
+          <kendo-svg-icon [icon]="g.icon" />
+          {{ g.label }}
+        </button>
+      }
+    </nav>
+
+    <!-- Content -->
+    <div class="prod-content">
+      @if (errorMsg) { <div class="form-error-banner">{{ errorMsg }}</div> }
+
+      <form [formGroup]="form">
+
+        <!-- ── כללי ───────────────────────────────── -->
+        @if (activeGroup() === 'general') {
+          <div class="section-grid">
+            <div class="form-row col-2">
+              <label class="form-label">קוד מוצר <span class="req">*</span></label>
+              <input kendoTextBox formControlName="ProductCode" placeholder="CRM_BASIC" class="field-full"
+                     style="text-transform:uppercase;font-family:'Share Tech Mono',monospace" />
+              @if (form.get('ProductCode')?.invalid && form.get('ProductCode')?.touched) {
+                <span class="field-error">שדה חובה</span>
+              }
+            </div>
+            <div class="form-row col-2">
+              <label class="form-label">גרסה</label>
+              <input kendoTextBox formControlName="ProductVersion" placeholder="1.0" class="field-full" />
+            </div>
+
+            <div class="form-row col-full">
+              <label class="form-label">שם מוצר <span class="req">*</span></label>
+              <input kendoTextBox formControlName="ProductName" placeholder="שם המוצר" class="field-full" />
+              @if (form.get('ProductName')?.invalid && form.get('ProductName')?.touched) {
+                <span class="field-error">שדה חובה</span>
+              }
+            </div>
+
+            <div class="form-row col-full">
+              <label class="form-label">תיאור קצר</label>
+              <input kendoTextBox formControlName="ShortDescription" placeholder="תיאור קצר (עד 255 תווים)" class="field-full" />
+            </div>
+
+            <div class="form-row col-2">
+              <label class="form-label">קטגוריה</label>
+              <kendo-dropdownlist
+                formControlName="CategoryID"
+                [data]="categories()"
+                textField="CategoryName"
+                valueField="CategoryID"
+                [valuePrimitive]="true"
+                [defaultItem]="{ CategoryID: null, CategoryName: '— ללא קטגוריה —' }"
+                class="field-full" />
+            </div>
+
+            <div class="form-row col-2">
+              <label class="form-label">סטטוס מוצר</label>
+              <kendo-dropdownlist
+                formControlName="ProductStatus"
+                [data]="statusOptions"
+                textField="text"
+                valueField="value"
+                [valuePrimitive]="true"
+                class="field-full" />
+            </div>
+
+            <div class="form-row col-2">
+              <label class="form-label">נראות</label>
+              <div class="seg-ctrl">
+                <button type="button" class="seg-btn"
+                        [class.seg-on]="!!form.get('IsPublic')?.value"
+                        (click)="form.get('IsPublic')?.setValue(true)">👁 ציבורי</button>
+                <button type="button" class="seg-btn"
+                        [class.seg-off]="!form.get('IsPublic')?.value"
+                        (click)="form.get('IsPublic')?.setValue(false)">🔒 פרטי</button>
+              </div>
+            </div>
+
+            <div class="form-row col-2">
+              <label class="form-label">סטטוס</label>
+              <div class="seg-ctrl">
+                <button type="button" class="seg-btn"
+                        [class.seg-on]="!!form.get('IsActive')?.value"
+                        (click)="form.get('IsActive')?.setValue(true)">✓ פעיל</button>
+                <button type="button" class="seg-btn"
+                        [class.seg-off]="!form.get('IsActive')?.value"
+                        (click)="form.get('IsActive')?.setValue(false)">✗ מושהה</button>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- ── תמחור ───────────────────────────────── -->
+        @if (activeGroup() === 'pricing') {
+          <div class="section-grid">
+            <div class="form-row col-full">
+              <label class="form-label">מודל תמחור</label>
+              <kendo-dropdownlist
+                formControlName="PricingModel"
+                [data]="pricingOptions"
+                textField="text"
+                valueField="value"
+                [valuePrimitive]="true"
+                class="field-full" />
+            </div>
+            <div class="form-row col-2">
+              <label class="form-label">מחיר חודשי (₪)</label>
+              <kendo-numerictextbox formControlName="PriceMonthly" [min]="0" [decimals]="2" [format]="'n2'" class="field-full" />
+            </div>
+            <div class="form-row col-2">
+              <label class="form-label">מחיר שנתי (₪)</label>
+              <kendo-numerictextbox formControlName="PriceAnnual" [min]="0" [decimals]="2" [format]="'n2'" class="field-full" />
+            </div>
+            <div class="form-row col-2">
+              <label class="form-label">דמי הקמה (₪)</label>
+              <kendo-numerictextbox formControlName="SetupFee" [min]="0" [decimals]="2" [format]="'n2'" class="field-full" />
+            </div>
+            <div class="form-row col-2">
+              <label class="form-label">ימי ניסיון</label>
+              <kendo-numerictextbox formControlName="TrialDays" [min]="0" [decimals]="0" [format]="'n0'" class="field-full" />
+            </div>
+          </div>
+        }
+
+        <!-- ── הגבלות ───────────────────────────────── -->
+        @if (activeGroup() === 'limits') {
+          <div class="section-grid">
+            <p class="section-hint">ריק / 0 = ללא הגבלה</p>
+            <div class="form-row col-2">
+              <label class="form-label">מקסימום משתמשים</label>
+              <kendo-numerictextbox formControlName="MaxUsers" [min]="0" [decimals]="0" [format]="'n0'" class="field-full" />
+            </div>
+            <div class="form-row col-2">
+              <label class="form-label">אחסון מקסימלי (GB)</label>
+              <kendo-numerictextbox formControlName="MaxStorage_GB" [min]="0" [decimals]="0" [format]="'n0'" class="field-full" />
+            </div>
+            <div class="form-row col-2">
+              <label class="form-label">מקסימום רשומות</label>
+              <kendo-numerictextbox formControlName="MaxRecords" [min]="0" [decimals]="0" [format]="'n0'" class="field-full" />
+            </div>
+            <div class="form-row col-2">
+              <label class="form-label">קריאות API לחודש</label>
+              <kendo-numerictextbox formControlName="ApiCallsPerMonth" [min]="0" [decimals]="0" [format]="'n0'" class="field-full" />
+            </div>
+          </div>
+        }
+
+        <!-- ── תצוגה ───────────────────────────────── -->
+        @if (activeGroup() === 'display') {
+          <div class="section-grid">
+            <div class="form-row col-2">
+              <label class="form-label">צבע ראשי</label>
+              <div class="color-input-row">
+                <input type="color"
+                       [value]="form.get('ColorHex')?.value"
+                       (change)="form.get('ColorHex')?.setValue($any($event.target).value)"
+                       class="color-picker" />
+                <input kendoTextBox formControlName="ColorHex" class="field-full" placeholder="#0D47FF" />
+              </div>
+            </div>
+            <div class="form-row col-2">
+              <label class="form-label">סדר תצוגה</label>
+              <kendo-numerictextbox formControlName="SortOrder" [min]="0" [decimals]="0" [format]="'n0'" class="field-full" />
+            </div>
+            <div class="form-row col-full">
+              <label class="form-label">שם אייקון</label>
+              <input kendoTextBox formControlName="IconName" placeholder="לדוגמה: pi-users" class="field-full" />
+            </div>
+            <div class="form-row col-full">
+              <label class="form-label">כתובת לוגו (URL)</label>
+              <input kendoTextBox formControlName="LogoUrl" placeholder="https://..." class="field-full" />
+            </div>
+          </div>
+        }
+
+        <!-- ── מידע נוסף ───────────────────────────────── -->
+        @if (activeGroup() === 'details') {
+          <div class="section-grid">
+            <div class="form-row col-2">
+              <label class="form-label">סביבת הפעלה</label>
+              <kendo-dropdownlist
+                formControlName="DeploymentType"
+                [data]="deploymentOptions"
+                textField="text"
+                valueField="value"
+                [valuePrimitive]="true"
+                class="field-full" />
+            </div>
+            <div class="form-row col-2">
+              <label class="form-label">שפות נתמכות</label>
+              <input kendoTextBox formControlName="SupportedLanguages" placeholder='["he","en"]' class="field-full" />
+            </div>
+            <div class="form-row col-2">
+              <label class="form-label">תאריך השקה</label>
+              <input type="date" kendoTextBox formControlName="LaunchDate" class="field-full" />
+            </div>
+            <div class="form-row col-2">
+              <label class="form-label">תאריך סיום תמיכה</label>
+              <input type="date" kendoTextBox formControlName="EndOfLifeDate" class="field-full" />
+            </div>
+            <div class="form-row col-full">
+              <label class="form-label">קישור לתיעוד</label>
+              <input kendoTextBox formControlName="DocumentationUrl" placeholder="https://docs.example.com" class="field-full" />
+            </div>
+            <div class="form-row col-full">
+              <label class="form-label">תיאור מלא</label>
+              <textarea formControlName="Description" rows="5" class="field-full textarea-field"
+                        placeholder="תיאור מפורט של המוצר..."></textarea>
+            </div>
+          </div>
+        }
+
+      </form>
+    </div>
+  </div>
+
+  <kendo-dialog-actions>
+    <div class="dialog-footer">
+      <button class="btn-save" [disabled]="saving()" (click)="save()">
+        {{ saving() ? 'שומר...' : '✓ שמור' }}
+      </button>
+      <button class="btn-cancel" (click)="close()">ביטול</button>
+    </div>
+  </kendo-dialog-actions>
+
+</kendo-dialog>

@@ -1,0 +1,123 @@
+.cat-form {
+  padding: 8px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.form-row-inline {
+  display: flex;
+  gap: 16px;
+}
+.form-label {
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+}
+.req { color: var(--sf-danger); }
+.field-full { width: 100%; }
+.field-error {
+  font-size: .75rem;
+  color: var(--sf-danger);
+}
+.form-error-banner {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--sf-danger);
+  font-size: .85rem;
+}
+
+.color-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform .1s, border-color .1s;
+  &:hover { transform: scale(1.15); }
+  &.selected { border-color: var(--sf-text); transform: scale(1.15); }
+}
+.color-custom {
+  width: 28px;
+  height: 28px;
+  border: none;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  background: none;
+}
+
+// Seg-ctrl
+.seg-ctrl {
+  display: inline-flex;
+  direction: rtl;
+  align-self: flex-start;
+  border: 1px solid var(--sf-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.seg-btn {
+  padding: 7px 18px;
+  font-size: .82rem;
+  font-weight: 500;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  border: none;
+  background: var(--sf-bg);
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  & + & { border-inline-start: 1px solid var(--sf-border); }
+  &:hover:not(.seg-on):not(.seg-off) { background: var(--sf-bg-hover); }
+  &.seg-on  { background: #10b981; color: #fff; font-weight: 600; }
+  &.seg-off { background: #ef4444; color: #fff; font-weight: 600; }
+}
+
+// Footer
+.dialog-footer {
+  display: flex;
+  direction: rtl;
+  gap: 8px;
+  width: 100%;
+}
+
+::ng-deep .k-dialog-actions {
+  direction: rtl !important;
+}
+
+.btn-save {
+  background: #f97316;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 22px;
+  font-size: .875rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  &:hover { background: #ea6c0c; }
+  &:disabled { opacity: .6; cursor: default; }
+}
+.btn-cancel {
+  background: #fff;
+  color: var(--sf-text-secondary);
+  border: 1px solid var(--sf-border);
+  border-radius: 8px;
+  padding: 9px 22px;
+  font-size: .875rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  &:hover { background: var(--sf-bg-hover); }
+}

@@ -1,0 +1,170 @@
+.prod-dialog-body {
+  display: flex;
+  height: 480px;
+  overflow: hidden;
+}
+
+// ── Sidebar Nav ─────────────────────────────────────────────
+.prod-nav {
+  width: 140px;
+  min-width: 140px;
+  background: var(--sf-bg);
+  border-inline-end: 1px solid var(--sf-border);
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: .84rem;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  color: var(--sf-text-secondary);
+  text-align: right;
+  direction: rtl;
+  transition: background .15s, color .15s;
+  border-radius: 0;
+  width: 100%;
+
+  &:hover  { background: var(--sf-bg-hover); color: var(--sf-text); }
+  &.active {
+    background: var(--sf-primary-light);
+    color: var(--sf-primary);
+    font-weight: 600;
+    border-inline-start: 3px solid var(--sf-primary);
+  }
+
+  kendo-svg-icon { font-size: 16px; flex-shrink: 0; }
+}
+
+// ── Content ─────────────────────────────────────────────────
+.prod-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+
+.form-error-banner {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--sf-danger);
+  font-size: .85rem;
+  margin-bottom: 16px;
+}
+
+// ── Grid Layout ──────────────────────────────────────────────
+.section-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 20px;
+}
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  &.col-2   { grid-column: span 1; }
+  &.col-full { grid-column: span 2; }
+}
+
+.form-label {
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+}
+.req { color: var(--sf-danger); }
+.field-full { width: 100%; }
+.field-error {
+  font-size: .75rem;
+  color: var(--sf-danger);
+}
+.section-hint {
+  grid-column: span 2;
+  font-size: .78rem;
+  color: var(--sf-text-muted);
+  margin: 0;
+}
+
+// Color picker row
+.color-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.color-picker {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  padding: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+// Textarea
+.textarea-field {
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  font-size: .875rem;
+  color: var(--sf-text);
+  border: 1px solid var(--sf-border);
+  border-radius: 4px;
+  padding: 8px;
+  resize: vertical;
+  background: var(--sf-bg-card);
+  &:focus { outline: none; border-color: var(--sf-primary); }
+}
+
+// Seg-ctrl
+.seg-ctrl {
+  display: inline-flex;
+  direction: rtl;
+  align-self: flex-start;
+  border: 1px solid var(--sf-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.seg-btn {
+  padding: 6px 14px;
+  font-size: .78rem;
+  font-weight: 500;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  border: none;
+  background: var(--sf-bg);
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  & + & { border-inline-start: 1px solid var(--sf-border); }
+  &:hover:not(.seg-on):not(.seg-off) { background: var(--sf-bg-hover); }
+  &.seg-on  { background: #10b981; color: #fff; font-weight: 600; }
+  &.seg-off { background: #ef4444; color: #fff; font-weight: 600; }
+}
+
+// Footer
+.dialog-footer {
+  display: flex;
+  direction: rtl;
+  gap: 8px;
+  width: 100%;
+}
+::ng-deep .k-dialog-actions { direction: rtl !important; }
+
+.btn-save {
+  background: #f97316; color: #fff; border: none; border-radius: 8px;
+  padding: 9px 22px; font-size: .875rem; font-weight: 600; cursor: pointer;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  &:hover { background: #ea6c0c; }
+  &:disabled { opacity: .6; cursor: default; }
+}
+.btn-cancel {
+  background: #fff; color: var(--sf-text-secondary);
+  border: 1px solid var(--sf-border); border-radius: 8px;
+  padding: 9px 22px; font-size: .875rem; font-weight: 500; cursor: pointer;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  &:hover { background: var(--sf-bg-hover); }
+}

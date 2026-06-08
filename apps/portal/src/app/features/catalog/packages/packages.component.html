@@ -1,0 +1,104 @@
+<div class="page-header">
+  <div class="page-title-row">
+    <h1 class="page-title">חבילות</h1>
+    <button kendoButton themeColor="primary" [svgIcon]="addIcon" (click)="openAdd()">
+      חבילה חדשה
+    </button>
+  </div>
+</div>
+
+<div class="page-body">
+  <div class="toolbar">
+    <div class="search-wrap">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input class="search-input" type="text" placeholder="חיפוש חבילה..."
+             (input)="onSearch($any($event.target).value)" />
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="spinner-wrap"><mat-spinner diameter="40" /></div>
+  } @else if (error()) {
+    <div class="error-box">{{ error() }}</div>
+  } @else {
+    <kendo-grid class="pkg-grid"
+      [data]="{ data: pagedData, total: gridData.length }"
+      [skip]="skip" [pageSize]="pageSize"
+      [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [10, 25, 50] }"
+      [sortable]="{ mode: 'single', allowUnsort: false }"
+      [sort]="sort"
+      [reorderable]="true" [resizable]="true"
+      scrollable="none"
+      (pageChange)="onPageChange($event)"
+      (sortChange)="onSortChange($event)">
+
+      <kendo-grid-column field="PackageName" title="שם חבילה">
+        <ng-template kendoGridCellTemplate let-row>
+          <div>
+            <strong>{{ row.PackageName }}</strong>
+            <div class="pkg-code">{{ row.PackageCode }}</div>
+          </div>
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-column field="ProductCount" title="מוצרים" [width]="100">
+        <ng-template kendoGridCellTemplate let-row>
+          <span class="badge badge-count">{{ row.ProductCount }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-column field="PriceMonthly" title="מחיר חודשי" [width]="130">
+        <ng-template kendoGridCellTemplate let-row>
+          {{ row.PriceMonthly | currency:'ILS':'symbol':'1.0-0':'he' }}
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-column field="PriceAnnual" title="מחיר שנתי" [width]="130">
+        <ng-template kendoGridCellTemplate let-row>
+          {{ row.PriceAnnual | currency:'ILS':'symbol':'1.0-0':'he' }}
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-column field="MaxUsers" title="מקס' משתמשים" [width]="130">
+        <ng-template kendoGridCellTemplate let-row>
+          {{ row.MaxUsers ?? 'ללא הגבלה' }}
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-column field="IsPublic" title="ציבורי" [width]="90">
+        <ng-template kendoGridCellTemplate let-row>
+          <mat-icon [style.color]="row.IsPublic ? '#10b981' : '#94a3b8'" style="font-size:18px">
+            {{ row.IsPublic ? 'visibility' : 'visibility_off' }}
+          </mat-icon>
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-column field="IsActive" title="סטטוס" [width]="100">
+        <ng-template kendoGridCellTemplate let-row>
+          <span class="badge" [class.badge-active]="row.IsActive" [class.badge-inactive]="!row.IsActive">
+            {{ row.IsActive ? 'פעיל' : 'מושהה' }}
+          </span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-column title="" [width]="80" [sortable]="false" [resizable]="false" [columnMenu]="false">
+        <ng-template kendoGridCellTemplate let-row>
+          <button class="icon-btn" title="עריכה" (click)="openEdit(row)">
+            <mat-icon>edit</mat-icon>
+          </button>
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-messages
+        pagerItemsPerPage="שורות בעמוד" pagerOf="מתוך" pagerItems="רשומות"
+        noRecords="לא נמצאו חבילות" loading="טוען..." />
+    </kendo-grid>
+  }
+</div>
+
+@if (dialogOpen()) {
+  <app-package-dialog
+    [pkg]="dialogPackage()"
+    (saved)="onSaved()"
+    (closed)="onClosed()" />
+}

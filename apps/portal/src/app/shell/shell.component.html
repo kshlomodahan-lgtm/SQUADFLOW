@@ -15,15 +15,20 @@
     </div>
 
     <nav class="sidebar-nav">
-      @for (item of navItems; track item.route) {
-        <a class="nav-item"
-           [routerLink]="item.route"
-           routerLinkActive="active"
-           [matTooltip]="!sidebarOpen ? item.label : ''"
-           matTooltipPosition="after">
-          <mat-icon>{{ item.icon }}</mat-icon>
-          @if (sidebarOpen) { <span>{{ item.label }}</span> }
-        </a>
+      @for (group of navGroups; track group.label) {
+        @if (sidebarOpen) {
+          <div class="nav-group-label">{{ group.label }}</div>
+        }
+        @for (item of group.items; track item.route) {
+          <a class="nav-item"
+             [routerLink]="item.route"
+             routerLinkActive="active"
+             [matTooltip]="!sidebarOpen ? item.label : ''"
+             matTooltipPosition="after">
+            <mat-icon>{{ item.icon }}</mat-icon>
+            @if (sidebarOpen) { <span>{{ item.label }}</span> }
+          </a>
+        }
       }
     </nav>
 
@@ -43,7 +48,6 @@
 
     <header class="topbar">
       <div class="topbar-start">
-        <!-- Color scheme swatches -->
         <div class="scheme-picker">
           @for (s of theme.schemes; track s.id) {
             <button class="scheme-dot"
@@ -54,16 +58,12 @@
             </button>
           }
         </div>
-
         <div class="topbar-sep"></div>
-
-        <!-- Light / Dark toggle -->
         <button class="topbar-btn"
                 (click)="theme.toggleMode()"
                 [title]="theme.isDark() ? 'מצב יום' : 'מצב לילה'">
           <mat-icon>{{ theme.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
         </button>
-
         <mat-icon class="topbar-icon">notifications_none</mat-icon>
         <mat-icon class="topbar-icon">help_outline</mat-icon>
       </div>

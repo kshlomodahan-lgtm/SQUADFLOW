@@ -1,0 +1,138 @@
+<kendo-dialog [title]="title" [width]="720" [minWidth]="560" (close)="close()">
+
+  <div class="pkg-dialog-body">
+
+    <nav class="pkg-nav">
+      @for (g of groups; track g.id) {
+        <button class="nav-item" [class.active]="activeGroup() === g.id" (click)="activeGroup.set(g.id)" type="button">
+          <kendo-svg-icon [icon]="g.icon" />
+          {{ g.label }}
+        </button>
+      }
+    </nav>
+
+    <div class="pkg-content">
+      @if (errorMsg) { <div class="form-error-banner">{{ errorMsg }}</div> }
+
+      <form [formGroup]="form">
+
+        <!-- ── פרטי חבילה ─────────────────────────────── -->
+        @if (activeGroup() === 'details') {
+          <div class="section-grid">
+            <div class="form-row col-2">
+              <label class="form-label">קוד חבילה <span class="req">*</span></label>
+              <input kendoTextBox formControlName="PackageCode" placeholder="STARTER"
+                     class="field-full" style="text-transform:uppercase;font-family:'Share Tech Mono',monospace" />
+              @if (form.get('PackageCode')?.invalid && form.get('PackageCode')?.touched) {
+                <span class="field-error">שדה חובה</span>
+              }
+            </div>
+            <div class="form-row col-2">
+              <label class="form-label">סדר תצוגה</label>
+              <kendo-numerictextbox formControlName="SortOrder" [min]="0" [decimals]="0" [format]="'n0'" class="field-full" />
+            </div>
+
+            <div class="form-row col-full">
+              <label class="form-label">שם חבילה <span class="req">*</span></label>
+              <input kendoTextBox formControlName="PackageName" placeholder="שם החבילה" class="field-full" />
+              @if (form.get('PackageName')?.invalid && form.get('PackageName')?.touched) {
+                <span class="field-error">שדה חובה</span>
+              }
+            </div>
+
+            <div class="form-row col-full">
+              <label class="form-label">תיאור</label>
+              <textarea formControlName="Description" rows="3" class="field-full textarea-field"
+                        placeholder="תיאור קצר של החבילה..."></textarea>
+            </div>
+
+            <div class="form-row col-2">
+              <label class="form-label">מחיר חודשי (₪)</label>
+              <kendo-numerictextbox formControlName="PriceMonthly" [min]="0" [decimals]="2" [format]="'n2'" class="field-full" />
+            </div>
+            <div class="form-row col-2">
+              <label class="form-label">מחיר שנתי (₪)</label>
+              <kendo-numerictextbox formControlName="PriceAnnual" [min]="0" [decimals]="2" [format]="'n2'" class="field-full" />
+            </div>
+            <div class="form-row col-2">
+              <label class="form-label">דמי הקמה (₪)</label>
+              <kendo-numerictextbox formControlName="SetupFee" [min]="0" [decimals]="2" [format]="'n2'" class="field-full" />
+            </div>
+            <div class="form-row col-2">
+              <label class="form-label">ימי ניסיון</label>
+              <kendo-numerictextbox formControlName="TrialDays" [min]="0" [decimals]="0" [format]="'n0'" class="field-full" />
+            </div>
+            <div class="form-row col-2">
+              <label class="form-label">מקס' משתמשים (0 = ללא הגבלה)</label>
+              <kendo-numerictextbox formControlName="MaxUsers" [min]="0" [decimals]="0" [format]="'n0'" class="field-full" />
+            </div>
+
+            <div class="form-row col-2">
+              <label class="form-label">נראות</label>
+              <div class="seg-ctrl">
+                <button type="button" class="seg-btn"
+                        [class.seg-on]="!!form.get('IsPublic')?.value"
+                        (click)="form.get('IsPublic')?.setValue(true)">👁 ציבורי</button>
+                <button type="button" class="seg-btn"
+                        [class.seg-off]="!form.get('IsPublic')?.value"
+                        (click)="form.get('IsPublic')?.setValue(false)">🔒 פרטי</button>
+              </div>
+            </div>
+
+            <div class="form-row col-2">
+              <label class="form-label">סטטוס</label>
+              <div class="seg-ctrl">
+                <button type="button" class="seg-btn"
+                        [class.seg-on]="!!form.get('IsActive')?.value"
+                        (click)="form.get('IsActive')?.setValue(true)">✓ פעיל</button>
+                <button type="button" class="seg-btn"
+                        [class.seg-off]="!form.get('IsActive')?.value"
+                        (click)="form.get('IsActive')?.setValue(false)">✗ מושהה</button>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- ── מוצרים ─────────────────────────────── -->
+        @if (activeGroup() === 'products') {
+          <div class="products-section">
+            <p class="products-hint">בחר את המוצרים הכלולים בחבילה זו</p>
+            @if (allProducts().length === 0) {
+              <div class="empty-products">טוען מוצרים...</div>
+            } @else {
+              <div class="products-list">
+                @for (p of allProducts(); track p.ProductID) {
+                  <label class="product-check-row" [class.selected]="isSelected(p.ProductID)">
+                    <input type="checkbox"
+                           [checked]="isSelected(p.ProductID)"
+                           (change)="toggleProduct(p.ProductID)" />
+                    <span class="prod-color" [style.background]="p.ColorHex"></span>
+                    <span class="prod-info">
+                      <strong>{{ p.ProductName }}</strong>
+                      <span class="prod-code-small">{{ p.ProductCode }}</span>
+                    </span>
+                    <span class="prod-price">{{ p.PriceMonthly | currency:'ILS':'symbol':'1.0-0':'he' }}/חודש</span>
+                  </label>
+                }
+              </div>
+              <div class="selected-count">
+                {{ selectedIds.size }} מוצרים נבחרו
+              </div>
+            }
+          </div>
+        }
+
+      </form>
+    </div>
+  </div>
+
+  <kendo-dialog-actions>
+    <div class="dialog-footer">
+      <button class="btn-save" [disabled]="saving()" (click)="save()">
+        {{ saving() ? 'שומר...' : '✓ שמור' }}
+      </button>
+      <button class="btn-cancel" (click)="close()">ביטול</button>
+    </div>
+  </kendo-dialog-actions>
+
+</kendo-dialog>

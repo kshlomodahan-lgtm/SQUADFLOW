@@ -7,23 +7,16 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../core/services/auth.service';
 import { ThemeService } from '../core/services/theme.service';
 
-interface NavItem {
-  icon:  string;
-  label: string;
-  route: string;
-}
+interface NavItem  { icon: string; label: string; route: string; }
+interface NavGroup { label: string; items: NavItem[]; }
 
 @Component({
   selector: 'app-shell',
   standalone: true,
   imports: [
     CommonModule,
-    RouterOutlet,
-    RouterLink,
-    RouterLinkActive,
-    MatIconModule,
-    MatButtonModule,
-    MatTooltipModule,
+    RouterOutlet, RouterLink, RouterLinkActive,
+    MatIconModule, MatButtonModule, MatTooltipModule,
   ],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
@@ -31,12 +24,29 @@ interface NavItem {
 export class ShellComponent {
   sidebarOpen = true;
 
-  // תפריט מנהל הפלטפורמה (RoleID=1, TenantID=1)
-  navItems: NavItem[] = [
-    { icon: 'dashboard',      label: 'דשבורד',   route: '/app/dashboard' },
-    { icon: 'corporate_fare', label: 'ארגונים',  route: '/app/organizations' },
-    { icon: 'people',         label: 'משתמשים',  route: '/app/users' },
-    { icon: 'settings',       label: 'הגדרות',   route: '/app/settings' },
+  navGroups: NavGroup[] = [
+    {
+      label: 'כללי',
+      items: [
+        { icon: 'dashboard',      label: 'דשבורד',   route: '/app/dashboard' },
+        { icon: 'corporate_fare', label: 'ארגונים',  route: '/app/organizations' },
+        { icon: 'people',         label: 'משתמשים',  route: '/app/users' },
+      ],
+    },
+    {
+      label: 'קטלוג מוצרים',
+      items: [
+        { icon: 'category',   label: 'קטגוריות', route: '/app/categories' },
+        { icon: 'storefront', label: 'מוצרים',   route: '/app/products' },
+        { icon: 'layers',     label: 'חבילות',   route: '/app/packages' },
+      ],
+    },
+    {
+      label: 'מערכת',
+      items: [
+        { icon: 'settings', label: 'הגדרות', route: '/app/settings' },
+      ],
+    },
   ];
 
   constructor(public auth: AuthService, public theme: ThemeService) {}

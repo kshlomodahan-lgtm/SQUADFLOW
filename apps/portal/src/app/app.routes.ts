@@ -31,6 +31,21 @@ export const routes: Routes = [
           import('./features/users/users.component').then(m => m.UsersComponent),
       },
       {
+        path: 'categories',
+        loadComponent: () =>
+          import('./features/catalog/categories/categories.component').then(m => m.CategoriesComponent),
+      },
+      {
+        path: 'products',
+        loadComponent: () =>
+          import('./features/catalog/products/products.component').then(m => m.ProductsComponent),
+      },
+      {
+        path: 'packages',
+        loadComponent: () =>
+          import('./features/catalog/packages/packages.component').then(m => m.PackagesComponent),
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('./features/settings/settings.component').then(m => m.SettingsComponent),

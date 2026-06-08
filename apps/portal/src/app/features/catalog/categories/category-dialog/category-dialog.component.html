@@ -1,0 +1,76 @@
+<kendo-dialog [title]="title" [width]="440" (close)="close()">
+
+  <form [formGroup]="form" class="cat-form">
+
+    @if (errorMsg) {
+      <div class="form-error-banner">{{ errorMsg }}</div>
+    }
+
+    <div class="form-row">
+      <label class="form-label">קוד קטגוריה <span class="req">*</span></label>
+      <input kendoTextBox formControlName="CategoryCode" placeholder="לדוגמה: BIZ_MGMT"
+             class="field-full" style="text-transform:uppercase" />
+      @if (form.get('CategoryCode')?.invalid && form.get('CategoryCode')?.touched) {
+        <span class="field-error">שדה חובה (עד 30 תווים)</span>
+      }
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">שם קטגוריה <span class="req">*</span></label>
+      <input kendoTextBox formControlName="CategoryName" placeholder="שם הקטגוריה" class="field-full" />
+      @if (form.get('CategoryName')?.invalid && form.get('CategoryName')?.touched) {
+        <span class="field-error">שדה חובה</span>
+      }
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">צבע</label>
+      <div class="color-row">
+        @for (c of colors; track c) {
+          <button type="button" class="color-swatch"
+                  [style.background]="c"
+                  [class.selected]="form.get('ColorHex')?.value === c"
+                  (click)="setColor(c)">
+          </button>
+        }
+        <input type="color" class="color-custom"
+               [value]="form.get('ColorHex')?.value"
+               (change)="setColor($any($event.target).value)" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">שם אייקון</label>
+      <input kendoTextBox formControlName="IconName" placeholder="לדוגמה: pi-briefcase" class="field-full" />
+    </div>
+
+    <div class="form-row-inline">
+      <div class="form-row" style="flex:1">
+        <label class="form-label">סדר תצוגה</label>
+        <input kendoTextBox type="number" formControlName="SortOrder" class="field-full" />
+      </div>
+      <div class="form-row" style="flex:1">
+        <label class="form-label">סטטוס</label>
+        <div class="seg-ctrl">
+          <button type="button" class="seg-btn"
+                  [class.seg-on]="!!form.get('IsActive')?.value"
+                  (click)="form.get('IsActive')?.setValue(true)">✓ פעיל</button>
+          <button type="button" class="seg-btn"
+                  [class.seg-off]="!form.get('IsActive')?.value"
+                  (click)="form.get('IsActive')?.setValue(false)">✗ מושהה</button>
+        </div>
+      </div>
+    </div>
+
+  </form>
+
+  <kendo-dialog-actions>
+    <div class="dialog-footer">
+      <button class="btn-save" [disabled]="saving()" (click)="save()">
+        {{ saving() ? 'שומר...' : '✓ שמור' }}
+      </button>
+      <button class="btn-cancel" (click)="close()">ביטול</button>
+    </div>
+  </kendo-dialog-actions>
+
+</kendo-dialog>
