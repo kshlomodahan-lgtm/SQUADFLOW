@@ -1,0 +1,348 @@
+<div class="orgchart-wrap">
+
+  <!-- Header -->
+  <div class="mgr-header">
+    <div>
+      <h2 class="mgr-title">
+        <kendo-svg-icon [icon]="icons.buildings" class="mgr-title-icon" />
+        מבנה ארגוני
+      </h2>
+      <p class="mgr-subtitle">בנה את ההיררכיה הארגונית — יחידות, תארי תפקיד ומשרות</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="openAddTitle()">
+        <kendo-svg-icon [icon]="icons.person" />
+        תואר חדש
+      </button>
+      <button class="btn-save" (click)="openAddUnit(null)">
+        <kendo-svg-icon [icon]="icons.plus" />
+        יחידה חדשה
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) { <div class="center-spinner"><mat-spinner [diameter]="36" /></div> }
+  @if (error()) { <div class="error-box"><mat-icon>error_outline</mat-icon> {{ error() }}</div> }
+
+  @if (!loading()) {
+    <div class="org-layout">
+
+      <!-- ═══ LEFT — Org Tree ═══ -->
+      <div class="org-tree-panel">
+        <div class="panel-header">
+          <span class="panel-title">מבנה הארגון</span>
+          <button class="add-root-btn" (click)="openAddUnit(null)" kendoTooltip title="הוסף יחידה שורשית">
+            <kendo-svg-icon [icon]="icons.plus" />
+          </button>
+        </div>
+
+        <div class="tree-scroll">
+          @for (root of treeData(); track root.OrgUnitID) {
+            <ng-container *ngTemplateOutlet="orgNode; context: { $implicit: root }" />
+          }
+          @if (treeData().length === 0) {
+            <div class="tree-placeholder">
+              <kendo-svg-icon [icon]="icons.buildings" class="placeholder-icon" />
+              <p>אין יחידות — לחץ "יחידה חדשה" כדי להתחיל</p>
+              <button class="btn-save btn-save--sm" (click)="openAddUnit(null)">+ התחל בניית מבנה</button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- ═══ RIGHT — Unit Detail + Positions ═══ -->
+      <div class="org-detail-panel">
+        @if (!selectedUnit()) {
+          <div class="detail-empty">
+            <kendo-svg-icon [icon]="icons.buildings" class="detail-empty-icon" />
+            <p>בחר יחידה משמאל לצפייה ועריכה</p>
+          </div>
+        }
+
+        @if (selectedUnit()) {
+          <!-- Unit header card -->
+          <div class="unit-detail-card">
+            <div class="unit-type-badge" [style.background]="getUnitTypeInfo(selectedUnit()!.UnitType).color + '22'"
+                 [style.color]="getUnitTypeInfo(selectedUnit()!.UnitType).color">
+              <mat-icon>{{ getUnitTypeInfo(selectedUnit()!.UnitType).icon }}</mat-icon>
+              {{ getUnitTypeInfo(selectedUnit()!.UnitType).label }}
+            </div>
+
+            <div class="unit-name-row">
+              <h3 class="unit-detail-name">{{ selectedUnit()!.UnitName }}</h3>
+              <span class="unit-code-badge">{{ selectedUnit()!.UnitCode }}</span>
+            </div>
+
+            @if (selectedUnit()!.Description) {
+              <p class="unit-desc">{{ selectedUnit()!.Description }}</p>
+            }
+
+            <div class="unit-stats">
+              <div class="stat-item">
+                <mat-icon>work</mat-icon>
+                <span>{{ selectedUnit()!.PositionCount }} משרות</span>
+              </div>
+            </div>
+
+            <div class="unit-card-actions">
+              <button class="btn-secondary btn-sm" (click)="openEditUnit(selectedUnit()!)">
+                <kendo-svg-icon [icon]="icons.pencil" /> ערוך
+              </button>
+              <button class="btn-secondary btn-sm" (click)="openAddUnit(selectedUnit()!)">
+                <kendo-svg-icon [icon]="icons.plus" /> יחידת בת
+              </button>
+              <button class="btn-danger btn-sm" (click)="deleteUnit(selectedUnit()!)">
+                <kendo-svg-icon [icon]="icons.trash" /> מחק
+              </button>
+            </div>
+          </div>
+
+          <!-- Positions section -->
+          <div class="positions-section">
+            <div class="positions-header">
+              <h4 class="positions-title">משרות ביחידה</h4>
+              <button class="btn-save btn-save--sm" (click)="openAddPosition()">
+                <kendo-svg-icon [icon]="icons.plus" /> משרה חדשה
+              </button>
+            </div>
+
+            @if (positionsLoading()) {
+              <div class="center-spinner"><mat-spinner [diameter]="28" /></div>
+            }
+
+            @if (!positionsLoading()) {
+              <div class="positions-grid">
+                @for (pos of unitPositions(); track pos.PositionID) {
+                  <div class="position-card" [attr.data-level]="pos.TitleLevel">
+                    <div class="pos-level-bar" [style.background]="levelBadgeColor(pos.TitleLevel)"></div>
+                    <div class="pos-body">
+                      <div class="pos-title">{{ pos.DisplayName }}</div>
+                      <div class="pos-level">{{ levelLabel(pos.TitleLevel) }}</div>
+                      <div class="pos-occupancy">
+                        <div class="occupancy-bar">
+                          <div class="occupancy-fill"
+                               [style.width.%]="pos.HeadCount > 0 ? (pos.FilledCount / pos.HeadCount) * 100 : 0"
+                               [class.full]="pos.FilledCount >= pos.HeadCount">
+                          </div>
+                        </div>
+                        <span class="occupancy-label">{{ pos.FilledCount }}/{{ pos.HeadCount }}</span>
+                      </div>
+                      @if (pos.Occupants) {
+                        <div class="pos-occupants">
+                          <mat-icon>person</mat-icon>
+                          {{ pos.Occupants }}
+                        </div>
+                      } @else {
+                        <div class="pos-vacant">⬡ משרה פנויה</div>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (unitPositions().length === 0) {
+                  <div class="positions-empty">
+                    <mat-icon>work_off</mat-icon>
+                    <p>אין משרות ביחידה זו</p>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Job Titles section -->
+          <div class="titles-section">
+            <div class="positions-header">
+              <h4 class="positions-title">תארי תפקיד במערכת</h4>
+              <button class="btn-secondary btn-sm" (click)="openAddTitle()">
+                <kendo-svg-icon [icon]="icons.plus" /> תואר חדש
+              </button>
+            </div>
+            <div class="titles-grid">
+              @for (jt of jobTitles(); track jt.JobTitleID) {
+                <div class="title-chip" [style.border-color]="levelBadgeColor(jt.TitleLevel)">
+                  <span class="title-level-dot" [style.background]="levelBadgeColor(jt.TitleLevel)"></span>
+                  <span class="title-name">{{ jt.JobTitleName }}</span>
+                  @if (jt.DefaultRoleName) {
+                    <span class="title-role">→ {{ jt.DefaultRoleName }}</span>
+                  }
+                  <button class="title-edit-btn" (click)="openEditTitle(jt)" kendoTooltip title="עריכה">
+                    <kendo-svg-icon [icon]="icons.pencil" />
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<!-- ═══ Recursive Org Tree Node ═══ -->
+<ng-template #orgNode let-unit>
+  <div class="org-node" [class.selected]="selectedUnit()?.OrgUnitID === unit.OrgUnitID"
+       [style.padding-right.px]="unit.level * 20">
+
+    <!-- Expand toggle -->
+    @if (unit.children.length > 0) {
+      <button class="expand-btn" (click)="toggleUnit(unit); $event.stopPropagation()">
+        <kendo-svg-icon [icon]="unit.expanded ? icons.chevronDown : icons.chevronRight" />
+      </button>
+    } @else {
+      <span class="expand-spacer"></span>
+    }
+
+    <!-- Unit type icon -->
+    <div class="unit-icon" [style.background]="getUnitTypeInfo(unit.UnitType).color + '22'"
+         [style.color]="getUnitTypeInfo(unit.UnitType).color">
+      <mat-icon>{{ getUnitTypeInfo(unit.UnitType).icon }}</mat-icon>
+    </div>
+
+    <!-- Content -->
+    <div class="node-content" (click)="selectUnit(unit)">
+      <div class="node-name">{{ unit.UnitName }}</div>
+      <div class="node-meta">
+        <span class="node-type">{{ getUnitTypeInfo(unit.UnitType).label }}</span>
+        @if (unit.PositionCount > 0) {
+          <span class="node-positions">{{ unit.PositionCount }} משרות</span>
+        }
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="node-btns">
+      <button class="node-btn" (click)="$event.stopPropagation(); openAddUnit(unit)" kendoTooltip title="הוסף יחידת בת">
+        <kendo-svg-icon [icon]="icons.plus" />
+      </button>
+      <button class="node-btn" (click)="$event.stopPropagation(); openEditUnit(unit)" kendoTooltip title="ערוך">
+        <kendo-svg-icon [icon]="icons.pencil" />
+      </button>
+    </div>
+  </div>
+
+  @if (unit.expanded && unit.children.length > 0) {
+    @for (child of unit.children; track child.OrgUnitID) {
+      <ng-container *ngTemplateOutlet="orgNode; context: { $implicit: child }" />
+    }
+  }
+</ng-template>
+
+<!-- ═══ Unit Dialog ═══ -->
+@if (unitDialogOpen()) {
+  <kendo-dialog [title]="editingUnit() ? 'עריכת יחידה' : 'יחידה חדשה'" [width]="520" (close)="unitDialogOpen.set(false)">
+    <form [formGroup]="unitForm" class="org-form">
+      <div class="form-row">
+        <div class="form-field">
+          <label class="field-label">שם יחידה <span class="req">*</span></label>
+          <kendo-textbox formControlName="unitName" placeholder="מחלקת מכירות" />
+        </div>
+        <div class="form-field form-field--sm">
+          <label class="field-label">קוד <span class="req">*</span></label>
+          <kendo-textbox formControlName="unitCode" placeholder="SALES" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="field-label">סוג יחידה</label>
+          <kendo-dropdownlist formControlName="unitType" [data]="unitTypes" textField="label" valueField="value" [valuePrimitive]="true" />
+        </div>
+        <div class="form-field">
+          <label class="field-label">יחידה אב</label>
+          <kendo-dropdownlist formControlName="parentOrgUnitId" [data]="allUnitsForSelect" textField="UnitName" valueField="OrgUnitID" [valuePrimitive]="true" />
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="field-label">תיאור</label>
+        <kendo-textarea formControlName="description" [rows]="2" resizable="none" />
+      </div>
+      <div class="form-row">
+        <div class="form-field form-field--sm">
+          <label class="field-label">קוד תקציב</label>
+          <kendo-textbox formControlName="budgetCode" placeholder="BUDGET-001" />
+        </div>
+        <div class="form-field form-field--xs">
+          <label class="field-label">סדר</label>
+          <kendo-numerictextbox formControlName="sortOrder" [min]="0" [decimals]="0" [format]="'n0'" />
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="field-label">סטטוס</label>
+        <div class="seg-ctrl">
+          <button type="button" class="seg-btn" [class.seg-on]="!!unitForm.get('isActive')?.value" (click)="unitForm.get('isActive')?.setValue(true)">✓ פעיל</button>
+          <button type="button" class="seg-btn" [class.seg-off]="!unitForm.get('isActive')?.value" (click)="unitForm.get('isActive')?.setValue(false)">✗ מושהה</button>
+        </div>
+      </div>
+    </form>
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-save" (click)="saveUnit()" [disabled]="saving()">✓ שמור</button>
+        <button class="btn-cancel" (click)="unitDialogOpen.set(false)">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}
+
+<!-- ═══ Job Title Dialog ═══ -->
+@if (titleDialogOpen()) {
+  <kendo-dialog [title]="editingTitle() ? 'עריכת תואר תפקיד' : 'תואר תפקיד חדש'" [width]="460" (close)="titleDialogOpen.set(false)">
+    <form [formGroup]="titleForm" class="org-form">
+      <div class="form-row">
+        <div class="form-field">
+          <label class="field-label">שם תואר <span class="req">*</span></label>
+          <kendo-textbox formControlName="jobTitleName" placeholder='מנכ"ל / מנהל מכירות' />
+        </div>
+        <div class="form-field form-field--sm">
+          <label class="field-label">קוד <span class="req">*</span></label>
+          <kendo-textbox formControlName="jobTitleCode" placeholder="CEO / SALES_MGR" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="field-label">רמה</label>
+          <kendo-dropdownlist formControlName="titleLevel" [data]="titleLevels" textField="label" valueField="value" [valuePrimitive]="true" />
+        </div>
+        <div class="form-field">
+          <label class="field-label">תפקיד ברירת מחדל</label>
+          <kendo-dropdownlist formControlName="defaultRoleId" [data]="allRolesForSelect" textField="RoleName" valueField="RoleID" [valuePrimitive]="true" />
+        </div>
+      </div>
+    </form>
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-save" (click)="saveTitle()" [disabled]="saving()">✓ שמור</button>
+        <button class="btn-cancel" (click)="titleDialogOpen.set(false)">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}
+
+<!-- ═══ Position Dialog ═══ -->
+@if (positionDialogOpen()) {
+  <kendo-dialog title="משרה חדשה" [width]="440" (close)="positionDialogOpen.set(false)">
+    <form [formGroup]="positionForm" class="org-form">
+      <div class="form-field">
+        <label class="field-label">תואר תפקיד <span class="req">*</span></label>
+        <kendo-dropdownlist formControlName="jobTitleId" [data]="allJobTitlesForSelect" textField="JobTitleName" valueField="JobTitleID" [valuePrimitive]="true" />
+      </div>
+      <div class="form-field">
+        <label class="field-label">שם משרה (override אופציונלי)</label>
+        <kendo-textbox formControlName="positionName" placeholder="הכנס שם ספציפי..." />
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="field-label">ידווח ל</label>
+          <kendo-dropdownlist formControlName="reportsToPositionId" [data]="allPositionsForSelect" textField="DisplayName" valueField="PositionID" [valuePrimitive]="true" />
+        </div>
+        <div class="form-field form-field--xs">
+          <label class="field-label">כ"א</label>
+          <kendo-numerictextbox formControlName="headCount" [min]="1" [decimals]="0" [format]="'n0'" />
+        </div>
+      </div>
+    </form>
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-save" (click)="savePosition()" [disabled]="saving()">✓ צור משרה</button>
+        <button class="btn-cancel" (click)="positionDialogOpen.set(false)">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}

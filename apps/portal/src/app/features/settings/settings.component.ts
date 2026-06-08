@@ -10,7 +10,7 @@ import { IconsModule } from '@progress/kendo-angular-icons';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { GridModule, PageChangeEvent, RowArgs } from '@progress/kendo-angular-grid';
 import { SortDescriptor, orderBy } from '@progress/kendo-data-query';
-import { SVGIcon, paletteIcon, gearIcon, passwordIcon, bellIcon, buildingsIcon, walletIcon, tableIcon, plusIcon, pencilIcon, lockIcon, clipboardTextIcon, filterIcon, calendarIcon, chartLineIcon } from '@progress/kendo-svg-icons';
+import { SVGIcon, paletteIcon, gearIcon, passwordIcon, bellIcon, buildingsIcon, walletIcon, tableIcon, plusIcon, pencilIcon, lockIcon, clipboardTextIcon, filterIcon, calendarIcon, chartLineIcon, menuIcon, shieldIcon } from '@progress/kendo-svg-icons';
 import { DialogModule } from '@progress/kendo-angular-dialog';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ThemeService, COLOR_SCHEMES, ColorScheme } from '../../core/services/theme.service';
@@ -19,6 +19,9 @@ import { CounterService } from '../../core/services/counter.service';
 import { Counter } from '../../core/models/counter.model';
 import { AuditActionTypesComponent } from '../audit/action-types/audit-action-types.component';
 import { AuditEntityTypesComponent } from '../audit/entity-types/audit-entity-types.component';
+import { MenuManagerComponent } from './menu-manager/menu-manager.component';
+import { RolesManagerComponent } from './roles-manager/roles-manager.component';
+import { OrgChartComponent } from './org-chart/org-chart.component';
 
 interface SettingGroup  { id: string; text: string; icon: SVGIcon; }
 interface EditNavGroup  { id: string; text: string; icon: SVGIcon; }
@@ -30,7 +33,8 @@ interface EditNavGroup  { id: string; text: string; icon: SVGIcon; }
             TextBoxModule, NumericTextBoxModule, DropDownListModule,
             ButtonModule, IndicatorsModule, NotificationModule, IconsModule,
             GridModule, MatProgressSpinnerModule, DialogModule,
-            AuditActionTypesComponent, AuditEntityTypesComponent],
+            AuditActionTypesComponent, AuditEntityTypesComponent,
+            MenuManagerComponent, RolesManagerComponent, OrgChartComponent],
   providers: [NotificationService],
   templateUrl: './settings.component.html',
   styleUrl:    './settings.component.scss',
@@ -54,6 +58,9 @@ export class SettingsComponent {
     { id: 'billing',       text: 'חיוב ומנוי',   icon: walletIcon         },
     { id: 'counters',      text: 'מונים',         icon: tableIcon          },
     { id: 'audit-log',     text: 'יומן פעילות',  icon: clipboardTextIcon  },
+    { id: 'menu-tree',     text: 'עץ תפריטים',  icon: menuIcon           },
+    { id: 'roles',         text: 'תפקידים והרשאות', icon: shieldIcon      },
+    { id: 'org-chart',     text: 'מבנה ארגוני', icon: buildingsIcon      },
   ];
 
   // ── Counters — רשימה ──────────────────────────────────────

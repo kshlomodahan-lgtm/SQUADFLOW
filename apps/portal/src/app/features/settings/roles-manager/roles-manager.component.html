@@ -1,0 +1,253 @@
+<div class="roles-wrap">
+
+  <!-- Header -->
+  <div class="mgr-header">
+    <div>
+      <h2 class="mgr-title">
+        <kendo-svg-icon [icon]="icons.shield" class="mgr-title-icon" />
+        תפקידים והרשאות
+      </h2>
+      <p class="mgr-subtitle">הגדרת תפקידים + מטריצת הרשאות פר-מסך ופר-פעולה</p>
+    </div>
+    <button class="btn-save" (click)="openAddRole()">
+      <kendo-svg-icon [icon]="icons.plus" />
+      תפקיד חדש
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="center-spinner"><mat-spinner [diameter]="36" /></div>
+  }
+  @if (error()) {
+    <div class="error-box"><mat-icon>error_outline</mat-icon> {{ error() }}</div>
+  }
+
+  @if (!loading()) {
+    <div class="roles-layout">
+
+      <!-- ═══ LEFT — Role List ═══ -->
+      <div class="roles-panel">
+        <div class="panel-title">רשימת תפקידים</div>
+
+        @for (role of roles(); track role.RoleID) {
+          <div class="role-card" [class.active]="selectedRole()?.RoleID === role.RoleID" (click)="selectRole(role)">
+            <div class="role-color" [style.background]="role.ColorHex"></div>
+            <div class="role-info">
+              <div class="role-name">
+                {{ role.RoleName }}
+                @if (role.IsSystem) { <mat-icon class="lock-icon" title="תפקיד מערכת">lock</mat-icon> }
+              </div>
+              <div class="role-meta">
+                <span class="role-type-badge" [ngClass]="roleTypeBadge(role.RoleType)">
+                  {{ roleTypeName(role.RoleType) }}
+                </span>
+                <span class="role-users">
+                  <mat-icon>people</mat-icon>
+                  {{ role.UserCount }}
+                </span>
+              </div>
+            </div>
+            <div class="role-actions">
+              <button class="act-btn act-edit" kendoTooltip title="עריכה" (click)="$event.stopPropagation(); openEditRole(role)">
+                <kendo-svg-icon [icon]="icons.pencil" />
+              </button>
+              <button class="act-btn act-copy" kendoTooltip title="שכפל תפקיד" (click)="$event.stopPropagation(); openCloneDialog(role)">
+                <kendo-svg-icon [icon]="icons.copy" />
+              </button>
+              @if (!role.IsSystem) {
+                <button class="act-btn act-del" kendoTooltip title="מחיקה" (click)="$event.stopPropagation(); deleteRole(role)">
+                  <kendo-svg-icon [icon]="icons.trash" />
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        @if (roles().length === 0) {
+          <div class="panel-empty">אין תפקידים</div>
+        }
+      </div>
+
+      <!-- ═══ RIGHT — Permission Matrix ═══ -->
+      <div class="matrix-panel">
+        @if (!selectedRole()) {
+          <div class="matrix-empty">
+            <kendo-svg-icon [icon]="icons.shield" class="matrix-empty-icon" />
+            <p>בחר תפקיד משמאל כדי לערוך את מטריצת ההרשאות</p>
+          </div>
+        }
+
+        @if (selectedRole()) {
+          <div class="matrix-header">
+            <div class="matrix-title-row">
+              <div class="matrix-role-badge" [style.background]="selectedRole()!.ColorHex">
+                {{ selectedRole()!.RoleName }}
+              </div>
+              @if (matrixDirty()) {
+                <span class="dirty-badge">שינויים שלא נשמרו</span>
+              }
+            </div>
+            <button class="btn-save btn-save--sm" (click)="saveMatrix()" [disabled]="saving() || !matrixDirty()">
+              @if (saving()) { <mat-spinner [diameter]="14" /> } @else { ✓ }
+              שמור הרשאות
+            </button>
+          </div>
+
+          @if (matrixLoading()) {
+            <div class="center-spinner"><mat-spinner [diameter]="30" /></div>
+          }
+
+          @if (!matrixLoading() && matrixData().length > 0) {
+            <div class="matrix-scroll">
+              <table class="perm-matrix">
+                <thead>
+                  <tr>
+                    <th class="col-screen">מסך</th>
+                    @for (action of allActions(); track action) {
+                      <th class="col-action"
+                          kendoTooltip [title]="action"
+                          (click)="toggleAllForAction(action)">
+                        <div class="action-header">
+                          <div class="action-name-short">{{ action.replace('VIEW_','') }}</div>
+                          <div class="col-indicator"
+                               [class.all-on]="actionIsAllowedForAll(action)"
+                               [class.all-off]="actionIsAllowedForNone(action)">
+                          </div>
+                        </div>
+                      </th>
+                    }
+                    <th class="col-all" title="הכל">✦</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of matrixData(); track row.MenuItemID) {
+                    <tr [class.folder-row]="row.MenuItemType === 'FOLDER'"
+                        [class.child-row]="row.ParentID !== null">
+                      <td class="cell-screen">
+                        <div class="screen-name" [class.indented]="row.ParentID !== null">
+                          @if (row.MenuItemType === 'FOLDER') {
+                            <mat-icon class="folder-icon">folder</mat-icon>
+                          }
+                          {{ row.MenuItemName }}
+                          <span class="screen-code">{{ row.MenuItemCode }}</span>
+                        </div>
+                      </td>
+                      @for (action of allActions(); track action) {
+                        <td class="cell-perm"
+                            [class.cell-na]="!row.actions[action]"
+                            [class.cell-on]="row.actions[action]?.allowed"
+                            [class.cell-off]="row.actions[action] && !row.actions[action].allowed"
+                            (click)="toggleCell(row, action)">
+                          @if (row.actions[action]) {
+                            <span class="perm-toggle">
+                              {{ row.actions[action].allowed ? '✓' : '✗' }}
+                            </span>
+                          } @else {
+                            <span class="perm-na">—</span>
+                          }
+                        </td>
+                      }
+                      <td class="cell-all" (click)="toggleAllForScreen(row)"
+                          [class.all-screen-on]="screenAllAllowed(row)"
+                          kendoTooltip title="הפעל/כבה הכל לשורה זו">
+                        <span>{{ screenAllAllowed(row) ? '●' : '○' }}</span>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            <div class="matrix-legend">
+              <span class="legend-on">✓ מורשה</span>
+              <span class="legend-off">✗ לא מורשה</span>
+              <span class="legend-na">— לא רלוונטי</span>
+              <span class="legend-tip">💡 לחץ על כותרת עמודה כדי להפעיל/לכבות לכולם</span>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<!-- ═══ Role Add/Edit Dialog ═══ -->
+@if (roleDialogOpen()) {
+  <kendo-dialog
+    [title]="editingRole() ? 'עריכת תפקיד' : 'תפקיד חדש'"
+    [width]="480" [minWidth]="360"
+    (close)="roleDialogOpen.set(false)">
+
+    <form [formGroup]="roleForm" class="role-form">
+      <div class="form-field">
+        <label class="field-label">שם תפקיד <span class="req">*</span></label>
+        <kendo-textbox formControlName="roleName" placeholder="לדוגמה: מנהל מכירות" />
+        @if (roleForm.get('roleName')?.invalid && roleForm.get('roleName')?.touched) {
+          <span class="field-error">שדה חובה</span>
+        }
+      </div>
+      <div class="form-field">
+        <label class="field-label">קוד תפקיד <span class="req">*</span></label>
+        <kendo-textbox formControlName="roleCode" placeholder="SALES_MANAGER" />
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="field-label">סוג</label>
+          <kendo-dropdownlist formControlName="roleType" [data]="roleTypeOptions" textField="label" valueField="value" [valuePrimitive]="true" />
+        </div>
+        <div class="form-field form-field--xs">
+          <label class="field-label">סדר</label>
+          <kendo-numerictextbox formControlName="sortOrder" [min]="0" [decimals]="0" [format]="'n0'" />
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="field-label">צבע</label>
+        <div class="color-picker">
+          @for (color of colorOptions; track color) {
+            <button type="button" class="color-dot"
+                    [style.background]="color"
+                    [class.selected]="roleForm.get('colorHex')?.value === color"
+                    (click)="roleForm.get('colorHex')?.setValue(color)">
+            </button>
+          }
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="field-label">סטטוס</label>
+        <div class="seg-ctrl">
+          <button type="button" class="seg-btn" [class.seg-on]="!!roleForm.get('isActive')?.value" (click)="roleForm.get('isActive')?.setValue(true)">✓ פעיל</button>
+          <button type="button" class="seg-btn" [class.seg-off]="!roleForm.get('isActive')?.value" (click)="roleForm.get('isActive')?.setValue(false)">✗ מושהה</button>
+        </div>
+      </div>
+    </form>
+
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-save" (click)="saveRole()" [disabled]="saving()">✓ שמור</button>
+        <button class="btn-cancel" (click)="roleDialogOpen.set(false)">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}
+
+<!-- ═══ Clone Dialog ═══ -->
+@if (cloneDialogOpen()) {
+  <kendo-dialog title="שכפול תפקיד" [width]="400" (close)="cloneDialogOpen.set(false)">
+    <p class="clone-info">שכפול של <strong>{{ editingRole()?.RoleName }}</strong> עם כל ההרשאות שלו</p>
+    <form [formGroup]="cloneForm" class="role-form">
+      <div class="form-field">
+        <label class="field-label">שם תפקיד חדש <span class="req">*</span></label>
+        <kendo-textbox formControlName="newRoleName" />
+      </div>
+      <div class="form-field">
+        <label class="field-label">קוד תפקיד חדש <span class="req">*</span></label>
+        <kendo-textbox formControlName="newRoleCode" />
+      </div>
+    </form>
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-save" (click)="cloneRole()" [disabled]="saving()">✓ שכפל</button>
+        <button class="btn-cancel" (click)="cloneDialogOpen.set(false)">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}

@@ -36,7 +36,11 @@ app.use('/api/counters',   require('./routes/counters'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/products',   require('./routes/products'));
 app.use('/api/packages',   require('./routes/packages'));
-app.use('/api/audit',      require('./routes/audit'));
+app.use('/api/audit',        require('./routes/audit'));
+app.use('/api/menu-items',   require('./routes/menu-items'));
+app.use('/api/roles',        require('./routes/roles'));
+app.use('/api/permissions',  require('./routes/permissions'));
+app.use('/api/org',          require('./routes/org'));
 
 // 404
 app.use('/api/{*path}', (_req, res) => res.status(404).json({ success: false, message: 'Endpoint not found' }));

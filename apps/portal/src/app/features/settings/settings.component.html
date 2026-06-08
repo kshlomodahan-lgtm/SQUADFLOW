@@ -684,6 +684,27 @@
         </div>
       }
 
+      <!-- ══ עץ תפריטים ══ -->
+      @if (activeGroup() === 'menu-tree') {
+        <div class="content-section content-section--wide">
+          <app-menu-manager />
+        </div>
+      }
+
+      <!-- ══ תפקידים והרשאות ══ -->
+      @if (activeGroup() === 'roles') {
+        <div class="content-section content-section--wide">
+          <app-roles-manager />
+        </div>
+      }
+
+      <!-- ══ מבנה ארגוני ══ -->
+      @if (activeGroup() === 'org-chart') {
+        <div class="content-section content-section--wide">
+          <app-org-chart />
+        </div>
+      }
+
     </main>
   </div>
 

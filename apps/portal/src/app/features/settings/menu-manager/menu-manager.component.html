@@ -1,0 +1,228 @@
+<div class="menu-mgr-wrap">
+
+  <!-- Header -->
+  <div class="mgr-header">
+    <div>
+      <h2 class="mgr-title">
+        <kendo-svg-icon [icon]="icons.menu" class="mgr-title-icon" />
+        עץ תפריטים
+      </h2>
+      <p class="mgr-subtitle">הגדרת מבנה הניווט + הפעולות המותרות בכל מסך</p>
+    </div>
+    <button class="btn-save" (click)="openAddDialog(null)" [disabled]="loading()">
+      <kendo-svg-icon [icon]="icons.plus" />
+      פריט חדש
+    </button>
+  </div>
+
+  <!-- Spinner -->
+  @if (loading()) {
+    <div class="center-spinner"><mat-spinner [diameter]="36" /></div>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="error-box"><mat-icon>error_outline</mat-icon> {{ error() }}</div>
+  }
+
+  <!-- Tree -->
+  @if (!loading() && !error()) {
+    <div class="tree-card">
+      <div class="tree-legend">
+        <span class="legend-item"><span class="badge-screen">מסך</span></span>
+        <span class="legend-item"><span class="badge-folder">תיקייה</span></span>
+        <span class="legend-item"><span class="badge-divider">מפריד</span></span>
+      </div>
+
+      <div class="tree-body">
+        @for (root of treeData(); track root.MenuItemID) {
+          <ng-container *ngTemplateOutlet="treeNode; context: { $implicit: root, depth: 0 }" />
+        }
+        @if (treeData().length === 0) {
+          <div class="tree-empty">
+            <kendo-svg-icon [icon]="icons.menu" class="tree-empty-icon" />
+            <p>אין פריטי תפריט — לחץ "פריט חדש" כדי להתחיל</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+</div>
+
+<!-- ═══ Recursive Tree Node Template ═══ -->
+<ng-template #treeNode let-item let-depth="depth">
+  <div class="tree-node" [class.selected]="selectedNodeId() === item.MenuItemID" [style.padding-right.px]="depth * 24">
+
+    <!-- Toggle / Indent -->
+    <div class="node-toggle">
+      @if (item.children.length > 0) {
+        <button class="toggle-btn" (click)="toggleNode(item)">
+          <kendo-svg-icon [icon]="item.expanded ? icons.chevronDown : icons.chevronUp" />
+        </button>
+      } @else {
+        <span class="toggle-spacer"></span>
+      }
+    </div>
+
+    <!-- Type Badge -->
+    <span class="node-type-badge" [ngClass]="typeBadgeClass(item.MenuItemType)">
+      {{ typeLabel(item.MenuItemType) }}
+    </span>
+
+    <!-- Icon -->
+    <mat-icon class="node-icon">{{ item.Icon || 'circle' }}</mat-icon>
+
+    <!-- Name -->
+    <span class="node-name" (click)="selectNode(item.MenuItemID)">{{ item.MenuItemName }}</span>
+    <span class="node-code">{{ item.MenuItemCode }}</span>
+
+    <!-- Route (if screen) -->
+    @if (item.Route) {
+      <span class="node-route">{{ item.Route }}</span>
+    }
+
+    <!-- Action badges -->
+    <div class="node-actions-list">
+      @for (code of item.actionCodeList; track code) {
+        <span class="action-chip">{{ code }}</span>
+      }
+    </div>
+
+    <!-- Visibility indicator -->
+    <span class="node-visibility" [title]="item.IsVisible ? 'גלוי' : 'מוסתר'">
+      <kendo-svg-icon [icon]="item.IsVisible ? icons.eye : icons.eyeSlash"
+                      [class.muted]="!item.IsVisible" />
+    </span>
+
+    <!-- Actions -->
+    <div class="node-btns">
+      @if (item.MenuItemType === 'FOLDER') {
+        <button class="act-btn act-add" kendoTooltip title="הוסף תת-פריט" (click)="openAddDialog(item)">
+          <kendo-svg-icon [icon]="icons.plus" />
+        </button>
+      }
+      <button class="act-btn act-edit" kendoTooltip title="עריכה" (click)="openEditDialog(item)">
+        <kendo-svg-icon [icon]="icons.pencil" />
+      </button>
+      <button class="act-btn act-del" kendoTooltip title="מחיקה" (click)="deleteItem(item)">
+        <kendo-svg-icon [icon]="icons.trash" />
+      </button>
+    </div>
+  </div>
+
+  <!-- Children -->
+  @if (item.expanded && item.children.length > 0) {
+    @for (child of item.children; track child.MenuItemID) {
+      <ng-container *ngTemplateOutlet="treeNode; context: { $implicit: child, depth: depth + 1 }" />
+    }
+  }
+</ng-template>
+
+<!-- ═══ Add / Edit Dialog ═══ -->
+@if (dialogOpen()) {
+  <kendo-dialog
+    [title]="editingItem() ? 'עריכת פריט תפריט' : 'פריט תפריט חדש'"
+    [width]="640" [minWidth]="420"
+    (close)="closeDialog()">
+
+    <form [formGroup]="form" class="menu-form">
+
+      <!-- Row 1: Name + Code -->
+      <div class="form-row">
+        <div class="form-field">
+          <label class="field-label">שם הפריט <span class="req">*</span></label>
+          <kendo-textbox formControlName="menuItemName" placeholder="לדוגמה: ניהול לקוחות" />
+          @if (form.get('menuItemName')?.invalid && form.get('menuItemName')?.touched) {
+            <span class="field-error">שדה חובה</span>
+          }
+        </div>
+        <div class="form-field form-field--sm">
+          <label class="field-label">קוד מזהה <span class="req">*</span></label>
+          <kendo-textbox formControlName="menuItemCode"
+                         [placeholder]="getMenuItemCodePlaceholder(form.get('menuItemType')?.value)" />
+          @if (form.get('menuItemCode')?.invalid && form.get('menuItemCode')?.touched) {
+            <span class="field-error">שדה חובה</span>
+          }
+        </div>
+      </div>
+
+      <!-- Row 2: Type + Icon + SortOrder -->
+      <div class="form-row">
+        <div class="form-field form-field--sm">
+          <label class="field-label">סוג</label>
+          <kendo-dropdownlist
+            formControlName="menuItemType"
+            [data]="itemTypeOptions"
+            textField="label" valueField="value"
+            [valuePrimitive]="true" />
+        </div>
+        <div class="form-field form-field--sm">
+          <label class="field-label">איקון</label>
+          <kendo-dropdownlist
+            formControlName="icon"
+            [data]="iconOptions"
+            textField="label" valueField="value"
+            [valuePrimitive]="true" />
+        </div>
+        <div class="form-field form-field--xs">
+          <label class="field-label">סדר</label>
+          <kendo-numerictextbox formControlName="sortOrder" [min]="0" [decimals]="0" [format]="'n0'" />
+        </div>
+      </div>
+
+      <!-- Row 3: Route (only for SCREEN) -->
+      @if (form.get('menuItemType')?.value === 'SCREEN') {
+        <div class="form-row">
+          <div class="form-field form-field--full">
+            <label class="field-label">מסלול (Route)</label>
+            <kendo-textbox formControlName="route" [placeholder]="getRoutePlaceholder()" />
+          </div>
+        </div>
+      }
+
+      <!-- Row 4: Visibility + Active -->
+      <div class="form-row form-row--toggles">
+        <label class="field-label">גלוי בתפריט</label>
+        <div class="seg-ctrl">
+          <button type="button" class="seg-btn" [class.seg-on]="!!form.get('isVisible')?.value" (click)="form.get('isVisible')?.setValue(true)">✓ גלוי</button>
+          <button type="button" class="seg-btn" [class.seg-off]="!form.get('isVisible')?.value" (click)="form.get('isVisible')?.setValue(false)">✗ מוסתר</button>
+        </div>
+        <label class="field-label" style="margin-right: 24px">סטטוס</label>
+        <div class="seg-ctrl">
+          <button type="button" class="seg-btn" [class.seg-on]="!!form.get('isActive')?.value" (click)="form.get('isActive')?.setValue(true)">✓ פעיל</button>
+          <button type="button" class="seg-btn" [class.seg-off]="!form.get('isActive')?.value" (click)="form.get('isActive')?.setValue(false)">✗ מושהה</button>
+        </div>
+      </div>
+
+      <!-- Row 5: Available Actions (only for SCREEN) -->
+      @if (form.get('menuItemType')?.value === 'SCREEN') {
+        <div class="form-section">
+          <div class="section-title">פעולות מורשות במסך זה</div>
+          <div class="action-grid">
+            @for (ac of actionCodeOptions; track ac.code) {
+              <label class="action-check" [class.checked]="hasAction(ac.code)">
+                <input type="checkbox" [checked]="hasAction(ac.code)" (change)="toggleActionCode(ac.code)" />
+                <span class="action-check-label">
+                  <span class="action-group-tag" [attr.data-group]="ac.group">{{ ac.group }}</span>
+                  {{ ac.name }}
+                </span>
+              </label>
+            }
+          </div>
+        </div>
+      }
+
+    </form>
+
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-save" (click)="save()" [disabled]="saving()">
+          @if (saving()) { <mat-spinner [diameter]="16" /> } @else { ✓ }
+          {{ editingItem() ? 'שמור שינויים' : 'הוסף פריט' }}
+        </button>
+        <button class="btn-cancel" (click)="closeDialog()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}
