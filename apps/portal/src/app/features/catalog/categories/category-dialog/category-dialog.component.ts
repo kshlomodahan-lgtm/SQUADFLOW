@@ -49,7 +49,7 @@ export class CategoryDialogComponent implements OnInit {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.saving.set(true);
     this.errorMsg = '';
-    const payload = { ...this.form.value, CategoryID: this.cat?.CategoryID ?? 0 };
+    const payload = { ...this.form.value, CategoryID: this.cat?.CategoryID ?? 0, TenantID: this.cat?.TenantID ?? 0 };
     this.svc.saveCategory(payload).subscribe({
       next: r => {
         this.saving.set(false);

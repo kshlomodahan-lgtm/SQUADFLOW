@@ -409,6 +409,14 @@
     width: 0 !important;
     padding: 0 !important;
   }
+
+  /* Kendo inputs RTL in edit/new counter forms */
+  .edit-screen-content, .new-dialog-content {
+    .k-input-inner { direction: rtl; text-align: right; }
+    .k-dropdownlist, .k-dropdown-wrap { direction: rtl; }
+    .k-list-item { direction: rtl; text-align: right; }
+    .k-numerictextbox .k-input-inner { direction: ltr; text-align: left; }
+  }
 }
 
 /* Inline inputs */
@@ -873,6 +881,11 @@
   }
 }
 
+.ef-dropdown {
+  max-width: 220px;
+  width: 100%;
+}
+
 /* Edit screen footer */
 .edit-screen-footer {
   display: flex;
@@ -881,6 +894,30 @@
   margin-top: 24px;
   padding-top: 20px;
   border-top: 1px solid var(--sf-border);
+}
+
+/* ─── Audit Log Sub-section ─── */
+.audit-log-layout {
+  display: flex;
+  flex-direction: row;
+  min-height: 400px;
+}
+
+.audit-sub-nav {
+  width: 180px;
+  flex-shrink: 0;
+  border-inline-end: 1px solid var(--sf-border);
+  background: var(--sf-bg);
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.audit-sub-content {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
 }
 
 /* ─── Responsive ─── */

@@ -1,10 +1,10 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { GridModule, PageChangeEvent } from '@progress/kendo-angular-grid';
+import { GridModule, GridComponent, PageChangeEvent, ExcelModule, PDFModule } from '@progress/kendo-angular-grid';
 import { SortDescriptor, orderBy } from '@progress/kendo-data-query';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
-import { plusIcon } from '@progress/kendo-svg-icons';
+import { plusIcon, fileExcelIcon, filePdfIcon } from '@progress/kendo-svg-icons';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CatalogService } from '../../../core/services/catalog.service';
@@ -16,7 +16,7 @@ import { ProductDialogComponent } from './product-dialog/product-dialog.componen
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    GridModule, ButtonsModule,
+    GridModule, ExcelModule, PDFModule, ButtonsModule,
     MatIconModule, MatProgressSpinnerModule,
     ProductDialogComponent,
   ],
@@ -24,7 +24,11 @@ import { ProductDialogComponent } from './product-dialog/product-dialog.componen
   styleUrl:    './products.component.scss',
 })
 export class ProductsComponent implements OnInit {
-  addIcon = plusIcon;
+  @ViewChild(GridComponent) grid!: GridComponent;
+
+  addIcon   = plusIcon;
+  excelIcon = fileExcelIcon;
+  pdfIcon   = filePdfIcon;
 
   loading    = signal(true);
   error      = signal('');
@@ -37,6 +41,7 @@ export class ProductsComponent implements OnInit {
 
   dialogOpen    = signal(false);
   dialogProduct = signal<Product | null>(null);
+  expandedIds   = new Set<number>();
 
   pricingLabels = PRICING_MODEL_LABELS;
   statusLabels  = PRODUCT_STATUS_LABELS;
@@ -58,7 +63,7 @@ export class ProductsComponent implements OnInit {
       ? this.products().filter(p =>
           p.ProductName.toLowerCase().includes(q) ||
           p.ProductCode.toLowerCase().includes(q) ||
-          p.ShortDescription.toLowerCase().includes(q))
+          (p.ShortDescription ?? '').toLowerCase().includes(q))
       : [...this.products()];
     this.gridData = orderBy(filtered, this.sort) as Product[];
     this.skip = 0;
@@ -73,12 +78,33 @@ export class ProductsComponent implements OnInit {
   onSaved()            { this.load(); }
   onClosed()           { this.dialogOpen.set(false); }
 
+  isExpanded(id: number) { return this.expandedIds.has(id); }
+
+  toggleDetail(prodId: number, rowIndex: number) {
+    const absIdx = this.skip + rowIndex;
+    if (this.expandedIds.has(prodId)) {
+      this.expandedIds.delete(prodId);
+      this.grid.collapseRow(absIdx);
+    } else {
+      this.expandedIds.add(prodId);
+      this.grid.expandRow(absIdx);
+    }
+  }
+
+  toggleActive(p: Product) {
+    this.svc.saveProduct({ ...p, IsActive: !p.IsActive }).subscribe({ next: () => this.load() });
+  }
+
+  exportExcel() { this.grid.saveAsExcel(); }
+  exportPDF()   { this.grid.saveAsPDF(); }
+  allData       = () => ({ data: this.gridData });
+
   get pagedData() { return this.gridData.slice(this.skip, this.skip + this.pageSize); }
 
   statusClass(s: string) {
     return ({ ACTIVE: 'badge-active', DRAFT: 'badge-draft', DEPRECATED: 'badge-deprecated' } as Record<string,string>)[s] ?? '';
   }
 
-  getPricingLabel(m: string)  { return (this.pricingLabels as Record<string,string>)[m] ?? m; }
-  getStatusLabel(s: string)   { return (this.statusLabels  as Record<string,string>)[s] ?? s; }
+  getPricingLabel(m: string) { return (this.pricingLabels as Record<string,string>)[m] ?? m; }
+  getStatusLabel(s: string)  { return (this.statusLabels  as Record<string,string>)[s] ?? s; }
 }

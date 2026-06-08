@@ -1,0 +1,198 @@
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header-start">
+      <a class="back-link" routerLink="/app/audit">
+        <mat-icon>arrow_forward</mat-icon>
+      </a>
+      <div>
+        <h1 class="page-title">סוגי פעולות</h1>
+        <span class="page-subtitle">ניהול טיפוסי הפעולות ביומן הפעילות</span>
+      </div>
+    </div>
+    <button class="btn-save" (click)="openAdd()">
+      <mat-icon>add</mat-icon>
+      הוסף פעולה
+    </button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input class="search-input" type="text" placeholder="חיפוש..."
+             (input)="onSearch($any($event.target).value)" />
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="center-spinner"><mat-spinner [diameter]="40"></mat-spinner></div>
+  }
+  @if (error()) {
+    <div class="error-box"><mat-icon>error_outline</mat-icon> {{ error() }}</div>
+  }
+
+  @if (!loading() && !error()) {
+    <kendo-grid
+      class="at-grid"
+      [data]="{ data: pagedData, total: gridData.length }"
+      [skip]="skip" [pageSize]="pageSize"
+      [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [25, 50] }"
+      [sortable]="{ mode: 'single', allowUnsort: false }"
+      [sort]="sort"
+      [reorderable]="true" [resizable]="true"
+      [columnMenu]="true"
+      scrollable="none"
+      (pageChange)="onPageChange($event)"
+      (sortChange)="onSortChange($event)">
+
+      <!-- Code -->
+      <kendo-grid-column field="ActionTypeCode" title="קוד" [width]="140">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <code class="code-cell">{{ dataItem.ActionTypeCode }}</code>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Name with badge preview -->
+      <kendo-grid-column field="ActionTypeName" title="שם פעולה">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <div class="name-cell">
+            <span class="action-badge" [style.background]="dataItem.BadgeColor">
+              {{ dataItem.ActionTypeName }}
+            </span>
+          </div>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Severity -->
+      <kendo-grid-column field="DefaultSeverity" title="חומרה ברירת מחדל" [width]="155">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="sev-badge" [ngClass]="severityClass(dataItem.DefaultSeverity)">
+            {{ dataItem.DefaultSeverity }}
+          </span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Source (Platform / Tenant) -->
+      <kendo-grid-column field="IsPlatform" title="מקור" [width]="110">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          @if (dataItem.IsPlatform) {
+            <span class="badge-platform">פלטפורמה</span>
+          } @else {
+            <span class="badge-tenant">ארגון</span>
+          }
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Active -->
+      <kendo-grid-column field="IsActive" title="פעיל" [width]="80">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="active-badge" [class.active]="dataItem.IsActive">
+            {{ dataItem.IsActive ? 'פעיל' : 'מושהה' }}
+          </span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Actions -->
+      <kendo-grid-column title="" [width]="70" [sortable]="false" [resizable]="false" [columnMenu]="false">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          @if (!dataItem.IsPlatform) {
+            <button class="act-btn act-edit" (click)="openEdit(dataItem)" title="ערוך">
+              <i class="pi pi-pencil"></i>
+            </button>
+          }
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-messages
+        pagerItemsPerPage="שורות בעמוד" pagerOf="מתוך" pagerItems="רשומות"
+        columnMenuFilter="סנן" columnMenuSort="מיון" columnMenuColumns="עמודות"
+        columnMenuSortAscending="עולה" columnMenuSortDescending="יורד"
+        noRecords="לא נמצאו סוגי פעולות" loading="טוען..." />
+    </kendo-grid>
+  }
+
+</div>
+
+<!-- Dialog -->
+@if (dialogOpen()) {
+  <kendo-dialog
+    [title]="editingItem() ? 'עריכת סוג פעולה' : 'הוספת סוג פעולה'"
+    [width]="460"
+    [minWidth]="360"
+    (close)="closeDialog()">
+
+    <form [formGroup]="form" class="dialog-form">
+
+      <div class="field-row">
+        <label class="field-label">קוד פעולה <span class="req">*</span></label>
+        <kendo-textbox formControlName="actionTypeCode" placeholder="למשל: EXPORT_DATA" />
+        @if (form.get('actionTypeCode')?.invalid && form.get('actionTypeCode')?.touched) {
+          <span class="field-error">קוד פעולה הוא שדה חובה</span>
+        }
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">שם פעולה <span class="req">*</span></label>
+        <kendo-textbox formControlName="actionTypeName" placeholder="למשל: ייצוא נתונים" />
+        @if (form.get('actionTypeName')?.invalid && form.get('actionTypeName')?.touched) {
+          <span class="field-error">שם פעולה הוא שדה חובה</span>
+        }
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">רמת חומרה ברירת מחדל</label>
+        <kendo-dropdownlist
+          formControlName="defaultSeverity"
+          [data]="severities"
+          textField="text"
+          valueField="value"
+          [valuePrimitive]="true">
+        </kendo-dropdownlist>
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">צבע badge</label>
+        <div class="color-row">
+          <input type="color" formControlName="badgeColor" class="color-input" />
+          <span class="action-badge" [style.background]="form.get('badgeColor')?.value || '#64748b'">
+            {{ form.get('actionTypeName')?.value || 'תצוגה מקדימה' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">סדר תצוגה</label>
+        <kendo-numerictextbox formControlName="sortOrder" [format]="'n0'" [min]="0" [max]="999" />
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">סטטוס</label>
+        <div class="seg-ctrl">
+          <button type="button" class="seg-btn"
+                  [class.seg-on]="!!form.get('isActive')?.value"
+                  (click)="form.get('isActive')?.setValue(true)">✓ פעיל</button>
+          <button type="button" class="seg-btn"
+                  [class.seg-off]="!form.get('isActive')?.value"
+                  (click)="form.get('isActive')?.setValue(false)">✗ מושהה</button>
+        </div>
+      </div>
+
+      @if (saveError()) {
+        <div class="save-error">{{ saveError() }}</div>
+      }
+
+    </form>
+
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-save" (click)="save()" [disabled]="saving()">
+          @if (saving()) { <mat-spinner [diameter]="16"></mat-spinner> }
+          ✓ שמור
+        </button>
+        <button class="btn-cancel" (click)="closeDialog()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}

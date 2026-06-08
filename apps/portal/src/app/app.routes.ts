@@ -50,6 +50,21 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/settings/settings.component').then(m => m.SettingsComponent),
       },
+      {
+        path: 'audit',
+        loadComponent: () =>
+          import('./features/audit/audit.component').then(m => m.AuditComponent),
+      },
+      {
+        path: 'audit/action-types',
+        loadComponent: () =>
+          import('./features/audit/action-types/audit-action-types.component').then(m => m.AuditActionTypesComponent),
+      },
+      {
+        path: 'audit/entity-types',
+        loadComponent: () =>
+          import('./features/audit/entity-types/audit-entity-types.component').then(m => m.AuditEntityTypesComponent),
+      },
     ],
   },
   { path: '**', redirectTo: 'login' },

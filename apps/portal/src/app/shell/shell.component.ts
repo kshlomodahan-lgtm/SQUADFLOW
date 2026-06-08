@@ -42,6 +42,12 @@ export class ShellComponent {
       ],
     },
     {
+      label: 'DevTools',
+      items: [
+        { icon: 'manage_search', label: 'יומן פעילות', route: '/app/audit' },
+      ],
+    },
+    {
       label: 'מערכת',
       items: [
         { icon: 'settings', label: 'הגדרות', route: '/app/settings' },

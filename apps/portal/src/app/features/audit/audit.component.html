@@ -1,0 +1,253 @@
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header-start">
+      <h1 class="page-title">יומן פעילות</h1>
+      <span class="page-subtitle">מעקב אחר כל הפעולות במערכת</span>
+    </div>
+    @if (isSuperAdmin()) {
+      <div class="page-header-end">
+        <a class="btn-secondary" routerLink="/app/audit/action-types">
+          <mat-icon>tune</mat-icon>
+          סוגי פעולות
+        </a>
+        <a class="btn-secondary" routerLink="/app/audit/entity-types">
+          <mat-icon>schema</mat-icon>
+          סוגי יישויות
+        </a>
+      </div>
+    }
+  </div>
+
+  <!-- Toolbar / Filters -->
+  <div class="filter-bar">
+    <div class="filter-row">
+
+      <!-- Date From -->
+      <div class="filter-group">
+        <label class="filter-label">מ-תאריך</label>
+        <kendo-datepicker
+          [(ngModel)]="dateFrom"
+          (valueChange)="onFilterChange()"
+          [format]="'dd/MM/yyyy'"
+          placeholder="בחר תאריך"
+          class="filter-datepicker">
+        </kendo-datepicker>
+      </div>
+
+      <!-- Date To -->
+      <div class="filter-group">
+        <label class="filter-label">עד-תאריך</label>
+        <kendo-datepicker
+          [(ngModel)]="dateTo"
+          (valueChange)="onFilterChange()"
+          [format]="'dd/MM/yyyy'"
+          placeholder="בחר תאריך"
+          class="filter-datepicker">
+        </kendo-datepicker>
+      </div>
+
+      <!-- Action Type -->
+      <div class="filter-group">
+        <label class="filter-label">סוג פעולה</label>
+        <kendo-dropdownlist
+          [data]="actionTypeOptions()"
+          textField="name"
+          valueField="code"
+          [valuePrimitive]="true"
+          [(ngModel)]="selectedActionType"
+          (valueChange)="onFilterChange()"
+          class="filter-dropdown">
+        </kendo-dropdownlist>
+      </div>
+
+      <!-- Entity Type -->
+      <div class="filter-group">
+        <label class="filter-label">סוג יישות</label>
+        <kendo-dropdownlist
+          [data]="entityTypeOptions()"
+          textField="name"
+          valueField="code"
+          [valuePrimitive]="true"
+          [(ngModel)]="selectedEntityType"
+          (valueChange)="onFilterChange()"
+          class="filter-dropdown">
+        </kendo-dropdownlist>
+      </div>
+
+      <!-- Severity -->
+      <div class="filter-group">
+        <label class="filter-label">קריטיות</label>
+        <kendo-dropdownlist
+          [data]="severityOptions"
+          textField="text"
+          valueField="value"
+          [valuePrimitive]="true"
+          [(ngModel)]="selectedSeverity"
+          (valueChange)="onFilterChange()"
+          class="filter-dropdown filter-dropdown-sm">
+        </kendo-dropdownlist>
+      </div>
+
+      <!-- Search -->
+      <div class="filter-group filter-search">
+        <label class="filter-label">חיפוש</label>
+        <div class="search-wrap">
+          <mat-icon class="search-icon">search</mat-icon>
+          <input class="search-input" type="text" placeholder="שם משתמש, יישות, IP..."
+                 [value]="searchText"
+                 (input)="onSearch($any($event.target).value)" />
+        </div>
+      </div>
+
+      <!-- Clear -->
+      <div class="filter-group filter-action">
+        <label class="filter-label">&nbsp;</label>
+        <button class="btn-clear" (click)="clearFilters()">
+          <mat-icon>filter_alt_off</mat-icon>
+          נקה
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="center-spinner">
+      <mat-spinner [diameter]="40"></mat-spinner>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="error-box">
+      <mat-icon>error_outline</mat-icon>
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Grid -->
+  @if (!loading() && !error()) {
+    <kendo-grid
+      class="audit-grid"
+      [data]="{ data: items(), total: total() }"
+      [skip]="skip"
+      [pageSize]="pageSize"
+      [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [25, 50, 100] }"
+      [sortable]="false"
+      [reorderable]="true"
+      [resizable]="true"
+      [columnMenu]="true"
+      scrollable="none"
+      (pageChange)="onPageChange($event)">
+
+      <!-- Detail Template -->
+      <ng-template kendoGridDetailTemplate let-dataItem>
+        <div class="detail-wrap">
+          @if (dataItem.OldValue || dataItem.NewValue) {
+            <div class="detail-cols">
+              <div class="detail-col">
+                <div class="detail-col-title">לפני השינוי</div>
+                <pre class="json-view json-old">{{ formatJson(dataItem.OldValue) || '—' }}</pre>
+              </div>
+              <div class="detail-col">
+                <div class="detail-col-title">אחרי השינוי</div>
+                <pre class="json-view json-new">{{ formatJson(dataItem.NewValue) || '—' }}</pre>
+              </div>
+            </div>
+          } @else {
+            <div class="detail-empty">
+              <mat-icon>info_outline</mat-icon>
+              אין נתוני שינוי לרשומה זו
+            </div>
+          }
+          @if (dataItem.SessionID) {
+            <div class="detail-session">Session: {{ dataItem.SessionID }}</div>
+          }
+        </div>
+      </ng-template>
+
+      <!-- חץ פרטים — שמאל -->
+      <kendo-grid-column title="" [width]="50" [sortable]="false" [resizable]="false" [columnMenu]="false">
+        <ng-template kendoGridCellTemplate let-dataItem let-rowIndex="rowIndex">
+          <div class="row-actions">
+            <button class="act-btn act-expand"
+                    [class.expanded]="isExpanded(dataItem.AuditID)"
+                    [title]="isExpanded(dataItem.AuditID) ? 'סגור' : 'פרטים'"
+                    (click)="toggleDetail(dataItem, rowIndex)">
+              <i class="pi" [class.pi-chevron-down]="!isExpanded(dataItem.AuditID)" [class.pi-chevron-up]="isExpanded(dataItem.AuditID)"></i>
+            </button>
+          </div>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- כתובת IP -->
+      <kendo-grid-column field="IPAddress" title="כתובת IP" [width]="135">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="ip-cell">{{ dataItem.IPAddress || '—' }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- קריטיות -->
+      <kendo-grid-column field="Severity" title="קריטיות" [width]="100" [columnMenu]="false">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="sev-badge" [ngClass]="severityClass(dataItem.Severity)">
+            {{ severityLabel(dataItem.Severity) }}
+          </span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- שם -->
+      <kendo-grid-column field="EntityName" title="שם">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="entity-name">{{ dataItem.EntityName || '—' }}</span>
+          @if (dataItem.EntityID) {
+            <span class="entity-id">#{{ dataItem.EntityID }}</span>
+          }
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- יישות -->
+      <kendo-grid-column field="EntityTypeName" title="יישות" [width]="130">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="entity-type">{{ dataItem.EntityTypeName || dataItem.EntityTypeCode }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- פעולה -->
+      <kendo-grid-column field="ActionTypeName" title="פעולה" [width]="155">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="action-badge" [style.background]="dataItem.BadgeColor || '#64748b'">
+            {{ dataItem.ActionTypeName || dataItem.ActionTypeCode }}
+          </span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- משתמש -->
+      <kendo-grid-column field="UserName" title="משתמש" [width]="150">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <div class="user-cell">
+            <span class="user-avatar-sm">{{ (dataItem.UserName || '?').charAt(0).toUpperCase() }}</span>
+            <span>{{ dataItem.UserName || 'אנונימי' }}</span>
+          </div>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- תאריך ושעה — ימין -->
+      <kendo-grid-column field="CreatedAt" title="תאריך ושעה" [width]="165">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="date-cell">{{ dataItem.CreatedAt | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-messages
+        pagerItemsPerPage="שורות בעמוד" pagerOf="מתוך" pagerItems="רשומות"
+        columnMenuFilter="סנן" columnMenuSort="מיון" columnMenuColumns="עמודות"
+        columnMenuSortAscending="עולה" columnMenuSortDescending="יורד"
+        noRecords="לא נמצאו רשומות ביומן" loading="טוען..." />
+    </kendo-grid>
+  }
+
+</div>

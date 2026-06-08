@@ -3,6 +3,7 @@ const router          = express.Router();
 const { sql, getPool, poolConnect } = require('../db');
 const requireAuth     = require('../middleware/auth');
 const requirePlatform = require('../middleware/platformAdmin');
+const { logAction }   = require('../helpers/auditLogger');
 
 // כל ה-routes דורשים login + TenantID=1
 router.use(requireAuth, requirePlatform);
@@ -162,6 +163,7 @@ router.post('/', async (req, res) => {
                 (@TenantID,@CustomerID,@ContactPersonID,'admin',@Email,
                  @Hash,@Salt,2,'מנהל','מערכת',1)`);
 
+    await logAction(req, { actionType: 'CREATE', entityType: 'TENANT', entityId: newId, entityName: companyName, newValue: { tenantCode: code, companyName, email } });
     return res.json({
       success:       true,
       message:       'הארגון נוצר בהצלחה',
@@ -186,7 +188,19 @@ router.put('/:id', async (req, res) => {
           bankName, bankBranch, bankAccount, accountingRef } = req.body;
 
   try {
-    const r = await (await getPool()).request()
+    const db = await getPool();
+
+    // שליפת ערכים קיימים לפני העדכון
+    const existing = await db.request()
+      .input('TenantID', sql.Int, id)
+      .query(`SELECT CompanyName, Email, Phone, Phone2, Fax, Website,
+                     PlanType, MaxUsers, MaxTickets, IsActive,
+                     BusinessNumber, Address, City, Country, ContactName,
+                     BankName, BankBranch, BankAccount, AccountingRef, Notes
+              FROM tblTenants WHERE TenantID = @TenantID`);
+    const old = existing.recordset[0] || {};
+
+    const r = await db.request()
       .input ('TenantID',       sql.Int,              id)
       .input ('CompanyName',    sql.NVarChar(150),     companyName)
       .input ('Email',          sql.NVarChar(150),     email)
@@ -218,6 +232,29 @@ router.put('/:id', async (req, res) => {
       return res.status(httpCode).json({ success: false, message: r.output.ResultMessage });
     }
 
+    // בניית diff — רק שדות שהשתנו (null/undefined/'' נחשבים שווים)
+    const norm = v => (v === null || v === undefined) ? '' : String(v);
+    const newFields = { companyName, email, phone: phone||'', phone2: phone2||'', fax: fax||'',
+      website: website||'', planType: planType||'basic', maxUsers: maxUsers||10,
+      maxTickets: maxTickets||200, isActive: isActive !== false,
+      businessNumber: businessNumber||'', address: address||'', city: city||'',
+      country: country||'ישראל', contactName: contactName||'',
+      bankName: bankName||'', bankBranch: bankBranch||'', bankAccount: bankAccount||'',
+      accountingRef: accountingRef||'', notes: notes||'' };
+    const fieldMap = {
+      companyName: 'CompanyName', email: 'Email', phone: 'Phone', phone2: 'Phone2',
+      fax: 'Fax', website: 'Website', planType: 'PlanType', maxUsers: 'MaxUsers',
+      maxTickets: 'MaxTickets', isActive: 'IsActive', businessNumber: 'BusinessNumber',
+      address: 'Address', city: 'City', country: 'Country', contactName: 'ContactName',
+      bankName: 'BankName', bankBranch: 'BankBranch', bankAccount: 'BankAccount',
+      accountingRef: 'AccountingRef', notes: 'Notes'
+    };
+    const changed = Object.keys(newFields).filter(k => norm(old[fieldMap[k]]) !== norm(newFields[k]));
+    const diffOld = changed.length ? Object.fromEntries(changed.map(k => [k, old[fieldMap[k]] ?? ''])) : null;
+    const diffNew = changed.length ? Object.fromEntries(changed.map(k => [k, newFields[k]])) : null;
+
+    await logAction(req, { actionType: 'UPDATE', entityType: 'TENANT', entityId: id,
+      entityName: companyName, oldValue: diffOld, newValue: diffNew });
     return res.json({ success: true, message: r.output.ResultMessage });
   } catch (err) {
     console.error('PUT /tenants/:id error:', err);
@@ -242,6 +279,7 @@ router.put('/:id/toggle', async (req, res) => {
       .input('IsActive', sql.Bit, newState)
       .query('UPDATE dbo.tblTenants SET IsActive=@IsActive, UpdatedAt=GETDATE() WHERE TenantID=@TenantID');
 
+    await logAction(req, { actionType: 'TOGGLE', entityType: 'TENANT', entityId: id, newValue: { isActive: newState === 1 } });
     return res.json({ success: true, isActive: newState === 1 });
   } catch (err) {
     console.error('PUT /tenants/:id/toggle error:', err);

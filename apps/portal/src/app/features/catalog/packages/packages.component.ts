@@ -1,10 +1,10 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { GridModule, PageChangeEvent } from '@progress/kendo-angular-grid';
+import { GridModule, GridComponent, PageChangeEvent, ExcelModule, PDFModule } from '@progress/kendo-angular-grid';
 import { SortDescriptor, orderBy } from '@progress/kendo-data-query';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
-import { plusIcon } from '@progress/kendo-svg-icons';
+import { plusIcon, fileExcelIcon, filePdfIcon } from '@progress/kendo-svg-icons';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CatalogService } from '../../../core/services/catalog.service';
@@ -16,7 +16,7 @@ import { PackageDialogComponent } from './package-dialog/package-dialog.componen
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    GridModule, ButtonsModule,
+    GridModule, ExcelModule, PDFModule, ButtonsModule,
     MatIconModule, MatProgressSpinnerModule,
     PackageDialogComponent,
   ],
@@ -24,7 +24,11 @@ import { PackageDialogComponent } from './package-dialog/package-dialog.componen
   styleUrl:    './packages.component.scss',
 })
 export class PackagesComponent implements OnInit {
-  addIcon = plusIcon;
+  @ViewChild(GridComponent) grid!: GridComponent;
+
+  addIcon   = plusIcon;
+  excelIcon = fileExcelIcon;
+  pdfIcon   = filePdfIcon;
 
   loading    = signal(true);
   error      = signal('');
@@ -37,6 +41,7 @@ export class PackagesComponent implements OnInit {
 
   dialogOpen    = signal(false);
   dialogPackage = signal<Package | null>(null);
+  expandedIds   = new Set<number>();
 
   constructor(private svc: CatalogService) {}
   ngOnInit() { this.load(); }
@@ -68,6 +73,27 @@ export class PackagesComponent implements OnInit {
   openEdit(p: Package) { this.dialogPackage.set(p);    this.dialogOpen.set(false); setTimeout(() => this.dialogOpen.set(true)); }
   onSaved()            { this.load(); }
   onClosed()           { this.dialogOpen.set(false); }
+
+  toggleActive(p: Package) {
+    this.svc.savePackage({ ...p, IsActive: !p.IsActive }).subscribe({ next: () => this.load() });
+  }
+
+  isExpanded(id: number) { return this.expandedIds.has(id); }
+
+  toggleDetail(pkgId: number, rowIndex: number) {
+    const absIdx = this.skip + rowIndex;
+    if (this.expandedIds.has(pkgId)) {
+      this.expandedIds.delete(pkgId);
+      this.grid.collapseRow(absIdx);
+    } else {
+      this.expandedIds.add(pkgId);
+      this.grid.expandRow(absIdx);
+    }
+  }
+
+  exportExcel() { this.grid.saveAsExcel(); }
+  exportPDF()   { this.grid.saveAsPDF(); }
+  allData       = () => ({ data: this.gridData });
 
   get pagedData() { return this.gridData.slice(this.skip, this.skip + this.pageSize); }
 }

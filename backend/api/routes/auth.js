@@ -3,6 +3,7 @@ const router  = express.Router();
 const crypto  = require('crypto');
 const jwt     = require('jsonwebtoken');
 const { sql, getPool, poolConnect } = require('../db');
+const { logAuth } = require('../helpers/auditLogger');
 
 // ── helpers ──────────────────────────────────────────────
 function hashPassword(password, salt) {
@@ -14,7 +15,8 @@ function hashPassword(password, salt) {
 // ── POST /api/auth/login ──────────────────────────────────
 router.post('/login', async (req, res) => {
   const { tenantCode, username, password } = req.body;
-  const ip        = req.ip || req.connection.remoteAddress || '';
+  const rawIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || req.connection?.remoteAddress || '';
+  const ip = rawIp.replace('::ffff:', '').replace('::1', '127.0.0.1');
   const userAgent = req.headers['user-agent'] || '';
 
   if (!tenantCode || !username || !password)
@@ -63,7 +65,6 @@ router.post('/login', async (req, res) => {
 
     if (ResultCode !== 0) {
       const httpCode = ResultCode === 2 || ResultCode === 5 ? 403 : 401;
-      // תרגום קודים לעברית ב-Node.js (לא מה-DB)
       const messages = {
         1: `שם משתמש או סיסמה שגויים`,
         2: 'המשתמש חסום. פנה למנהל המערכת',
@@ -71,12 +72,13 @@ router.post('/login', async (req, res) => {
         4: 'המשתמש אינו פעיל',
         5: 'החשבון נחסם עקב ניסיונות כניסה מרובים. פנה למנהל המערכת'
       };
-      // אם ResultMessage מהDB מכיל מספר ניסיונות — שלוף אותו
       const attemptsMatch = (ResultMessage || '').match(/\d+/);
       let msg = messages[ResultCode] || 'שגיאת כניסה';
       if (ResultCode === 1 && attemptsMatch) {
         msg = `שם משתמש או סיסמה שגויים. נותרו ${attemptsMatch[0]} ניסיונות`;
       }
+      const actionType = ResultCode === 5 ? 'LOGIN_FAILED_CRITICAL' : 'LOGIN_FAILED';
+      logAuth(ip, userAgent, actionType, username, tenantIdResolved, null, username);
       return res.status(httpCode).json({ success: false, code: ResultCode, message: msg });
     }
 
@@ -107,6 +109,8 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '8h' }
     );
+
+    logAuth(ip, userAgent, 'LOGIN', fullName, TenantID, UserID, fullName);
 
     return res.json({
       success: true,

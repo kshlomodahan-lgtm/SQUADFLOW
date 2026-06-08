@@ -1,6 +1,7 @@
 export interface ProductCategory {
   CategoryID:   number;
   TenantID:     number;
+  TenantName:   string | null;
   CategoryCode: string;
   CategoryName: string;
   ColorHex:     string;

@@ -8,6 +8,7 @@ import { IndicatorsModule } from '@progress/kendo-angular-indicators';
 import {
   buildingsIcon, userIcon, arrowRightIcon,
   clockIcon, cancelIcon, checkCircleIcon, SVGIcon,
+  gridIcon, listUnorderedSquareIcon,
 } from '@progress/kendo-svg-icons';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -28,12 +29,19 @@ interface RecentOrg {
   TenantID: number; CompanyName: string; TenantCode: string;
   PlanType: string; IsActive: boolean; SubscribedAt: string | null;
 }
+interface TopPackage {
+  PackageID: number; PackageName: string; PackageCode: string;
+  PriceMonthly: number; IsActive: boolean; ProductCount: number;
+}
 interface PlatformStats {
-  orgs:  { total: number; active: number; inactive: number; expiring: number };
-  users: { total: number; active: number; inactive: number };
+  orgs:     { total: number; active: number; inactive: number; expiring: number };
+  users:    { total: number; active: number; inactive: number };
+  products: { total: number; active: number; inactive: number; draft: number; deprecated: number };
+  packages: { total: number; active: number; inactive: number; public: number };
   planDistribution: { planType: string; count: number }[];
   monthlyGrowth:    { month: string; count: number }[];
   recentOrgs:       RecentOrg[];
+  topPackages:      TopPackage[];
 }
 
 @Component({
@@ -49,9 +57,14 @@ export class DashboardComponent implements OnInit {
   error   = signal('');
 
   readonly icons: Record<string, SVGIcon> = {
-    buildings: buildingsIcon, user: userIcon,
-    arrow: arrowRightIcon, clock: clockIcon,
-    cancel: cancelIcon, check: checkCircleIcon,
+    buildings: buildingsIcon,
+    user:      userIcon,
+    arrow:     arrowRightIcon,
+    clock:     clockIcon,
+    cancel:    cancelIcon,
+    check:     checkCircleIcon,
+    grid:      gridIcon,
+    packages:  listUnorderedSquareIcon,
   };
 
   get greeting(): string {
@@ -103,6 +116,16 @@ export class DashboardComponent implements OnInit {
     if (!s || s.users.total === 0) return 0;
     return Math.round((s.users.active / s.users.total) * 100);
   }
+  productActiveRatio(): number {
+    const s = this.stats();
+    if (!s || s.products.total === 0) return 0;
+    return Math.round((s.products.active / s.products.total) * 100);
+  }
+  packageActiveRatio(): number {
+    const s = this.stats();
+    if (!s || s.packages.total === 0) return 0;
+    return Math.round((s.packages.active / s.packages.total) * 100);
+  }
 
   planLabel(plan: string): string { return PLAN_LABELS[plan] ?? plan; }
   planColor(plan: string): string { return PLAN_COLORS[plan] ?? '#94a3b8'; }
@@ -119,8 +142,16 @@ export class DashboardComponent implements OnInit {
   ngOnInit() {
     this.http.get<{ success: boolean } & PlatformStats>('/api/stats/platform').subscribe({
       next: r => {
-        if (r.success) this.stats.set(r);
-        else this.error.set('השרת החזיר שגיאה — בדוק את הלוג');
+        if (r.success) {
+          this.stats.set({
+            ...r,
+            products:    r.products    ?? { total: 0, active: 0, inactive: 0, draft: 0, deprecated: 0 },
+            packages:    r.packages    ?? { total: 0, active: 0, inactive: 0, public: 0 },
+            topPackages: r.topPackages ?? [],
+          });
+        } else {
+          this.error.set('השרת החזיר שגיאה — בדוק את הלוג');
+        }
         this.loading.set(false);
       },
       error: err => {

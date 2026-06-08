@@ -28,11 +28,14 @@ BEGIN
     c.IconName,
     c.SortOrder,
     c.IsActive,
-    COUNT(p.ProductID) AS ProductCount
+    COUNT(p.ProductID) AS ProductCount,
+    t.CompanyName      AS TenantName
   FROM dbo.tblProductCategories c
   LEFT JOIN dbo.tblProducts p
     ON  p.CategoryID = c.CategoryID
     AND p.IsActive   = 1
+  LEFT JOIN dbo.tblTenants t
+    ON  t.TenantID   = c.TenantID
   WHERE c.TenantID IN (0, @TenantID)
   GROUP BY
     c.CategoryID,
@@ -42,7 +45,8 @@ BEGIN
     c.ColorHex,
     c.IconName,
     c.SortOrder,
-    c.IsActive
+    c.IsActive,
+    t.CompanyName
   ORDER BY c.SortOrder, c.CategoryName;
 END;
 GO
@@ -157,6 +161,12 @@ BEGIN
     p.PricingModel,
     p.PriceMonthly,
     p.PriceAnnual,
+    p.SetupFee,
+    p.TrialDays,
+    p.ProductVersion,
+    p.DeploymentType,
+    p.ColorHex,
+    p.IconName,
     p.ProductStatus,
     p.IsPublic,
     p.SortOrder,

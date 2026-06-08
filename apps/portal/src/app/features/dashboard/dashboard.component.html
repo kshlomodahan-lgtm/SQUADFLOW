@@ -20,8 +20,13 @@
         </div>
         <div class="hero-divider"></div>
         <div class="hero-stat">
-          <span class="hero-stat-num">{{ stats()!.orgs.active }}</span>
-          <span class="hero-stat-label">פעילים</span>
+          <span class="hero-stat-num">{{ stats()!.products.total }}</span>
+          <span class="hero-stat-label">מוצרים</span>
+        </div>
+        <div class="hero-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-num">{{ stats()!.packages.total }}</span>
+          <span class="hero-stat-label">חבילות</span>
         </div>
       }
       <div class="hero-badge">
@@ -69,16 +74,6 @@
         <span class="kpi-chip kpi-chip-ok">● פעיל</span>
       </div>
 
-      <!-- ארגונים: פגי תוקף -->
-      <div class="kpi-card" [class]="stats()!.orgs.expiring > 0 ? 'kpi-amber' : 'kpi-slate'">
-        <div class="kpi-watermark"><kendo-svg-icon [icon]="icons['clock']" /></div>
-        <div class="kpi-top"><span class="kpi-num">{{ stats()!.orgs.expiring }}</span></div>
-        <div class="kpi-label">פגי תוקף בחודש</div>
-        <span class="kpi-chip" [class.kpi-chip-warn]="stats()!.orgs.expiring > 0">
-          {{ stats()!.orgs.expiring > 0 ? '⚠ דורש טיפול' : '✓ תקין' }}
-        </span>
-      </div>
-
       <!-- משתמשים: סה"כ -->
       <div class="kpi-card kpi-purple clickable" routerLink="/app/users">
         <div class="kpi-watermark"><kendo-svg-icon [icon]="icons['user']" /></div>
@@ -90,12 +85,36 @@
         <span class="kpi-chip">לחץ לניהול ←</span>
       </div>
 
-      <!-- משתמשים: פעילים -->
-      <div class="kpi-card kpi-teal">
-        <div class="kpi-watermark"><kendo-svg-icon [icon]="icons['check']" /></div>
-        <div class="kpi-top"><span class="kpi-num">{{ stats()!.users.active }}</span></div>
-        <div class="kpi-label">משתמשים פעילים</div>
-        <span class="kpi-chip kpi-chip-ok">● פעיל</span>
+      <!-- מוצרים -->
+      <div class="kpi-card kpi-teal clickable" routerLink="/app/products">
+        <div class="kpi-watermark"><kendo-svg-icon [icon]="icons['grid']" /></div>
+        <div class="kpi-top">
+          <span class="kpi-num">{{ stats()!.products.total }}</span>
+          <kendo-svg-icon [icon]="icons['arrow']" class="kpi-arrow" />
+        </div>
+        <div class="kpi-label">מוצרים</div>
+        <span class="kpi-chip">{{ stats()!.products.active }} פעילים ←</span>
+      </div>
+
+      <!-- חבילות -->
+      <div class="kpi-card kpi-amber clickable" routerLink="/app/packages">
+        <div class="kpi-watermark"><kendo-svg-icon [icon]="icons['packages']" /></div>
+        <div class="kpi-top">
+          <span class="kpi-num">{{ stats()!.packages.total }}</span>
+          <kendo-svg-icon [icon]="icons['arrow']" class="kpi-arrow" />
+        </div>
+        <div class="kpi-label">חבילות</div>
+        <span class="kpi-chip">{{ stats()!.packages.active }} פעילות ←</span>
+      </div>
+
+      <!-- פגי תוקף -->
+      <div class="kpi-card" [class]="stats()!.orgs.expiring > 0 ? 'kpi-rose' : 'kpi-slate'">
+        <div class="kpi-watermark"><kendo-svg-icon [icon]="icons['clock']" /></div>
+        <div class="kpi-top"><span class="kpi-num">{{ stats()!.orgs.expiring }}</span></div>
+        <div class="kpi-label">פגי תוקף בחודש</div>
+        <span class="kpi-chip" [class.kpi-chip-warn]="stats()!.orgs.expiring > 0">
+          {{ stats()!.orgs.expiring > 0 ? '⚠ דורש טיפול' : '✓ תקין' }}
+        </span>
       </div>
 
     </div>
@@ -184,7 +203,7 @@
 
       </div>
 
-      <!-- RIGHT COLUMN: summary + donut -->
+      <!-- RIGHT COLUMN: summary + catalog + donut -->
       <div class="main-right">
 
         <!-- Summary Card -->
@@ -195,7 +214,6 @@
 
           <div class="summary-list">
 
-            <!-- Orgs row -->
             <div class="summary-item">
               <div class="summary-icon si-blue"><kendo-svg-icon [icon]="icons['buildings']" /></div>
               <div class="summary-body">
@@ -210,7 +228,6 @@
               </div>
             </div>
 
-            <!-- Users row -->
             <div class="summary-item">
               <div class="summary-icon si-purple"><kendo-svg-icon [icon]="icons['user']" /></div>
               <div class="summary-body">
@@ -221,6 +238,34 @@
                 </div>
                 <div class="summary-bar-track">
                   <div class="summary-bar-fill sb-purple" [style.width.%]="userActiveRatio()"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="summary-item">
+              <div class="summary-icon si-teal"><kendo-svg-icon [icon]="icons['grid']" /></div>
+              <div class="summary-body">
+                <div class="summary-row">
+                  <span class="summary-label">מוצרים</span>
+                  <span class="summary-value">{{ stats()!.products.active }} / {{ stats()!.products.total }}</span>
+                  <span class="summary-pct">{{ productActiveRatio() }}%</span>
+                </div>
+                <div class="summary-bar-track">
+                  <div class="summary-bar-fill sb-teal" [style.width.%]="productActiveRatio()"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="summary-item">
+              <div class="summary-icon si-amber"><kendo-svg-icon [icon]="icons['packages']" /></div>
+              <div class="summary-body">
+                <div class="summary-row">
+                  <span class="summary-label">חבילות</span>
+                  <span class="summary-value">{{ stats()!.packages.active }} / {{ stats()!.packages.total }}</span>
+                  <span class="summary-pct">{{ packageActiveRatio() }}%</span>
+                </div>
+                <div class="summary-bar-track">
+                  <div class="summary-bar-fill sb-amber" [style.width.%]="packageActiveRatio()"></div>
                 </div>
               </div>
             </div>
@@ -237,11 +282,49 @@
               <kendo-svg-icon [icon]="icons['cancel']" class="alert-icon" />
               <span>{{ stats()!.orgs.inactive }} ארגונים מושהים</span>
             </div>
-            <div class="alert-item" [class.alert-warn]="stats()!.users.inactive > 0" [class.alert-ok]="stats()!.users.inactive === 0">
+            <div class="alert-item" [class.alert-warn]="stats()!.products.draft > 0" [class.alert-ok]="stats()!.products.draft === 0">
               <kendo-svg-icon [icon]="icons['cancel']" class="alert-icon" />
-              <span>{{ stats()!.users.inactive }} משתמשים לא פעילים</span>
+              <span>{{ stats()!.products.draft }} מוצרים בטיוטה</span>
             </div>
           </div>
+        </div>
+
+        <!-- חבילות מובילות -->
+        <div class="dash-card">
+          <div class="card-hd">
+            <div class="card-hd-title">חבילות</div>
+            <a class="card-hd-link" routerLink="/app/packages">הצג הכל ←</a>
+          </div>
+          <table class="mini-table">
+            <thead>
+              <tr>
+                <th>חבילה</th>
+                <th>מוצרים</th>
+                <th>חודשי</th>
+                <th>סטטוס</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of stats()!.topPackages; track p.PackageID) {
+                <tr>
+                  <td>
+                    <span class="pkg-name-cell">{{ p.PackageName }}</span>
+                    <code class="code-tag">{{ p.PackageCode }}</code>
+                  </td>
+                  <td><span class="count-badge">{{ p.ProductCount }}</span></td>
+                  <td class="price-cell">₪{{ p.PriceMonthly | number:'1.0-0' }}</td>
+                  <td>
+                    <span class="status-pill" [class.pill-active]="p.IsActive" [class.pill-inactive]="!p.IsActive">
+                      {{ p.IsActive ? 'פעיל' : 'מושהה' }}
+                    </span>
+                  </td>
+                </tr>
+              }
+              @if (stats()!.topPackages.length === 0) {
+                <tr><td colspan="4" class="empty-row">אין חבילות עדיין</td></tr>
+              }
+            </tbody>
+          </table>
         </div>
 
         <!-- Donut Chart: Plan Mix -->
@@ -265,9 +348,7 @@
                   colorField="color"
                   [holeSize]="65"
                   [padding]="4">
-                  <kendo-chart-series-item-labels
-                    [visible]="false">
-                  </kendo-chart-series-item-labels>
+                  <kendo-chart-series-item-labels [visible]="false" />
                 </kendo-chart-series-item>
               </kendo-chart-series>
               <kendo-chart-tooltip [visible]="true" format="{0} ארגונים" />
@@ -276,7 +357,6 @@
             <div class="empty-chart">אין נתונים עדיין</div>
           }
 
-          <!-- Plan Legend -->
           <div class="plan-legend">
             @for (p of planDonutData; track p.plan) {
               <div class="plan-legend-item">

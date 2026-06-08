@@ -1,0 +1,177 @@
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header-start">
+      <a class="back-link" routerLink="/app/audit">
+        <mat-icon>arrow_forward</mat-icon>
+      </a>
+      <div>
+        <h1 class="page-title">סוגי יישויות</h1>
+        <span class="page-subtitle">ניהול טיפוסי היישויות ביומן הפעילות</span>
+      </div>
+    </div>
+    <button class="btn-save" (click)="openAdd()">
+      <mat-icon>add</mat-icon>
+      הוסף יישות
+    </button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input class="search-input" type="text" placeholder="חיפוש..."
+             (input)="onSearch($any($event.target).value)" />
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="center-spinner"><mat-spinner [diameter]="40"></mat-spinner></div>
+  }
+  @if (error()) {
+    <div class="error-box"><mat-icon>error_outline</mat-icon> {{ error() }}</div>
+  }
+
+  @if (!loading() && !error()) {
+    <kendo-grid
+      class="et-grid"
+      [data]="{ data: pagedData, total: gridData.length }"
+      [skip]="skip" [pageSize]="pageSize"
+      [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [25, 50] }"
+      [sortable]="{ mode: 'single', allowUnsort: false }"
+      [sort]="sort"
+      [reorderable]="true" [resizable]="true"
+      [columnMenu]="true"
+      scrollable="none"
+      (pageChange)="onPageChange($event)"
+      (sortChange)="onSortChange($event)">
+
+      <!-- Code -->
+      <kendo-grid-column field="EntityTypeCode" title="קוד" [width]="150">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <code class="code-cell">{{ dataItem.EntityTypeCode }}</code>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Name -->
+      <kendo-grid-column field="EntityTypeName" title="שם יישות">
+      </kendo-grid-column>
+
+      <!-- Module -->
+      <kendo-grid-column field="ModuleName" title="מודול" [width]="160">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          @if (dataItem.ModuleName) {
+            <span class="module-badge">{{ dataItem.ModuleName }}</span>
+          } @else {
+            <span class="text-muted">—</span>
+          }
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Source -->
+      <kendo-grid-column field="IsPlatform" title="מקור" [width]="110">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          @if (dataItem.IsPlatform) {
+            <span class="badge-platform">פלטפורמה</span>
+          } @else {
+            <span class="badge-tenant">ארגון</span>
+          }
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Active -->
+      <kendo-grid-column field="IsActive" title="פעיל" [width]="80">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <span class="active-badge" [class.active]="dataItem.IsActive">
+            {{ dataItem.IsActive ? 'פעיל' : 'מושהה' }}
+          </span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Actions -->
+      <kendo-grid-column title="" [width]="70" [sortable]="false" [resizable]="false" [columnMenu]="false">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          @if (!dataItem.IsPlatform) {
+            <button class="act-btn act-edit" (click)="openEdit(dataItem)" title="ערוך">
+              <i class="pi pi-pencil"></i>
+            </button>
+          }
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-messages
+        pagerItemsPerPage="שורות בעמוד" pagerOf="מתוך" pagerItems="רשומות"
+        columnMenuFilter="סנן" columnMenuSort="מיון" columnMenuColumns="עמודות"
+        columnMenuSortAscending="עולה" columnMenuSortDescending="יורד"
+        noRecords="לא נמצאו סוגי יישויות" loading="טוען..." />
+    </kendo-grid>
+  }
+
+</div>
+
+<!-- Dialog -->
+@if (dialogOpen()) {
+  <kendo-dialog
+    [title]="editingItem() ? 'עריכת סוג יישות' : 'הוספת סוג יישות'"
+    [width]="440"
+    [minWidth]="340"
+    (close)="closeDialog()">
+
+    <form [formGroup]="form" class="dialog-form">
+
+      <div class="field-row">
+        <label class="field-label">קוד יישות <span class="req">*</span></label>
+        <kendo-textbox formControlName="entityTypeCode" placeholder="למשל: INVOICE" />
+        @if (form.get('entityTypeCode')?.invalid && form.get('entityTypeCode')?.touched) {
+          <span class="field-error">קוד יישות הוא שדה חובה</span>
+        }
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">שם יישות <span class="req">*</span></label>
+        <kendo-textbox formControlName="entityTypeName" placeholder="למשל: חשבונית" />
+        @if (form.get('entityTypeName')?.invalid && form.get('entityTypeName')?.touched) {
+          <span class="field-error">שם יישות הוא שדה חובה</span>
+        }
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">שם מודול</label>
+        <kendo-textbox formControlName="moduleName" placeholder="למשל: CRM" />
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">סדר תצוגה</label>
+        <kendo-numerictextbox formControlName="sortOrder" [format]="'n0'" [min]="0" [max]="999" />
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">סטטוס</label>
+        <div class="seg-ctrl">
+          <button type="button" class="seg-btn"
+                  [class.seg-on]="!!form.get('isActive')?.value"
+                  (click)="form.get('isActive')?.setValue(true)">✓ פעיל</button>
+          <button type="button" class="seg-btn"
+                  [class.seg-off]="!form.get('isActive')?.value"
+                  (click)="form.get('isActive')?.setValue(false)">✗ מושהה</button>
+        </div>
+      </div>
+
+      @if (saveError()) {
+        <div class="save-error">{{ saveError() }}</div>
+      }
+
+    </form>
+
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-save" (click)="save()" [disabled]="saving()">
+          @if (saving()) { <mat-spinner [diameter]="16"></mat-spinner> }
+          ✓ שמור
+        </button>
+        <button class="btn-cancel" (click)="closeDialog()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}

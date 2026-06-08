@@ -3,6 +3,7 @@ const router      = express.Router();
 const { sql, getPool } = require('../db');
 const requireAuth = require('../middleware/auth');
 const crypto      = require('crypto');
+const { logAction } = require('../helpers/auditLogger');
 
 // ── GET /api/users/roles — רשימת תפקידים
 router.get('/roles', requireAuth, async (req, res) => {
@@ -136,6 +137,7 @@ router.post('/', requireAuth, async (req, res) => {
     if (ResultCode !== 0)
       return res.status(400).json({ success: false, code: ResultCode, message: ResultMessage });
 
+    await logAction(req, { actionType: 'CREATE', entityType: 'USER', entityId: NewUserID, entityName: `${firstName} ${lastName}` });
     return res.json({ success: true, message: ResultMessage, userId: NewUserID });
   } catch (err) {
     console.error('POST /users error:', err);
@@ -151,7 +153,15 @@ router.put('/:id', requireAuth, async (req, res) => {
   const { firstName, lastName, email, roleId, isActive } = req.body;
 
   try {
-    const r = await (await getPool()).request()
+    const db = await getPool();
+
+    // שליפת ערכים קיימים לפני העדכון
+    const existing = await db.request()
+      .input('UserID', sql.Int, id)
+      .query('SELECT FirstName, LastName, Email, RoleID, IsActive FROM tblUsers WHERE UserID = @UserID');
+    const old = existing.recordset[0] || {};
+
+    const r = await db.request()
       .input ('UserID',        sql.Int,          id)
       .input ('FirstName',     sql.NVarChar(100), firstName)
       .input ('LastName',      sql.NVarChar(100), lastName)
@@ -168,6 +178,15 @@ router.put('/:id', requireAuth, async (req, res) => {
       return res.status(httpCode).json({ success: false, message: ResultMessage });
     }
 
+    const norm = v => (v === null || v === undefined) ? '' : String(v);
+    const newFields = { firstName, lastName, email, roleId, isActive: isActive !== false };
+    const fieldMap  = { firstName: 'FirstName', lastName: 'LastName', email: 'Email', roleId: 'RoleID', isActive: 'IsActive' };
+    const changed   = Object.keys(newFields).filter(k => norm(old[fieldMap[k]]) !== norm(newFields[k]));
+    const diffOld   = changed.length ? Object.fromEntries(changed.map(k => [k, old[fieldMap[k]] ?? ''])) : null;
+    const diffNew   = changed.length ? Object.fromEntries(changed.map(k => [k, newFields[k]])) : null;
+
+    await logAction(req, { actionType: 'UPDATE', entityType: 'USER', entityId: id,
+      entityName: `${firstName} ${lastName}`, oldValue: diffOld, newValue: diffNew });
     return res.json({ success: true, message: ResultMessage });
   } catch (err) {
     console.error('PUT /users/:id error:', err);
@@ -198,6 +217,7 @@ router.put('/:id/toggle', requireAuth, async (req, res) => {
       .input('IsActive', sql.Bit, newState)
       .query(`UPDATE dbo.tblUsers SET IsActive=@IsActive WHERE UserID=@UserID`);
 
+    await logAction(req, { actionType: 'TOGGLE', entityType: 'USER', entityId: userId, newValue: { isActive: newState === 1 } });
     return res.json({ success: true, isActive: newState === 1 });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'שגיאת שרת' });

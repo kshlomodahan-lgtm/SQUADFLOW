@@ -276,13 +276,15 @@
                           </div>
                         </div>
                         <div class="ef-row">
-                          <label class="ef-label" for="ef-datefmt">פורמט תאריך</label>
+                          <label class="ef-label">פורמט תאריך</label>
                           <div class="ef-control">
-                            <select id="ef-datefmt" class="ef-select" formControlName="dateFormat">
-                              @for (o of dateFormatOptions; track o.value) {
-                                <option [value]="o.value">{{ o.text }}</option>
-                              }
-                            </select>
+                            <kendo-dropdownlist
+                              formControlName="dateFormat"
+                              [data]="dateFormatOptions"
+                              textField="text"
+                              valueField="value"
+                              [valuePrimitive]="true"
+                              class="ef-dropdown" />
                             <small class="ef-hint">
                               @switch (editForm.get('dateFormat')?.value) {
                                 @case ('NONE')       { ללא תאריך — INV-000042 }
@@ -317,26 +319,26 @@
                       <div class="ef-card">
                         <div class="ef-card-title">טווח ערכים</div>
                         <div class="ef-row">
-                          <label class="ef-label" for="ef-step">צעד (Step)</label>
+                          <label class="ef-label">צעד (Step)</label>
                           <div class="ef-control">
-                            <input id="ef-step" kendoTextBox type="number" formControlName="stepValue"
-                                   min="1" style="max-width:120px" />
+                            <kendo-numerictextbox formControlName="stepValue"
+                              [min]="1" [decimals]="0" [format]="'n0'" style="max-width:140px" />
                             <small class="ef-hint">גודל הדילוג בין מספר למספר (בדרך כלל 1)</small>
                           </div>
                         </div>
                         <div class="ef-row">
-                          <label class="ef-label" for="ef-start">ערך התחלה</label>
+                          <label class="ef-label">ערך התחלה</label>
                           <div class="ef-control">
-                            <input id="ef-start" kendoTextBox type="number" formControlName="startValue"
-                                   min="0" style="max-width:120px" />
+                            <kendo-numerictextbox formControlName="startValue"
+                              [min]="0" [decimals]="0" [format]="'n0'" style="max-width:140px" />
                             <small class="ef-hint">המספר הראשון שיוקצה</small>
                           </div>
                         </div>
                         <div class="ef-row">
-                          <label class="ef-label" for="ef-max">ערך מקסימלי</label>
+                          <label class="ef-label">ערך מקסימלי</label>
                           <div class="ef-control">
-                            <input id="ef-max" kendoTextBox type="number" formControlName="maxValue"
-                                   min="1" style="max-width:120px" />
+                            <kendo-numerictextbox formControlName="maxValue"
+                              [min]="1" [decimals]="0" [format]="'n0'" style="max-width:140px" />
                             <small class="ef-hint">לאחר הגעה לערך זה — המונה ינעל אוטומטית</small>
                           </div>
                         </div>
@@ -347,13 +349,15 @@
                       <div class="ef-card">
                         <div class="ef-card-title">מחזוריות איפוס</div>
                         <div class="ef-row">
-                          <label class="ef-label" for="ef-reset">תקופת איפוס</label>
+                          <label class="ef-label">תקופת איפוס</label>
                           <div class="ef-control">
-                            <select id="ef-reset" class="ef-select" formControlName="resetPeriod">
-                              @for (o of resetPeriodOptions; track o.value) {
-                                <option [value]="o.value">{{ o.text }}</option>
-                              }
-                            </select>
+                            <kendo-dropdownlist
+                              formControlName="resetPeriod"
+                              [data]="resetPeriodOptions"
+                              textField="text"
+                              valueField="value"
+                              [valuePrimitive]="true"
+                              class="ef-dropdown" />
                             <small class="ef-hint">
                               @switch (editForm.get('resetPeriod')?.value) {
                                 @case ('NEVER')   { המונה לא מתאפס לעולם }
@@ -645,6 +649,41 @@
         </div>
       }
 
+      <!-- יומן פעילות -->
+      @if (activeGroup() === 'audit-log') {
+        <div class="content-section content-section--wide">
+          <div class="audit-log-layout">
+
+            <!-- Sub-nav -->
+            <nav class="audit-sub-nav">
+              <button class="nav-item" [class.active]="auditSubGroup() === 'action-types'"
+                      (click)="auditSubGroup.set('action-types')">
+                <span class="nav-icon"><kendo-svg-icon [icon]="pencilIcon" /></span>
+                <span class="nav-text">סוגי פעולות</span>
+                @if (auditSubGroup() === 'action-types') { <span class="nav-indicator"></span> }
+              </button>
+              <button class="nav-item" [class.active]="auditSubGroup() === 'entity-types'"
+                      (click)="auditSubGroup.set('entity-types')">
+                <span class="nav-icon"><kendo-svg-icon [icon]="filterIcon" /></span>
+                <span class="nav-text">סוגי יישויות</span>
+                @if (auditSubGroup() === 'entity-types') { <span class="nav-indicator"></span> }
+              </button>
+            </nav>
+
+            <!-- Sub-content -->
+            <div class="audit-sub-content">
+              @if (auditSubGroup() === 'action-types') {
+                <app-audit-action-types />
+              }
+              @if (auditSubGroup() === 'entity-types') {
+                <app-audit-entity-types />
+              }
+            </div>
+
+          </div>
+        </div>
+      }
+
     </main>
   </div>
 
@@ -770,13 +809,15 @@
 
               <!-- פורמט תאריך -->
               <div class="ef-row">
-                <label class="ef-label" for="nf-datefmt">פורמט תאריך</label>
+                <label class="ef-label">פורמט תאריך</label>
                 <div class="ef-control">
-                  <select id="nf-datefmt" class="ef-select" formControlName="dateFormat">
-                    @for (o of dateFormatOptions; track o.value) {
-                      <option [value]="o.value">{{ o.text }}</option>
-                    }
-                  </select>
+                  <kendo-dropdownlist
+                    formControlName="dateFormat"
+                    [data]="dateFormatOptions"
+                    textField="text"
+                    valueField="value"
+                    [valuePrimitive]="true"
+                    class="ef-dropdown" />
                 </div>
               </div>
 
@@ -802,23 +843,26 @@
             <div class="ef-card">
               <div class="ef-card-title">טווח ערכים</div>
               <div class="ef-row">
-                <label class="ef-label" for="nf-step">צעד (Step)</label>
+                <label class="ef-label">צעד (Step)</label>
                 <div class="ef-control">
-                  <input id="nf-step" kendoTextBox type="number" formControlName="stepValue" min="1" style="max-width:120px" />
+                  <kendo-numerictextbox formControlName="stepValue"
+                    [min]="1" [decimals]="0" [format]="'n0'" style="max-width:140px" />
                   <small class="ef-hint">גודל הדילוג בין מספר למספר (בדרך כלל 1)</small>
                 </div>
               </div>
               <div class="ef-row">
-                <label class="ef-label" for="nf-start">ערך התחלה</label>
+                <label class="ef-label">ערך התחלה</label>
                 <div class="ef-control">
-                  <input id="nf-start" kendoTextBox type="number" formControlName="startValue" min="0" style="max-width:120px" />
+                  <kendo-numerictextbox formControlName="startValue"
+                    [min]="0" [decimals]="0" [format]="'n0'" style="max-width:140px" />
                   <small class="ef-hint">המספר הראשון שיוקצה</small>
                 </div>
               </div>
               <div class="ef-row">
-                <label class="ef-label" for="nf-max">ערך מקסימלי</label>
+                <label class="ef-label">ערך מקסימלי</label>
                 <div class="ef-control">
-                  <input id="nf-max" kendoTextBox type="number" formControlName="maxValue" min="1" style="max-width:120px" />
+                  <kendo-numerictextbox formControlName="maxValue"
+                    [min]="1" [decimals]="0" [format]="'n0'" style="max-width:140px" />
                   <small class="ef-hint">לאחר הגעה לערך זה — המונה ינעל אוטומטית</small>
                 </div>
               </div>
@@ -829,13 +873,15 @@
             <div class="ef-card">
               <div class="ef-card-title">מחזוריות איפוס</div>
               <div class="ef-row">
-                <label class="ef-label" for="nf-reset">תקופת איפוס</label>
+                <label class="ef-label">תקופת איפוס</label>
                 <div class="ef-control">
-                  <select id="nf-reset" class="ef-select" formControlName="resetPeriod">
-                    @for (o of resetPeriodOptions; track o.value) {
-                      <option [value]="o.value">{{ o.text }}</option>
-                    }
-                  </select>
+                  <kendo-dropdownlist
+                    formControlName="resetPeriod"
+                    [data]="resetPeriodOptions"
+                    textField="text"
+                    valueField="value"
+                    [valuePrimitive]="true"
+                    class="ef-dropdown" />
                   <small class="ef-hint">
                     @switch (newForm.get('resetPeriod')?.value) {
                       @case ('NEVER')   { המונה לא מתאפס לעולם }

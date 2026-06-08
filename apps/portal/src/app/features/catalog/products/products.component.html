@@ -1,55 +1,112 @@
-<div class="page-header">
-  <div class="page-title-row">
-    <h1 class="page-title">מוצרים</h1>
+<div class="prod-page">
+
+  <div class="page-header">
+    <div class="header-titles">
+      <h1>מוצרים</h1>
+      <p>{{ products().length }} מוצרים במערכת</p>
+    </div>
     <button kendoButton themeColor="primary" [svgIcon]="addIcon" (click)="openAdd()">
       מוצר חדש
     </button>
   </div>
-</div>
 
-<div class="page-body">
   <div class="toolbar">
     <div class="search-wrap">
       <mat-icon class="search-icon">search</mat-icon>
       <input class="search-input" type="text" placeholder="חיפוש מוצר..."
              (input)="onSearch($any($event.target).value)" />
     </div>
+    <div class="export-btns">
+      <button kendoButton fillMode="outline" [svgIcon]="excelIcon" (click)="exportExcel()" class="btn-export btn-excel" title="ייצוא לאקסל">Excel</button>
+      <button kendoButton fillMode="outline" [svgIcon]="pdfIcon"   (click)="exportPDF()"   class="btn-export btn-pdf"   title="ייצוא ל-PDF">PDF</button>
+    </div>
   </div>
 
   @if (loading()) {
-    <div class="spinner-wrap"><mat-spinner diameter="40" /></div>
-  } @else if (error()) {
-    <div class="error-box">{{ error() }}</div>
-  } @else {
-    <kendo-grid class="prod-grid"
+    <div class="state-box"><mat-spinner diameter="36" /></div>
+  }
+  @if (!loading() && error()) {
+    <div class="state-box error">{{ error() }}</div>
+  }
+
+  @if (!loading() && !error()) {
+    <kendo-grid
       [data]="{ data: pagedData, total: gridData.length }"
       [skip]="skip" [pageSize]="pageSize"
       [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [10, 25, 50] }"
       [sortable]="{ mode: 'single', allowUnsort: false }"
       [sort]="sort"
       [reorderable]="true" [resizable]="true"
+      [columnMenu]="true"
       scrollable="none"
       (pageChange)="onPageChange($event)"
-      (sortChange)="onSortChange($event)">
+      (sortChange)="onSortChange($event)"
+      class="prod-grid">
 
-      <kendo-grid-column field="ColorHex" title="" [width]="50" [sortable]="false" [resizable]="false" [columnMenu]="false">
-        <ng-template kendoGridCellTemplate let-row>
-          <span class="color-dot" [style.background]="row.ColorHex"></span>
-        </ng-template>
-      </kendo-grid-column>
+      <kendo-grid-pdf fileName="מוצרים.pdf" [allPages]="true" paperSize="A4" [landscape]="true" margin="1cm" />
+      <kendo-grid-excel fileName="מוצרים.xlsx" [fetchData]="allData">
+        <kendo-excelexport-column field="ProductCode"   title="קוד"        [width]="120" />
+        <kendo-excelexport-column field="ProductName"   title="שם מוצר"    [width]="200" />
+        <kendo-excelexport-column field="CategoryName"  title="קטגוריה"    [width]="140" />
+        <kendo-excelexport-column field="PricingModel"  title="מודל תמחור" [width]="120" />
+        <kendo-excelexport-column field="PriceMonthly"  title="מחיר חודשי" [width]="110" />
+        <kendo-excelexport-column field="PriceAnnual"   title="מחיר שנתי"  [width]="110" />
+        <kendo-excelexport-column field="ProductStatus" title="סטטוס"      [width]="100" />
+        <kendo-excelexport-column field="IsActive"      title="פעיל"       [width]="60"  />
+      </kendo-grid-excel>
 
-      <kendo-grid-column field="ProductName" title="שם מוצר">
+      <kendo-grid-messages
+        pagerItemsPerPage="שורות בעמוד" pagerOf="מתוך" pagerItems="רשומות"
+        pagerFirstPage="עמוד ראשון" pagerLastPage="עמוד אחרון"
+        pagerPreviousPage="הקודם" pagerNextPage="הבא"
+        pagerPage="עמוד" pagerPageNumberInputTitle="מספר עמוד"
+        noRecords="לא נמצאו מוצרים" loading="טוען..."
+        columnMenuFilter="סנן" columnMenuSort="מיון" columnMenuColumns="עמודות"
+        columnMenuSortAscending="עולה" columnMenuSortDescending="יורד"
+        selectionCheckboxLabel="בחר שורה" selectAllCheckboxLabel="בחר הכל" />
+
+      <ng-template kendoGridDetailTemplate let-row>
+        <div class="prod-detail-card">
+          <div class="detail-group">
+            <div class="detail-group-title">פרטי מוצר</div>
+            <div class="detail-fields">
+              @if (row.ShortDescription) {
+                <div class="detail-field"><span class="df-label">תיאור</span><span class="df-val">{{ row.ShortDescription }}</span></div>
+              }
+              <div class="detail-field"><span class="df-label">גרסה</span><span class="df-val">{{ row.ProductVersion || '—' }}</span></div>
+              <div class="detail-field"><span class="df-label">פריסה</span><span class="df-val">{{ row.DeploymentType || '—' }}</span></div>
+              @if (row.TrialDays) {
+                <div class="detail-field"><span class="df-label">ניסיון חינם</span><span class="df-val">{{ row.TrialDays }} ימים</span></div>
+              }
+            </div>
+          </div>
+          <div class="detail-group">
+            <div class="detail-group-title">תמחור</div>
+            <div class="detail-fields">
+              <div class="detail-field"><span class="df-label">מודל</span><span class="df-val">{{ getPricingLabel(row.PricingModel) }}</span></div>
+              <div class="detail-field"><span class="df-label">חודשי</span><span class="df-val">₪{{ row.PriceMonthly | number:'1.0-0' }}</span></div>
+              <div class="detail-field"><span class="df-label">שנתי</span><span class="df-val">₪{{ row.PriceAnnual | number:'1.0-0' }}</span></div>
+              @if (row.SetupFee) {
+                <div class="detail-field"><span class="df-label">דמי הקמה</span><span class="df-val">₪{{ row.SetupFee | number:'1.0-0' }}</span></div>
+              }
+            </div>
+          </div>
+        </div>
+      </ng-template>
+
+      <!-- שם מוצר — גמיש, שורה אחת בלבד -->
+      <kendo-grid-column field="ProductName" title="שם מוצר" [minResizableWidth]="160">
         <ng-template kendoGridCellTemplate let-row>
-          <div class="prod-name-cell">
-            <strong>{{ row.ProductName }}</strong>
-            <span class="prod-code">{{ row.ProductCode }}</span>
+          <div class="prod-cell">
+            <span class="color-dot" [style.background]="row.ColorHex"></span>
+            <span class="prod-name">{{ row.ProductName }}</span>
           </div>
         </ng-template>
       </kendo-grid-column>
 
       <kendo-grid-column field="CategoryName" title="קטגוריה" [width]="140">
         <ng-template kendoGridCellTemplate let-row>
-          <span class="badge badge-cat">{{ row.CategoryName || '—' }}</span>
+          <span class="badge-cat">{{ row.CategoryName || '—' }}</span>
         </ng-template>
       </kendo-grid-column>
 
@@ -59,13 +116,13 @@
         </ng-template>
       </kendo-grid-column>
 
-      <kendo-grid-column field="PriceMonthly" title="מחיר חודשי" [width]="120">
+      <kendo-grid-column field="PriceMonthly" title="מחיר חודשי" [width]="115">
         <ng-template kendoGridCellTemplate let-row>
           {{ row.PriceMonthly | currency:'ILS':'symbol':'1.0-0':'he' }}
         </ng-template>
       </kendo-grid-column>
 
-      <kendo-grid-column field="ProductStatus" title="סטטוס" [width]="100">
+      <kendo-grid-column field="ProductStatus" title="סטטוס מוצר" [width]="110">
         <ng-template kendoGridCellTemplate let-row>
           <span class="badge" [ngClass]="statusClass(row.ProductStatus)">
             {{ getStatusLabel(row.ProductStatus) }}
@@ -73,27 +130,43 @@
         </ng-template>
       </kendo-grid-column>
 
-      <kendo-grid-column field="IsPublic" title="ציבורי" [width]="90">
+      <kendo-grid-column field="IsActive" title="פעיל" [width]="90">
         <ng-template kendoGridCellTemplate let-row>
-          <mat-icon [style.color]="row.IsPublic ? '#10b981' : '#94a3b8'" style="font-size:18px">
-            {{ row.IsPublic ? 'visibility' : 'visibility_off' }}
-          </mat-icon>
+          <div class="status-dot-wrap">
+            <span class="status-dot" [class.dot-active]="row.IsActive" [class.dot-inactive]="!row.IsActive"></span>
+            <span class="status-label">{{ row.IsActive ? 'פעיל' : 'מושהה' }}</span>
+          </div>
         </ng-template>
       </kendo-grid-column>
 
-      <kendo-grid-column title="" [width]="80" [sortable]="false" [resizable]="false" [columnMenu]="false">
-        <ng-template kendoGridCellTemplate let-row>
-          <button class="icon-btn" title="עריכה" (click)="openEdit(row)">
-            <mat-icon>edit</mat-icon>
-          </button>
+      <kendo-grid-column title="" [width]="104" [sortable]="false" [resizable]="false" [columnMenu]="false">
+        <ng-template kendoGridCellTemplate let-row let-rowIndex="rowIndex">
+          <div class="row-actions">
+            <button class="act-btn act-expand"
+                    [class.expanded]="isExpanded(row.ProductID)"
+                    [title]="isExpanded(row.ProductID) ? 'סגור' : 'פרטים'"
+                    (click)="toggleDetail(row.ProductID, rowIndex)">
+              <i class="pi" [class.pi-chevron-down]="!isExpanded(row.ProductID)"
+                            [class.pi-chevron-up]="isExpanded(row.ProductID)"></i>
+            </button>
+            <button class="act-btn"
+                    [class.act-lock]="row.IsActive"
+                    [class.act-unlock]="!row.IsActive"
+                    [title]="row.IsActive ? 'השבת' : 'הפעל'"
+                    (click)="toggleActive(row)">
+              <i class="pi" [class.pi-lock]="row.IsActive" [class.pi-lock-open]="!row.IsActive"></i>
+            </button>
+            <button class="act-btn act-edit" title="ערוך" (click)="openEdit(row)">
+              <i class="pi pi-pencil"></i>
+            </button>
+          </div>
         </ng-template>
       </kendo-grid-column>
 
-      <kendo-grid-messages
-        pagerItemsPerPage="שורות בעמוד" pagerOf="מתוך" pagerItems="רשומות"
-        noRecords="לא נמצאו מוצרים" loading="טוען..." />
     </kendo-grid>
+
   }
+
 </div>
 
 @if (dialogOpen()) {

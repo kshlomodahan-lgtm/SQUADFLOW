@@ -1,7 +1,8 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MenuModule } from '@progress/kendo-angular-menu';
-import { SwitchModule } from '@progress/kendo-angular-inputs';
+import { SwitchModule, TextBoxModule, NumericTextBoxModule } from '@progress/kendo-angular-inputs';
+import { DropDownListModule } from '@progress/kendo-angular-dropdowns';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { IndicatorsModule } from '@progress/kendo-angular-indicators';
 import { NotificationService, NotificationModule } from '@progress/kendo-angular-notification';
@@ -16,6 +17,8 @@ import { ThemeService, COLOR_SCHEMES, ColorScheme } from '../../core/services/th
 import { AuthService } from '../../core/services/auth.service';
 import { CounterService } from '../../core/services/counter.service';
 import { Counter } from '../../core/models/counter.model';
+import { AuditActionTypesComponent } from '../audit/action-types/audit-action-types.component';
+import { AuditEntityTypesComponent } from '../audit/entity-types/audit-entity-types.component';
 
 interface SettingGroup  { id: string; text: string; icon: SVGIcon; }
 interface EditNavGroup  { id: string; text: string; icon: SVGIcon; }
@@ -24,8 +27,10 @@ interface EditNavGroup  { id: string; text: string; icon: SVGIcon; }
   selector: 'app-settings',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MenuModule, SwitchModule,
+            TextBoxModule, NumericTextBoxModule, DropDownListModule,
             ButtonModule, IndicatorsModule, NotificationModule, IconsModule,
-            GridModule, MatProgressSpinnerModule, DialogModule],
+            GridModule, MatProgressSpinnerModule, DialogModule,
+            AuditActionTypesComponent, AuditEntityTypesComponent],
   providers: [NotificationService],
   templateUrl: './settings.component.html',
   styleUrl:    './settings.component.scss',
@@ -37,16 +42,18 @@ export class SettingsComponent {
   saving           = signal(false);
   isAdmin          = signal(false);
   isPlatformAdmin  = signal(false);
-  activeGroup      = signal('theme');
+  activeGroup      = signal('general');
+  auditSubGroup    = signal<'action-types' | 'entity-types'>('action-types');
 
   readonly groups: SettingGroup[] = [
-    { id: 'theme',         text: 'מראה ועיצוב',  icon: paletteIcon   },
-    { id: 'general',       text: 'כללי',          icon: gearIcon      },
-    { id: 'security',      text: 'אבטחה',         icon: passwordIcon  },
-    { id: 'notifications', text: 'התראות',        icon: bellIcon      },
-    { id: 'organization',  text: 'ארגון',         icon: buildingsIcon },
-    { id: 'billing',       text: 'חיוב ומנוי',   icon: walletIcon    },
-    { id: 'counters',      text: 'מונים',         icon: tableIcon     },
+    { id: 'general',       text: 'כללי',          icon: gearIcon           },
+    { id: 'security',      text: 'אבטחה',         icon: passwordIcon       },
+    { id: 'theme',         text: 'מראה ועיצוב',  icon: paletteIcon        },
+    { id: 'notifications', text: 'התראות',        icon: bellIcon           },
+    { id: 'organization',  text: 'ארגון',         icon: buildingsIcon      },
+    { id: 'billing',       text: 'חיוב ומנוי',   icon: walletIcon         },
+    { id: 'counters',      text: 'מונים',         icon: tableIcon          },
+    { id: 'audit-log',     text: 'יומן פעילות',  icon: clipboardTextIcon  },
   ];
 
   // ── Counters — רשימה ──────────────────────────────────────

@@ -1,10 +1,10 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { GridModule, PageChangeEvent } from '@progress/kendo-angular-grid';
+import { GridModule, GridComponent, PageChangeEvent, ExcelModule, PDFModule } from '@progress/kendo-angular-grid';
 import { SortDescriptor, orderBy } from '@progress/kendo-data-query';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
-import { plusIcon } from '@progress/kendo-svg-icons';
+import { plusIcon, fileExcelIcon, filePdfIcon } from '@progress/kendo-svg-icons';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CatalogService } from '../../../core/services/catalog.service';
@@ -16,7 +16,7 @@ import { CategoryDialogComponent } from './category-dialog/category-dialog.compo
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    GridModule, ButtonsModule,
+    GridModule, ExcelModule, PDFModule, ButtonsModule,
     MatIconModule, MatProgressSpinnerModule,
     CategoryDialogComponent,
   ],
@@ -24,19 +24,24 @@ import { CategoryDialogComponent } from './category-dialog/category-dialog.compo
   styleUrl:    './categories.component.scss',
 })
 export class CategoriesComponent implements OnInit {
-  addIcon = plusIcon;
+  @ViewChild(GridComponent) grid!: GridComponent;
 
-  loading      = signal(true);
-  error        = signal('');
-  cats         = signal<ProductCategory[]>([]);
-  gridData:      ProductCategory[] = [];
-  searchTerm   = '';
-  skip         = 0;
-  pageSize     = 10;
+  addIcon   = plusIcon;
+  excelIcon = fileExcelIcon;
+  pdfIcon   = filePdfIcon;
+
+  loading    = signal(true);
+  error      = signal('');
+  cats       = signal<ProductCategory[]>([]);
+  gridData:    ProductCategory[] = [];
+  searchTerm = '';
+  skip       = 0;
+  pageSize   = 10;
   sort: SortDescriptor[] = [{ field: 'SortOrder', dir: 'asc' }];
 
-  dialogOpen   = signal(false);
-  dialogCat    = signal<ProductCategory | null>(null);
+  dialogOpen = signal(false);
+  dialogCat  = signal<ProductCategory | null>(null);
+  expandedIds = new Set<number>();
 
   constructor(private svc: CatalogService) {}
   ngOnInit() { this.load(); }
@@ -58,14 +63,38 @@ export class CategoriesComponent implements OnInit {
     this.skip = 0;
   }
 
-  onSearch(v: string)              { this.searchTerm = v; this.applyFilter(); }
-  onPageChange(e: PageChangeEvent) { this.skip = e.skip; this.pageSize = e.take; }
+  onSearch(v: string)               { this.searchTerm = v; this.applyFilter(); }
+  onPageChange(e: PageChangeEvent)  { this.skip = e.skip; this.pageSize = e.take; }
   onSortChange(s: SortDescriptor[]) { this.sort = s; this.applyFilter(); }
 
-  openAdd()                     { this.dialogCat.set(null); this.dialogOpen.set(false); setTimeout(() => this.dialogOpen.set(true)); }
-  openEdit(c: ProductCategory)  { this.dialogCat.set(c);    this.dialogOpen.set(false); setTimeout(() => this.dialogOpen.set(true)); }
-  onSaved()                     { this.load(); }
-  onClosed()                    { this.dialogOpen.set(false); }
+  openAdd()                    { this.dialogCat.set(null); this.dialogOpen.set(false); setTimeout(() => this.dialogOpen.set(true)); }
+  openEdit(c: ProductCategory) { this.dialogCat.set(c);    this.dialogOpen.set(false); setTimeout(() => this.dialogOpen.set(true)); }
+  onSaved()                    { this.load(); }
+  onClosed()                   { this.dialogOpen.set(false); }
+
+  toggleActive(c: ProductCategory) {
+    this.svc.saveCategory({ ...c, IsActive: !c.IsActive }).subscribe({
+      next: () => this.load(),
+      error: (e) => this.error.set(e?.error?.message || 'שגיאה בעדכון סטטוס'),
+    });
+  }
+
+  isExpanded(id: number) { return this.expandedIds.has(id); }
+
+  toggleDetail(catId: number, rowIndex: number) {
+    const absIdx = this.skip + rowIndex;
+    if (this.expandedIds.has(catId)) {
+      this.expandedIds.delete(catId);
+      this.grid.collapseRow(absIdx);
+    } else {
+      this.expandedIds.add(catId);
+      this.grid.expandRow(absIdx);
+    }
+  }
+
+  exportExcel() { this.grid.saveAsExcel(); }
+  exportPDF()   { this.grid.saveAsPDF(); }
+  allData       = () => ({ data: this.gridData });
 
   get pagedData() { return this.gridData.slice(this.skip, this.skip + this.pageSize); }
 }

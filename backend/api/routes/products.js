@@ -2,6 +2,7 @@ const express = require('express');
 const router  = express.Router();
 const { sql, getPool } = require('../db');
 const requireAuth = require('../middleware/auth');
+const { logAction } = require('../helpers/auditLogger');
 
 router.use(requireAuth);
 
@@ -44,6 +45,7 @@ router.post('/', async (req, res) => {
     const r = await _saveProduct(0, req.user.tenantId, req.body);
     if (r.output.ResultCode !== 0)
       return res.status(400).json({ success: false, message: r.output.ResultMessage });
+    await logAction(req, { actionType: 'CREATE', entityType: 'PRODUCT', entityId: r.output.NewID, entityName: req.body.ProductName });
     res.json({ success: true, data: { ProductID: r.output.NewID }, message: r.output.ResultMessage });
   } catch (err) {
     console.error('products POST:', err);
@@ -57,6 +59,7 @@ router.put('/:id', async (req, res) => {
     const r = await _saveProduct(parseInt(req.params.id), req.user.tenantId, req.body);
     if (r.output.ResultCode !== 0)
       return res.status(400).json({ success: false, message: r.output.ResultMessage });
+    await logAction(req, { actionType: 'UPDATE', entityType: 'PRODUCT', entityId: parseInt(req.params.id), entityName: req.body.ProductName });
     res.json({ success: true, message: r.output.ResultMessage });
   } catch (err) {
     console.error('products PUT:', err);

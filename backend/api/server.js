@@ -5,6 +5,7 @@ const helmet  = require('helmet');
 const path    = require('path');
 
 const app = express();
+app.set('trust proxy', true);
 
 // ── Security & Parsing ────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false }));
@@ -35,6 +36,7 @@ app.use('/api/counters',   require('./routes/counters'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/products',   require('./routes/products'));
 app.use('/api/packages',   require('./routes/packages'));
+app.use('/api/audit',      require('./routes/audit'));
 
 // 404
 app.use('/api/{*path}', (_req, res) => res.status(404).json({ success: false, message: 'Endpoint not found' }));

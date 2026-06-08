@@ -73,8 +73,55 @@ router.get('/platform', async (req, res) => {
       ORDER BY TenantID DESC
     `);
 
-    const o = orgsResult.recordset[0];
-    const u = usersResult.recordset[0];
+    // 6. מוצרים — סיכום
+    let productsRow = { TotalProducts: 0, ActiveProducts: 0, InactiveProducts: 0, DraftProducts: 0, DeprecatedProducts: 0 };
+    try {
+      const r = await db.request().query(`
+        SELECT
+          COUNT(*)                                                              AS TotalProducts,
+          SUM(CASE WHEN IsActive = 1 AND ProductStatus = 'ACTIVE' THEN 1 ELSE 0 END) AS ActiveProducts,
+          SUM(CASE WHEN IsActive = 0 THEN 1 ELSE 0 END)                       AS InactiveProducts,
+          SUM(CASE WHEN ProductStatus = 'DRAFT'      THEN 1 ELSE 0 END)       AS DraftProducts,
+          SUM(CASE WHEN ProductStatus = 'DEPRECATED' THEN 1 ELSE 0 END)       AS DeprecatedProducts
+        FROM dbo.tblProducts
+      `);
+      if (r.recordset[0]) productsRow = r.recordset[0];
+    } catch (e) { console.error('stats products query:', e.message); }
+
+    // 7. חבילות — סיכום
+    let packagesRow = { TotalPackages: 0, ActivePackages: 0, InactivePackages: 0, PublicPackages: 0 };
+    try {
+      const r = await db.request().query(`
+        SELECT
+          COUNT(*)                                           AS TotalPackages,
+          SUM(CASE WHEN IsActive = 1 THEN 1 ELSE 0 END)    AS ActivePackages,
+          SUM(CASE WHEN IsActive = 0 THEN 1 ELSE 0 END)    AS InactivePackages,
+          SUM(CASE WHEN IsPublic  = 1 THEN 1 ELSE 0 END)   AS PublicPackages
+        FROM dbo.tblPackages
+      `);
+      if (r.recordset[0]) packagesRow = r.recordset[0];
+    } catch (e) { console.error('stats packages query:', e.message); }
+
+    // 8. חבילות מובילות + ספירת מוצרים
+    let topPackagesList = [];
+    try {
+      const r = await db.request().query(`
+        SELECT TOP 5
+          p.PackageID, p.PackageName, p.PackageCode,
+          p.PriceMonthly, p.IsActive,
+          COUNT(pp.ProductID) AS ProductCount
+        FROM dbo.tblPackages p
+        LEFT JOIN dbo.tblPackageProducts pp ON pp.PackageID = p.PackageID AND pp.IsIncluded = 1
+        GROUP BY p.PackageID, p.PackageName, p.PackageCode, p.PriceMonthly, p.IsActive, p.SortOrder
+        ORDER BY p.SortOrder ASC, p.PackageID ASC
+      `);
+      topPackagesList = r.recordset;
+    } catch (e) { console.error('stats topPackages query:', e.message); }
+
+    const o  = orgsResult.recordset[0];
+    const u  = usersResult.recordset[0];
+    const pr = productsRow;
+    const pk = packagesRow;
 
     return res.json({
       success: true,
@@ -89,9 +136,23 @@ router.get('/platform', async (req, res) => {
         active:   u.ActiveUsers   ?? 0,
         inactive: u.InactiveUsers ?? 0,
       },
+      products: {
+        total:      pr.TotalProducts      ?? 0,
+        active:     pr.ActiveProducts     ?? 0,
+        inactive:   pr.InactiveProducts   ?? 0,
+        draft:      pr.DraftProducts      ?? 0,
+        deprecated: pr.DeprecatedProducts ?? 0,
+      },
+      packages: {
+        total:    pk.TotalPackages    ?? 0,
+        active:   pk.ActivePackages   ?? 0,
+        inactive: pk.InactivePackages ?? 0,
+        public:   pk.PublicPackages   ?? 0,
+      },
       planDistribution: planResult.recordset,
       monthlyGrowth:    monthlyResult.recordset,
       recentOrgs:       recentResult.recordset,
+      topPackages:      topPackagesList,
     });
   } catch (err) {
     console.error('GET /stats/platform error:', err.message);

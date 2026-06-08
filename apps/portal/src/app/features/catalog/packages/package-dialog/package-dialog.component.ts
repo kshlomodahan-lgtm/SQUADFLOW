@@ -5,7 +5,7 @@ import { DialogModule } from '@progress/kendo-angular-dialog';
 import { TextBoxModule, NumericTextBoxModule } from '@progress/kendo-angular-inputs';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { SVGIconComponent } from '@progress/kendo-angular-icons';
-import { gearIcon, listUnorderedSquareIcon } from '@progress/kendo-svg-icons';
+import { gearIcon, listUnorderedSquareIcon, eyeIcon } from '@progress/kendo-svg-icons';
 import { CatalogService } from '../../../../core/services/catalog.service';
 import { Package, Product } from '../../../../core/models/catalog.model';
 
@@ -35,8 +35,9 @@ export class PackageDialogComponent implements OnInit {
   activeGroup     = signal('details');
 
   readonly groups: NavGroup[] = [
-    { id: 'details',  label: 'פרטי חבילה', icon: gearIcon                 },
-    { id: 'products', label: 'מוצרים',      icon: listUnorderedSquareIcon  },
+    { id: 'details',    label: 'פרטי חבילה', icon: gearIcon                },
+    { id: 'products',   label: 'מוצרים',      icon: listUnorderedSquareIcon },
+    { id: 'visibility', label: 'נראות וסטטוס', icon: eyeIcon               },
   ];
 
   get isEdit() { return !!this.pkg?.PackageID; }

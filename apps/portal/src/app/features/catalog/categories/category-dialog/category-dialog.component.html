@@ -1,4 +1,4 @@
-<kendo-dialog [title]="title" [width]="440" (close)="close()">
+<kendo-dialog [title]="title" [width]="460" (close)="close()">
 
   <form [formGroup]="form" class="cat-form">
 
@@ -9,7 +9,7 @@
     <div class="form-row">
       <label class="form-label">קוד קטגוריה <span class="req">*</span></label>
       <input kendoTextBox formControlName="CategoryCode" placeholder="לדוגמה: BIZ_MGMT"
-             class="field-full" style="text-transform:uppercase" />
+             class="field-full" style="text-transform:uppercase; direction:ltr; text-align:right" />
       @if (form.get('CategoryCode')?.invalid && form.get('CategoryCode')?.touched) {
         <span class="field-error">שדה חובה (עד 30 תווים)</span>
       }
@@ -41,24 +41,23 @@
 
     <div class="form-row">
       <label class="form-label">שם אייקון</label>
-      <input kendoTextBox formControlName="IconName" placeholder="לדוגמה: pi-briefcase" class="field-full" />
+      <input kendoTextBox formControlName="IconName" placeholder="לדוגמה: pi-briefcase" class="field-full" style="direction:ltr; text-align:right" />
     </div>
 
-    <div class="form-row-inline">
-      <div class="form-row" style="flex:1">
-        <label class="form-label">סדר תצוגה</label>
-        <input kendoTextBox type="number" formControlName="SortOrder" class="field-full" />
-      </div>
-      <div class="form-row" style="flex:1">
-        <label class="form-label">סטטוס</label>
-        <div class="seg-ctrl">
-          <button type="button" class="seg-btn"
-                  [class.seg-on]="!!form.get('IsActive')?.value"
-                  (click)="form.get('IsActive')?.setValue(true)">✓ פעיל</button>
-          <button type="button" class="seg-btn"
-                  [class.seg-off]="!form.get('IsActive')?.value"
-                  (click)="form.get('IsActive')?.setValue(false)">✗ מושהה</button>
-        </div>
+    <div class="form-row">
+      <label class="form-label">סדר תצוגה</label>
+      <input kendoTextBox type="number" formControlName="SortOrder" class="field-num" />
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">סטטוס</label>
+      <div class="seg-ctrl">
+        <button type="button" class="seg-btn"
+                [class.seg-on]="!!form.get('IsActive')?.value"
+                (click)="form.get('IsActive')?.setValue(true)">✓ פעיל</button>
+        <button type="button" class="seg-btn"
+                [class.seg-off]="!form.get('IsActive')?.value"
+                (click)="form.get('IsActive')?.setValue(false)">✗ מושהה</button>
       </div>
     </div>
 

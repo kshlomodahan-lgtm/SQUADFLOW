@@ -1,4 +1,4 @@
-<kendo-dialog [title]="title" [width]="720" [minWidth]="560" (close)="close()">
+<kendo-dialog [title]="title" [width]="860" [minWidth]="600" (close)="close()">
 
   <div class="pkg-dialog-body">
 
@@ -22,7 +22,7 @@
             <div class="form-row col-2">
               <label class="form-label">קוד חבילה <span class="req">*</span></label>
               <input kendoTextBox formControlName="PackageCode" placeholder="STARTER"
-                     class="field-full" style="text-transform:uppercase;font-family:'Share Tech Mono',monospace" />
+                     class="field-full" style="text-transform:uppercase;font-family:'Share Tech Mono',monospace;direction:ltr;text-align:left" />
               @if (form.get('PackageCode')?.invalid && form.get('PackageCode')?.touched) {
                 <span class="field-error">שדה חובה</span>
               }
@@ -66,30 +66,6 @@
               <label class="form-label">מקס' משתמשים (0 = ללא הגבלה)</label>
               <kendo-numerictextbox formControlName="MaxUsers" [min]="0" [decimals]="0" [format]="'n0'" class="field-full" />
             </div>
-
-            <div class="form-row col-2">
-              <label class="form-label">נראות</label>
-              <div class="seg-ctrl">
-                <button type="button" class="seg-btn"
-                        [class.seg-on]="!!form.get('IsPublic')?.value"
-                        (click)="form.get('IsPublic')?.setValue(true)">👁 ציבורי</button>
-                <button type="button" class="seg-btn"
-                        [class.seg-off]="!form.get('IsPublic')?.value"
-                        (click)="form.get('IsPublic')?.setValue(false)">🔒 פרטי</button>
-              </div>
-            </div>
-
-            <div class="form-row col-2">
-              <label class="form-label">סטטוס</label>
-              <div class="seg-ctrl">
-                <button type="button" class="seg-btn"
-                        [class.seg-on]="!!form.get('IsActive')?.value"
-                        (click)="form.get('IsActive')?.setValue(true)">✓ פעיל</button>
-                <button type="button" class="seg-btn"
-                        [class.seg-off]="!form.get('IsActive')?.value"
-                        (click)="form.get('IsActive')?.setValue(false)">✗ מושהה</button>
-              </div>
-            </div>
           </div>
         }
 
@@ -111,14 +87,45 @@
                       <strong>{{ p.ProductName }}</strong>
                       <span class="prod-code-small">{{ p.ProductCode }}</span>
                     </span>
-                    <span class="prod-price">{{ p.PriceMonthly | currency:'ILS':'symbol':'1.0-0':'he' }}/חודש</span>
+                    <span class="prod-price">₪{{ p.PriceMonthly | number:'1.0-0' }}/חודש</span>
                   </label>
                 }
               </div>
-              <div class="selected-count">
-                {{ selectedIds.size }} מוצרים נבחרו
-              </div>
+              <div class="selected-count">{{ selectedIds.size }} מוצרים נבחרו</div>
             }
+          </div>
+        }
+
+        <!-- ── נראות וסטטוס ─────────────────────────────── -->
+        @if (activeGroup() === 'visibility') {
+          <div class="section-grid">
+
+            <div class="form-row col-full">
+              <label class="form-label">סטטוס חבילה</label>
+              <div class="seg-ctrl">
+                <button type="button" class="seg-btn"
+                        [class.seg-on]="!!form.get('IsActive')?.value"
+                        (click)="form.get('IsActive')?.setValue(true)">✓ פעיל</button>
+                <button type="button" class="seg-btn"
+                        [class.seg-off]="!form.get('IsActive')?.value"
+                        (click)="form.get('IsActive')?.setValue(false)">✗ מושהה</button>
+              </div>
+              <small class="field-hint">חבילה מושהית לא תוצג ללקוחות חדשים</small>
+            </div>
+
+            <div class="form-row col-full">
+              <label class="form-label">נראות</label>
+              <div class="seg-ctrl">
+                <button type="button" class="seg-btn"
+                        [class.seg-on]="!!form.get('IsPublic')?.value"
+                        (click)="form.get('IsPublic')?.setValue(true)">👁 ציבורי</button>
+                <button type="button" class="seg-btn"
+                        [class.seg-off]="!form.get('IsPublic')?.value"
+                        (click)="form.get('IsPublic')?.setValue(false)">🔒 פרטי</button>
+              </div>
+              <small class="field-hint">חבילה פרטית גלויה רק למנהלי המערכת</small>
+            </div>
+
           </div>
         }
 
