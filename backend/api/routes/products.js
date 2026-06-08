@@ -1,9 +1,9 @@
 const express = require('express');
 const router  = express.Router();
 const { sql, getPool } = require('../db');
-const { authMiddleware } = require('../middleware/auth');
+const requireAuth = require('../middleware/auth');
 
-router.use(authMiddleware);
+router.use(requireAuth);
 
 // GET /api/products?search=
 router.get('/', async (req, res) => {
