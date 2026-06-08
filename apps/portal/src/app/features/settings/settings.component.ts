@@ -213,7 +213,7 @@ export class SettingsComponent {
   // ── Lock ─────────────────────────────────────────────────
   lockCounter(c: Counter) {
     const newLocked = !c.IsLocked;
-    this.counterSvc.lock(c.CounterKey, newLocked, c.CounterLevel, c.CustomerID).subscribe({
+    this.counterSvc.lock(c.CounterKey, newLocked, c.CounterLevel, c.CustomerID, c.ProductID).subscribe({
       next: (r) => {
         this.counters.update(list =>
           list.map(x => this.rowKey(x) === this.rowKey(c) ? { ...x, IsLocked: newLocked } : x)
@@ -228,7 +228,7 @@ export class SettingsComponent {
 
   // ── Reset ────────────────────────────────────────────────
   resetCounter(c: Counter) {
-    this.counterSvc.reset(c.CounterKey, c.CounterLevel, c.CustomerID).subscribe({
+    this.counterSvc.reset(c.CounterKey, c.CounterLevel, c.CustomerID, c.ProductID).subscribe({
       next: () => {
         this.counters.update(list =>
           list.map(x => this.rowKey(x) === this.rowKey(c) ? { ...x, CurrentValue: x.StartValue } : x)
@@ -243,6 +243,7 @@ export class SettingsComponent {
   private initNewForm() {
     this.newForm = this.fb.group({
       counterLevel: ['TENANT'],
+      productID:    [0, [Validators.required, Validators.min(0)]],
       counterKey:   ['', [Validators.required, Validators.pattern(/^[A-Z0-9_]+$/)]],
       counterName:  ['', Validators.required],
       prefix:       ['', Validators.required],
@@ -319,7 +320,7 @@ export class SettingsComponent {
     const vals = this.editForm.value;
 
     this.counterSvc.update(c.CounterKey, {
-      customerID: c.CustomerID, counterLevel: c.CounterLevel,
+      customerID: c.CustomerID, productID: c.ProductID, counterLevel: c.CounterLevel,
       counterName: vals.counterName,   prefix:     vals.prefix,
       dateFormat:  vals.dateFormat,    textPrefix: '',
       stepValue:   vals.stepValue,     startValue: vals.startValue,
@@ -336,7 +337,7 @@ export class SettingsComponent {
           this.notify('המונה עודכן בהצלחה', 'success');
         };
         if (lockChanged)
-          this.counterSvc.lock(c.CounterKey, vals.isLocked, c.CounterLevel, c.CustomerID)
+          this.counterSvc.lock(c.CounterKey, vals.isLocked, c.CounterLevel, c.CustomerID, c.ProductID)
             .subscribe({ next: finish, error: finish });
         else finish();
       },
@@ -349,10 +350,10 @@ export class SettingsComponent {
 
   // ── Helpers ───────────────────────────────────────────────
   levelLabel(level: string): string {
-    return ({ PLATFORM: 'פלטפורמה', TENANT: 'ארגון', CUSTOMER: 'לקוח' } as any)[level] ?? level;
+    return ({ PLATFORM: 'פלטפורמה', TENANT: 'ארגון', CUSTOMER: 'לקוח', PRODUCT: 'מוצר' } as any)[level] ?? level;
   }
   levelClass(level: string): string {
-    return ({ PLATFORM: 'chip-platform', TENANT: 'chip-tenant', CUSTOMER: 'chip-customer' } as any)[level] ?? '';
+    return ({ PLATFORM: 'chip-platform', TENANT: 'chip-tenant', CUSTOMER: 'chip-customer', PRODUCT: 'chip-product' } as any)[level] ?? '';
   }
   outputTypeLabel(v: string): string { return v === 'STRING' ? 'מחרוזת' : 'מספרי'; }
   resetPeriodLabel(v: string): string {
@@ -370,7 +371,7 @@ export class SettingsComponent {
   onCounterPageChange(e: PageChangeEvent) { this.counterSkip = e.skip; this.counterPageSize = e.take; }
   onCounterSortChange(s: SortDescriptor[]) { this.counterSort = s; }
 
-  private rowKey(c: Counter): string { return `${c.CounterLevel}_${c.CounterKey}`; }
+  private rowKey(c: Counter): string { return `${c.TenantID}_${c.CustomerID}_${c.ProductID}_${c.CounterKey}`; }
 
   private notify(msg: string, style: 'success' | 'error') {
     this.notif.show({

@@ -215,6 +215,16 @@
                           <span class="ef-value ef-mono ef-bold">{{ editingCounter.CounterKey }}</span>
                         </div>
                         <div class="ef-row">
+                          <span class="ef-label">מוצר (ProductID)</span>
+                          <span class="ef-value">
+                            @if (editingCounter.ProductID > 0) {
+                              <span class="chip chip-product">{{ editingCounter.ProductID }}</span>
+                            } @else {
+                              <span class="ef-value" style="color:var(--sf-text-muted)">0 — ללא מוצר</span>
+                            }
+                          </span>
+                        </div>
+                        <div class="ef-row">
                           <span class="ef-label">רמת מונה</span>
                           <span class="ef-value">
                             <span class="chip" [class]="levelClass(editingCounter.CounterLevel)">
@@ -469,6 +479,9 @@
               <kendo-grid-column field="CounterKey" title="מפתח" [width]="120">
                 <ng-template kendoGridCellTemplate let-c>
                   <span class="cell-key">{{ c.CounterKey }}</span>
+                  @if (c.ProductID > 0) {
+                    <span class="chip chip-product" style="font-size:.65rem;margin-right:4px">P{{ c.ProductID }}</span>
+                  }
                 </ng-template>
               </kendo-grid-column>
 
@@ -563,6 +576,13 @@
                       <div class="setting-card-title">זיהוי</div>
                       <div class="detail-row"><span>מזהה</span><strong>{{ c.CounterID }}</strong></div>
                       <div class="detail-row"><span>מפתח</span><strong class="mono">{{ c.CounterKey }}</strong></div>
+                      <div class="detail-row"><span>מוצר</span>
+                        @if (c.ProductID > 0) {
+                          <span class="chip chip-product">{{ c.ProductID }}</span>
+                        } @else {
+                          <span style="color:var(--sf-text-muted)">0 — כללי</span>
+                        }
+                      </div>
                       <div class="detail-row"><span>רמה</span><span class="chip" [class]="levelClass(c.CounterLevel)">{{ levelLabel(c.CounterLevel) }}</span></div>
                       <div class="detail-row"><span>סטטוס</span>
                         <span class="chip" [class]="c.IsLocked ? 'chip-locked' : 'chip-active'">
@@ -651,6 +671,16 @@
                               (click)="newForm.get('counterLevel')?.setValue('CUSTOMER')">לקוח קצה</button>
                     </div>
                   }
+                </div>
+              </div>
+
+              <!-- מוצר -->
+              <div class="ef-row">
+                <label class="ef-label" for="nf-product">מוצר (ProductID)</label>
+                <div class="ef-control">
+                  <input id="nf-product" kendoTextBox type="number" formControlName="productID"
+                         min="0" style="max-width:120px" />
+                  <small class="ef-hint">0 = מונה ארגוני כללי | מספר מוצר = מונה ספציפי למוצר</small>
                 </div>
               </div>
 
