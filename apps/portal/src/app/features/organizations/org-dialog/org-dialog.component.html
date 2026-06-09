@@ -199,6 +199,38 @@
               </div>
             </div>
 
+            <!-- Map trigger -->
+            <div class="map-trigger-row">
+              <button type="button" class="btn-show-map" (click)="showMap()" [disabled]="mapLoading()">
+                @if (mapLoading()) {
+                  <kendo-loader type="pulsing" size="small" themeColor="primary" />
+                  מאתר כתובת...
+                } @else {
+                  📍 הצג במפה
+                }
+              </button>
+              @if (mapError()) {
+                <span class="map-error">{{ mapError() }}</span>
+              }
+            </div>
+
+            @if (mapVisible()) {
+              <div class="map-container">
+                <iframe
+                  [src]="mapUrl()!"
+                  class="map-frame"
+                  loading="lazy"
+                  referrerpolicy="no-referrer"
+                  title="מפת מיקום הארגון">
+                </iframe>
+                <a class="map-osm-link"
+                   [href]="'https://www.openstreetmap.org/search?query=' + (form.get('address')?.value || '') + ' ' + (form.get('city')?.value || '')"
+                   target="_blank" rel="noopener">
+                  פתח ב-OpenStreetMap ↗
+                </a>
+              </div>
+            }
+
           </div>
         }
 

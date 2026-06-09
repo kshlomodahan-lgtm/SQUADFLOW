@@ -1,6 +1,8 @@
 import { Component, Input, Output, EventEmitter, OnInit, NgZone, ChangeDetectorRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 import { DialogsModule } from '@progress/kendo-angular-dialog';
 import { TextBoxModule, NumericTextBoxModule, SwitchModule, TextAreaModule } from '@progress/kendo-angular-inputs';
@@ -45,6 +47,11 @@ export class OrgDialogComponent implements OnInit {
   languages  = signal<Language[]>([]);
   currencies = signal<Currency[]>([]);
 
+  mapVisible  = signal(false);
+  mapLoading  = signal(false);
+  mapError    = signal('');
+  mapUrl      = signal<SafeResourceUrl | null>(null);
+
   plans = [
     { label: 'בסיסי',   value: 'basic'      },
     { label: 'מקצועי',  value: 'pro'        },
@@ -65,12 +72,14 @@ export class OrgDialogComponent implements OnInit {
   get title()  { return this.isEdit ? `עריכת ארגון — ${this.org!.CompanyName}` : 'ארגון חדש'; }
 
   constructor(
-    private fb:     FormBuilder,
-    private svc:    OrganizationService,
-    private upload: UploadService,
-    private zone:   NgZone,
-    private cdr:    ChangeDetectorRef,
-    private refSvc: ReferenceService,
+    private fb:        FormBuilder,
+    private svc:       OrganizationService,
+    private upload:    UploadService,
+    private zone:      NgZone,
+    private cdr:       ChangeDetectorRef,
+    private refSvc:    ReferenceService,
+    private http:      HttpClient,
+    private sanitizer: DomSanitizer,
   ) {}
 
   ngOnInit() {
@@ -202,6 +211,36 @@ export class OrgDialogComponent implements OnInit {
   }
 
   close() { this.closed.emit(); }
+
+  showMap() {
+    const addr    = this.form.get('address')?.value?.trim()   || '';
+    const city    = this.form.get('city')?.value?.trim()      || '';
+    const cc      = this.form.get('countryCode')?.value       || '';
+    const country = this.countries().find(c => c.CountryCode === cc);
+    const query   = [addr, city, country?.ShortName].filter(Boolean).join(', ');
+
+    if (!query) { this.mapError.set('יש למלא כתובת או עיר תחילה'); return; }
+
+    this.mapLoading.set(true);
+    this.mapError.set('');
+    this.mapVisible.set(false);
+
+    this.http.get<any[]>('https://nominatim.openstreetmap.org/search', {
+      params: { q: query, format: 'json', limit: '1', 'accept-language': 'he' },
+    }).subscribe({
+      next: results => {
+        this.mapLoading.set(false);
+        if (!results?.length) { this.mapError.set('הכתובת לא נמצאה במפה'); return; }
+        const { lat, lon } = results[0];
+        const d   = 0.008;
+        const bbox = `${+lon - d},${+lat - d},${+lon + d},${+lat + d}`;
+        const url  = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`;
+        this.mapUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
+        this.mapVisible.set(true);
+      },
+      error: () => { this.mapLoading.set(false); this.mapError.set('שגיאה בטעינת המפה'); },
+    });
+  }
 
   private readonly groupFields: Record<string, string[]> = {
     general: ['tenantCode', 'companyName', 'businessNumber'],
