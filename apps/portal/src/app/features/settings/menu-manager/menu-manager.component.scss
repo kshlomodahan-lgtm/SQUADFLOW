@@ -27,6 +27,19 @@
   margin: 0;
 }
 
+// ─── Legend ──────────────────────────────────────────────────
+
+.legend-sep { flex: 1; max-width: 1px; height: 16px; background: var(--sf-border); margin: 0 4px; }
+
+.platform-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: .75rem;
+  color: var(--sf-text-muted);
+  kendo-svg-icon { opacity: .6; }
+}
+
 // ─── Tree ────────────────────────────────────────────────────
 
 .tree-card {
@@ -108,7 +121,24 @@
 
 .toggle-spacer { width: 20px; height: 20px; }
 
+.platform-lock {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: var(--sf-text-muted);
+  opacity: .5;
+  kendo-svg-icon { font-size: 13px; }
+}
+
 .node-type-badge { flex-shrink: 0; }
+
+// Platform item — muted row
+.tree-node.platform-item {
+  background: color-mix(in srgb, var(--sf-text-muted) 3%, transparent);
+  &:hover { background: color-mix(in srgb, var(--sf-text-muted) 6%, transparent); }
+
+  .node-name { color: var(--sf-text-secondary); font-weight: 500; }
+}
 
 .node-icon {
   font-size: 18px !important;
@@ -147,18 +177,39 @@
 .node-actions-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  flex: 1;
+  gap: 3px;
 }
 
-.action-chip {
-  font-size: .68rem;
-  font-weight: 600;
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--sf-primary) 12%, transparent);
-  color: var(--sf-primary);
+// ─── Colored chips (shared between tree + legend) ─────────────
+.chip {
+  font-size: .65rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
   font-family: 'Share Tech Mono', monospace;
+  flex-shrink: 0;
+
+  &.chip-VIEW     { background: #0D47FF15; color: #0D47FF; }
+  &.chip-CRUD     { background: #10b98115; color: #059669; }
+  &.chip-WORKFLOW { background: #f59e0b15; color: #d97706; }
+  &.chip-MANAGE   { background: #7c3aed15; color: #7c3aed; }
+}
+
+.node-spacer { flex: 1; }
+
+.node-route-dot {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  cursor: default;
+
+  .route-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    color: var(--sf-primary);
+    opacity: .5;
+  }
 }
 
 .node-visibility {
@@ -292,6 +343,45 @@
   &[data-group="VIEW"]     { background: #0D47FF15; color: #0D47FF; }
   &[data-group="WORKFLOW"] { background: #f59e0b18; color: #d97706; }
   &[data-group="MANAGE"]   { background: #7c3aed18; color: #7c3aed; }
+}
+
+// ─── Confirm Delete Dialog ───────────────────────────────────
+
+.confirm-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 8px 4px;
+}
+
+.confirm-icon {
+  font-size: 2rem !important;
+  width: 2rem !important;
+  height: 2rem !important;
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.confirm-text {
+  font-size: .9rem;
+  color: var(--sf-text);
+  margin: 0;
+  line-height: 1.6;
+
+  .confirm-sub { font-size: .8rem; color: var(--sf-text-secondary); }
+}
+
+.btn-danger-solid {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: none;
+  background: #ef4444;
+  color: #fff;
+  font-size: .88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .12s;
+  &:hover { background: #dc2626; }
 }
 
 // ─── Footer ──────────────────────────────────────────────────

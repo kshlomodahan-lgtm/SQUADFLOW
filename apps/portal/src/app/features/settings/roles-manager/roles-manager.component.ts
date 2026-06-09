@@ -57,9 +57,11 @@ export class RolesManagerComponent implements OnInit {
   allActions  = signal<string[]>([]);
   matrixDirty = signal(false);
 
-  roleDialogOpen  = signal(false);
-  cloneDialogOpen = signal(false);
-  editingRole     = signal<RoleItem | null>(null);
+  roleDialogOpen       = signal(false);
+  cloneDialogOpen      = signal(false);
+  deleteRoleConfirmOpen = signal(false);
+  editingRole          = signal<RoleItem | null>(null);
+  roleToDelete         = signal<RoleItem | null>(null);
 
   roleForm!: FormGroup;
   cloneForm!: FormGroup;
@@ -242,15 +244,28 @@ export class RolesManagerComponent implements OnInit {
   }
 
   deleteRole(role: RoleItem) {
-    if (role.IsSystem) { this.notify.show({ content: 'לא ניתן למחוק תפקיד מערכת', type: { style: 'warning', icon: true }, position: { horizontal: 'center', vertical: 'top' } }); return; }
-    if (!confirm(`למחוק את "${role.RoleName}"?`)) return;
+    if (role.IsSystem || role.RoleType === 'PLATFORM') return;
+    this.roleToDelete.set(role);
+    this.deleteRoleConfirmOpen.set(true);
+  }
+
+  confirmDeleteRole() {
+    const role = this.roleToDelete();
+    if (!role) return;
     this.svc.deleteRole(role.RoleID).subscribe({
       next: () => {
         if (this.selectedRole()?.RoleID === role.RoleID) { this.selectedRole.set(null); this.matrixData.set([]); }
         this.loadRoles();
-        this.notify.show({ content: 'נמחק', type: { style: 'warning', icon: true }, position: { horizontal: 'center', vertical: 'top' } });
+        this.notify.show({ content: 'תפקיד נמחק', type: { style: 'warning', icon: true }, position: { horizontal: 'center', vertical: 'top' } });
       },
     });
+    this.deleteRoleConfirmOpen.set(false);
+    this.roleToDelete.set(null);
+  }
+
+  cancelDeleteRole() {
+    this.deleteRoleConfirmOpen.set(false);
+    this.roleToDelete.set(null);
   }
 
   openCloneDialog(role: RoleItem) {
@@ -301,6 +316,22 @@ export class RolesManagerComponent implements OnInit {
 
   roleTypeName(type: string): string {
     return { PLATFORM: 'פלטפורמה', TEMPLATE: 'תבנית', CUSTOM: 'מותאם' }[type] ?? type;
+  }
+
+  isLockedRole(role: RoleItem): boolean {
+    return !!role.IsSystem || role.RoleType === 'PLATFORM';
+  }
+
+  isTemplateRole(role: RoleItem): boolean {
+    return role.RoleType === 'TEMPLATE';
+  }
+
+  canEditRole(role: RoleItem): boolean {
+    return !this.isLockedRole(role);
+  }
+
+  canDeleteRole(role: RoleItem): boolean {
+    return !this.isLockedRole(role) && !this.isTemplateRole(role) && role.UserCount === 0;
   }
 
   trackById(_i: number, r: any) { return r.MenuItemID || r.RoleID; }

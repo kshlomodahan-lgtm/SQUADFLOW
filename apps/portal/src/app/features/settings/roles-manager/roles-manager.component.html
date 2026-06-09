@@ -30,32 +30,48 @@
         <div class="panel-title">רשימת תפקידים</div>
 
         @for (role of roles(); track role.RoleID) {
-          <div class="role-card" [class.active]="selectedRole()?.RoleID === role.RoleID" (click)="selectRole(role)">
+          <div class="role-card"
+               [class.active]="selectedRole()?.RoleID === role.RoleID"
+               [class.role-locked]="isLockedRole(role)"
+               [class.role-template]="isTemplateRole(role)"
+               (click)="selectRole(role)">
             <div class="role-color" [style.background]="role.ColorHex"></div>
             <div class="role-info">
               <div class="role-name">
                 {{ role.RoleName }}
-                @if (role.IsSystem) { <mat-icon class="lock-icon" title="תפקיד מערכת">lock</mat-icon> }
+                @if (isLockedRole(role)) {
+                  <kendo-svg-icon [icon]="icons.shield" class="lock-icon"
+                                  kendoTooltip title="תפקיד פלטפורמה — לא ניתן לעריכה" />
+                }
               </div>
               <div class="role-meta">
                 <span class="role-type-badge" [ngClass]="roleTypeBadge(role.RoleType)">
                   {{ roleTypeName(role.RoleType) }}
                 </span>
+                @if (isTemplateRole(role)) {
+                  <span class="template-hint" kendoTooltip title="תבנית — השתמש בשכפול ליצירת תפקיד חדש">
+                    שכפל בלבד
+                  </span>
+                }
                 <span class="role-users">
-                  <mat-icon>people</mat-icon>
-                  {{ role.UserCount }}
+                  <mat-icon>people</mat-icon> {{ role.UserCount }}
                 </span>
               </div>
             </div>
             <div class="role-actions">
-              <button class="act-btn act-edit" kendoTooltip title="עריכה" (click)="$event.stopPropagation(); openEditRole(role)">
-                <kendo-svg-icon [icon]="icons.pencil" />
-              </button>
-              <button class="act-btn act-copy" kendoTooltip title="שכפל תפקיד" (click)="$event.stopPropagation(); openCloneDialog(role)">
+              @if (canEditRole(role)) {
+                <button class="act-btn act-edit" kendoTooltip title="עריכה"
+                        (click)="$event.stopPropagation(); openEditRole(role)">
+                  <kendo-svg-icon [icon]="icons.pencil" />
+                </button>
+              }
+              <button class="act-btn act-copy" kendoTooltip title="שכפל תפקיד"
+                      (click)="$event.stopPropagation(); openCloneDialog(role)">
                 <kendo-svg-icon [icon]="icons.copy" />
               </button>
-              @if (!role.IsSystem) {
-                <button class="act-btn act-del" kendoTooltip title="מחיקה" (click)="$event.stopPropagation(); deleteRole(role)">
+              @if (canDeleteRole(role)) {
+                <button class="act-btn act-del" kendoTooltip title="מחיקה"
+                        (click)="$event.stopPropagation(); deleteRole(role)">
                   <kendo-svg-icon [icon]="icons.trash" />
                 </button>
               }
@@ -224,6 +240,25 @@
       <div class="dialog-footer">
         <button class="btn-save" (click)="saveRole()" [disabled]="saving()">✓ שמור</button>
         <button class="btn-cancel" (click)="roleDialogOpen.set(false)">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}
+
+<!-- ═══ Delete Role Confirm ═══ -->
+@if (deleteRoleConfirmOpen()) {
+  <kendo-dialog title="אישור מחיקת תפקיד" [width]="400" (close)="cancelDeleteRole()">
+    <div class="confirm-body">
+      <mat-icon class="confirm-icon">warning_amber</mat-icon>
+      <p class="confirm-text">
+        למחוק את התפקיד <strong>{{ roleToDelete()?.RoleName }}</strong>?<br>
+        <span class="confirm-sub">פעולה זו אינה הפיכה.</span>
+      </p>
+    </div>
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-danger-solid" (click)="confirmDeleteRole()">מחק</button>
+        <button class="btn-cancel" (click)="cancelDeleteRole()">ביטול</button>
       </div>
     </kendo-dialog-actions>
   </kendo-dialog>

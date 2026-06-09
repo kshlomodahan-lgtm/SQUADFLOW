@@ -59,6 +59,15 @@
     background: color-mix(in srgb, var(--sf-primary) 8%, transparent);
     border-right: 3px solid var(--sf-primary);
   }
+
+  &.role-locked {
+    background: color-mix(in srgb, var(--sf-text-muted) 4%, transparent);
+    .role-name { color: var(--sf-text-secondary); }
+  }
+
+  &.role-template {
+    border-right: 2px dashed var(--sf-border);
+  }
 }
 
 .role-color {
@@ -73,7 +82,16 @@
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-.lock-icon { font-size: 14px !important; width: 14px !important; height: 14px !important; color: var(--sf-text-muted); }
+.lock-icon {
+  font-size: 13px !important; opacity: .5; color: var(--sf-text-muted);
+  kendo-svg-icon { vertical-align: middle; }
+}
+
+.template-hint {
+  font-size: .64rem; color: #d97706;
+  background: #f59e0b10; border: 1px dashed #f59e0b60;
+  padding: 1px 6px; border-radius: 100px; font-weight: 600;
+}
 
 .role-meta {
   display: flex; align-items: center; gap: 6px; margin-top: 3px;
@@ -318,4 +336,23 @@
   &:hover:not(.seg-on):not(.seg-off) { background: var(--sf-bg-hover); color: var(--sf-text); }
   &.seg-on  { background: #10b981; color: #fff; font-weight: 600; }
   &.seg-off { background: #ef4444; color: #fff; font-weight: 600; }
+}
+
+// ─── Confirm Delete ───────────────────────────────────────────
+.confirm-body {
+  display: flex; align-items: flex-start; gap: 14px; padding: 8px 4px;
+}
+.confirm-icon {
+  font-size: 2rem !important; width: 2rem !important; height: 2rem !important;
+  color: #f59e0b; flex-shrink: 0;
+}
+.confirm-text {
+  font-size: .9rem; color: var(--sf-text); margin: 0; line-height: 1.6;
+  .confirm-sub { font-size: .8rem; color: var(--sf-text-secondary); }
+}
+.btn-danger-solid {
+  padding: 8px 18px; border-radius: 8px; border: none;
+  background: #ef4444; color: #fff; font-size: .88rem; font-weight: 600;
+  cursor: pointer; transition: background .12s;
+  &:hover { background: #dc2626; }
 }

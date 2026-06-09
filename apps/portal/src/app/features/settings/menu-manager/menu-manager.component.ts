@@ -2,9 +2,9 @@ import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
-import { TreeViewModule, CheckableSettings } from '@progress/kendo-angular-treeview';
+import { TreeViewModule } from '@progress/kendo-angular-treeview';
 import { SortableModule } from '@progress/kendo-angular-sortable';
-import { DialogModule, DialogRef } from '@progress/kendo-angular-dialog';
+import { DialogModule } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownListModule } from '@progress/kendo-angular-dropdowns';
@@ -14,8 +14,8 @@ import { BadgeModule } from '@progress/kendo-angular-indicators';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import {
   gearIcon, folderIcon, gridIcon, pencilIcon, trashIcon, plusIcon,
-  checkIcon, xIcon, eyeIcon, eyeSlashIcon, chevronDownIcon, chevronUpIcon,
-  dragAndDropIcon, menuIcon
+  checkIcon, xIcon, eyeIcon, eyeSlashIcon, chevronDownIcon, chevronRightIcon,
+  menuIcon, lockIcon
 } from '@progress/kendo-svg-icons';
 
 import { MatIconModule } from '@angular/material/icon';
@@ -85,9 +85,11 @@ export class MenuManagerComponent implements OnInit {
   treeData  = signal<TreeMenuItem[]>([]);
   flatItems = computed(() => this.allItems());
 
-  dialogOpen     = signal(false);
-  editingItem    = signal<TreeMenuItem | null>(null);
-  selectedNodeId = signal<number | null>(null);
+  dialogOpen       = signal(false);
+  editingItem      = signal<TreeMenuItem | null>(null);
+  selectedNodeId   = signal<number | null>(null);
+  deleteConfirmOpen = signal(false);
+  itemToDelete     = signal<TreeMenuItem | null>(null);
 
   form!: FormGroup;
 
@@ -95,8 +97,9 @@ export class MenuManagerComponent implements OnInit {
   readonly icons = {
     gear: gearIcon, folder: folderIcon, grid: gridIcon, pencil: pencilIcon,
     trash: trashIcon, plus: plusIcon, check: checkIcon, x: xIcon,
-    eye: eyeIcon, eyeSlash: eyeSlashIcon, chevronDown: chevronDownIcon,
-    chevronUp: chevronUpIcon, drag: dragAndDropIcon, menu: menuIcon,
+    eye: eyeIcon, eyeSlash: eyeSlashIcon,
+    chevronDown: chevronDownIcon, chevronRight: chevronRightIcon,
+    menu: menuIcon, lock: lockIcon,
   };
 
   readonly itemTypeOptions  = ITEM_TYPE_OPTIONS;
@@ -148,7 +151,7 @@ export class MenuManagerComponent implements OnInit {
       ...i,
       children: [],
       expanded: true,
-      actionCodeList: i.AvailableActions ? i.AvailableActions.split(',') : [],
+      actionCodeList: i.AvailableActions ? i.AvailableActions.split(',').sort() : [],
     }));
     const roots: TreeMenuItem[] = [];
     map.forEach(item => {
@@ -158,7 +161,9 @@ export class MenuManagerComponent implements OnInit {
         roots.push(item);
       }
     });
-    roots.sort((a, b) => a.SortOrder - b.SortOrder);
+    const sortFn = (a: TreeMenuItem, b: TreeMenuItem) => a.SortOrder - b.SortOrder;
+    roots.sort(sortFn);
+    roots.forEach(r => r.children.sort(sortFn));
     return roots;
   }
 
@@ -244,10 +249,26 @@ export class MenuManagerComponent implements OnInit {
   }
 
   deleteItem(item: TreeMenuItem) {
-    if (!confirm(`למחוק את "${item.MenuItemName}"?`)) return;
+    this.itemToDelete.set(item);
+    this.deleteConfirmOpen.set(true);
+  }
+
+  confirmDelete() {
+    const item = this.itemToDelete();
+    if (!item) return;
     this.svc.deleteMenuItem(item.MenuItemID).subscribe({
-      next: () => { this.notify.show({ content: 'נמחק', type: { style: 'warning', icon: true }, position: { horizontal: 'center', vertical: 'top' } }); this.loadData(); },
+      next: () => {
+        this.notify.show({ content: 'הפריט נמחק', type: { style: 'warning', icon: true }, position: { horizontal: 'center', vertical: 'top' } });
+        this.loadData();
+      },
     });
+    this.deleteConfirmOpen.set(false);
+    this.itemToDelete.set(null);
+  }
+
+  cancelDelete() {
+    this.deleteConfirmOpen.set(false);
+    this.itemToDelete.set(null);
   }
 
   toggleNode(item: TreeMenuItem) {
@@ -274,9 +295,32 @@ export class MenuManagerComponent implements OnInit {
     return '/app/catalog/packages';
   }
 
+  isPlatformItem(item: TreeMenuItem): boolean {
+    return item.TenantID === 0;
+  }
+
+  actionChipColor(code: string): string {
+    const groups: Record<string, string> = {
+      READ: 'VIEW', EXPORT: 'VIEW', PRINT: 'VIEW', VIEW_SENSITIVE: 'VIEW', VIEW_AMOUNTS: 'VIEW', VIEW_HISTORY: 'VIEW',
+      CREATE: 'CRUD', UPDATE: 'CRUD', DELETE: 'CRUD',
+      APPROVE: 'WORKFLOW', REJECT: 'WORKFLOW', CANCEL: 'WORKFLOW',
+      IMPORT: 'MANAGE', CLONE: 'MANAGE', LOCK: 'MANAGE',
+    };
+    return groups[code] ?? 'VIEW';
+  }
+
+  actionChipLabel(code: string): string {
+    const labels: Record<string, string> = {
+      READ: 'R', CREATE: 'C', UPDATE: 'U', DELETE: 'D',
+      EXPORT: 'EX', IMPORT: 'IM', PRINT: 'PR', CLONE: 'CL',
+      APPROVE: 'AP', REJECT: 'RJ', CANCEL: 'CN',
+      VIEW_SENSITIVE: 'VS', VIEW_AMOUNTS: 'VA', VIEW_HISTORY: 'VH', LOCK: 'LK',
+    };
+    return labels[code] ?? code.slice(0, 2);
+  }
+
   trackById(_i: number, item: TreeMenuItem) { return item.MenuItemID; }
 
-  // Kendo TreeView childrenField / textField helpers
   hasChildren = (item: TreeMenuItem) => item.children && item.children.length > 0;
   fetchChildren = (item: TreeMenuItem) => item.children;
 }

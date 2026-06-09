@@ -15,23 +15,27 @@
     </button>
   </div>
 
-  <!-- Spinner -->
   @if (loading()) {
     <div class="center-spinner"><mat-spinner [diameter]="36" /></div>
   }
-
-  <!-- Error -->
   @if (error()) {
     <div class="error-box"><mat-icon>error_outline</mat-icon> {{ error() }}</div>
   }
 
-  <!-- Tree -->
   @if (!loading() && !error()) {
     <div class="tree-card">
+      <!-- Legend -->
       <div class="tree-legend">
         <span class="legend-item"><span class="badge-screen">מסך</span></span>
         <span class="legend-item"><span class="badge-folder">תיקייה</span></span>
         <span class="legend-item"><span class="badge-divider">מפריד</span></span>
+        <span class="legend-sep"></span>
+        <span class="legend-item"><span class="chip chip-VIEW">R</span> צפייה</span>
+        <span class="legend-item"><span class="chip chip-CRUD">C/U/D</span> CRUD</span>
+        <span class="legend-item"><span class="chip chip-WORKFLOW">W</span> תהליך</span>
+        <span class="legend-item"><span class="chip chip-MANAGE">M</span> ניהול</span>
+        <span class="legend-sep"></span>
+        <span class="legend-item platform-legend"><kendo-svg-icon [icon]="icons.lock" /> פלטפורמה — לא ניתן לעריכה</span>
       </div>
 
       <div class="tree-body">
@@ -50,44 +54,64 @@
 
 </div>
 
-<!-- ═══ Recursive Tree Node Template ═══ -->
+<!-- ═══ Recursive Tree Node ═══ -->
 <ng-template #treeNode let-item let-depth="depth">
-  <div class="tree-node" [class.selected]="selectedNodeId() === item.MenuItemID" [style.padding-right.px]="depth * 24">
+  <div class="tree-node"
+       [class.selected]="selectedNodeId() === item.MenuItemID"
+       [class.platform-item]="isPlatformItem(item)"
+       [style.padding-right.px]="16 + depth * 24"
+       (click)="selectNode(item.MenuItemID)">
 
-    <!-- Toggle / Indent -->
+    <!-- Expand toggle -->
     <div class="node-toggle">
       @if (item.children.length > 0) {
-        <button class="toggle-btn" (click)="toggleNode(item)">
-          <kendo-svg-icon [icon]="item.expanded ? icons.chevronDown : icons.chevronUp" />
+        <button class="toggle-btn" (click)="$event.stopPropagation(); toggleNode(item)">
+          <kendo-svg-icon [icon]="item.expanded ? icons.chevronDown : icons.chevronRight" />
         </button>
       } @else {
         <span class="toggle-spacer"></span>
       }
     </div>
 
-    <!-- Type Badge -->
+    <!-- Platform lock badge -->
+    @if (isPlatformItem(item)) {
+      <span class="platform-lock" kendoTooltip title="פריט פלטפורמה — ניתן לצפייה בלבד">
+        <kendo-svg-icon [icon]="icons.lock" />
+      </span>
+    }
+
+    <!-- Type badge -->
     <span class="node-type-badge" [ngClass]="typeBadgeClass(item.MenuItemType)">
       {{ typeLabel(item.MenuItemType) }}
     </span>
 
-    <!-- Icon -->
+    <!-- Mat icon -->
     <mat-icon class="node-icon">{{ item.Icon || 'circle' }}</mat-icon>
 
     <!-- Name -->
-    <span class="node-name" (click)="selectNode(item.MenuItemID)">{{ item.MenuItemName }}</span>
+    <span class="node-name">{{ item.MenuItemName }}</span>
+
+    <!-- Code (mono) -->
     <span class="node-code">{{ item.MenuItemCode }}</span>
 
-    <!-- Route (if screen) -->
+    <!-- Route — tooltip only -->
     @if (item.Route) {
-      <span class="node-route">{{ item.Route }}</span>
+      <span class="node-route-dot" kendoTooltip [title]="item.Route">
+        <mat-icon class="route-icon">link</mat-icon>
+      </span>
     }
 
-    <!-- Action badges -->
+    <!-- Action chips — colored + abbreviated -->
     <div class="node-actions-list">
       @for (code of item.actionCodeList; track code) {
-        <span class="action-chip">{{ code }}</span>
+        <span class="chip chip-{{ actionChipColor(code) }}" kendoTooltip [title]="code">
+          {{ actionChipLabel(code) }}
+        </span>
       }
     </div>
+
+    <!-- Spacer -->
+    <span class="node-spacer"></span>
 
     <!-- Visibility indicator -->
     <span class="node-visibility" [title]="item.IsVisible ? 'גלוי' : 'מוסתר'">
@@ -95,20 +119,25 @@
                       [class.muted]="!item.IsVisible" />
     </span>
 
-    <!-- Actions -->
-    <div class="node-btns">
-      @if (item.MenuItemType === 'FOLDER') {
-        <button class="act-btn act-add" kendoTooltip title="הוסף תת-פריט" (click)="openAddDialog(item)">
-          <kendo-svg-icon [icon]="icons.plus" />
+    <!-- Action buttons — hidden on platform items -->
+    @if (!isPlatformItem(item)) {
+      <div class="node-btns">
+        @if (item.MenuItemType === 'FOLDER') {
+          <button class="act-btn act-add" kendoTooltip title="הוסף תת-פריט"
+                  (click)="$event.stopPropagation(); openAddDialog(item)">
+            <kendo-svg-icon [icon]="icons.plus" />
+          </button>
+        }
+        <button class="act-btn act-edit" kendoTooltip title="עריכה"
+                (click)="$event.stopPropagation(); openEditDialog(item)">
+          <kendo-svg-icon [icon]="icons.pencil" />
         </button>
-      }
-      <button class="act-btn act-edit" kendoTooltip title="עריכה" (click)="openEditDialog(item)">
-        <kendo-svg-icon [icon]="icons.pencil" />
-      </button>
-      <button class="act-btn act-del" kendoTooltip title="מחיקה" (click)="deleteItem(item)">
-        <kendo-svg-icon [icon]="icons.trash" />
-      </button>
-    </div>
+        <button class="act-btn act-del" kendoTooltip title="מחיקה"
+                (click)="$event.stopPropagation(); deleteItem(item)">
+          <kendo-svg-icon [icon]="icons.trash" />
+        </button>
+      </div>
+    }
   </div>
 
   <!-- Children -->
@@ -128,7 +157,6 @@
 
     <form [formGroup]="form" class="menu-form">
 
-      <!-- Row 1: Name + Code -->
       <div class="form-row">
         <div class="form-field">
           <label class="field-label">שם הפריט <span class="req">*</span></label>
@@ -147,23 +175,16 @@
         </div>
       </div>
 
-      <!-- Row 2: Type + Icon + SortOrder -->
       <div class="form-row">
         <div class="form-field form-field--sm">
           <label class="field-label">סוג</label>
-          <kendo-dropdownlist
-            formControlName="menuItemType"
-            [data]="itemTypeOptions"
-            textField="label" valueField="value"
-            [valuePrimitive]="true" />
+          <kendo-dropdownlist formControlName="menuItemType"
+            [data]="itemTypeOptions" textField="label" valueField="value" [valuePrimitive]="true" />
         </div>
         <div class="form-field form-field--sm">
           <label class="field-label">איקון</label>
-          <kendo-dropdownlist
-            formControlName="icon"
-            [data]="iconOptions"
-            textField="label" valueField="value"
-            [valuePrimitive]="true" />
+          <kendo-dropdownlist formControlName="icon"
+            [data]="iconOptions" textField="label" valueField="value" [valuePrimitive]="true" />
         </div>
         <div class="form-field form-field--xs">
           <label class="field-label">סדר</label>
@@ -171,7 +192,6 @@
         </div>
       </div>
 
-      <!-- Row 3: Route (only for SCREEN) -->
       @if (form.get('menuItemType')?.value === 'SCREEN') {
         <div class="form-row">
           <div class="form-field form-field--full">
@@ -181,21 +201,23 @@
         </div>
       }
 
-      <!-- Row 4: Visibility + Active -->
       <div class="form-row form-row--toggles">
         <label class="field-label">גלוי בתפריט</label>
         <div class="seg-ctrl">
-          <button type="button" class="seg-btn" [class.seg-on]="!!form.get('isVisible')?.value" (click)="form.get('isVisible')?.setValue(true)">✓ גלוי</button>
-          <button type="button" class="seg-btn" [class.seg-off]="!form.get('isVisible')?.value" (click)="form.get('isVisible')?.setValue(false)">✗ מוסתר</button>
+          <button type="button" class="seg-btn" [class.seg-on]="!!form.get('isVisible')?.value"
+                  (click)="form.get('isVisible')?.setValue(true)">✓ גלוי</button>
+          <button type="button" class="seg-btn" [class.seg-off]="!form.get('isVisible')?.value"
+                  (click)="form.get('isVisible')?.setValue(false)">✗ מוסתר</button>
         </div>
         <label class="field-label" style="margin-right: 24px">סטטוס</label>
         <div class="seg-ctrl">
-          <button type="button" class="seg-btn" [class.seg-on]="!!form.get('isActive')?.value" (click)="form.get('isActive')?.setValue(true)">✓ פעיל</button>
-          <button type="button" class="seg-btn" [class.seg-off]="!form.get('isActive')?.value" (click)="form.get('isActive')?.setValue(false)">✗ מושהה</button>
+          <button type="button" class="seg-btn" [class.seg-on]="!!form.get('isActive')?.value"
+                  (click)="form.get('isActive')?.setValue(true)">✓ פעיל</button>
+          <button type="button" class="seg-btn" [class.seg-off]="!form.get('isActive')?.value"
+                  (click)="form.get('isActive')?.setValue(false)">✗ מושהה</button>
         </div>
       </div>
 
-      <!-- Row 5: Available Actions (only for SCREEN) -->
       @if (form.get('menuItemType')?.value === 'SCREEN') {
         <div class="form-section">
           <div class="section-title">פעולות מורשות במסך זה</div>
@@ -222,6 +244,25 @@
           {{ editingItem() ? 'שמור שינויים' : 'הוסף פריט' }}
         </button>
         <button class="btn-cancel" (click)="closeDialog()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}
+
+<!-- ═══ Delete Confirmation Dialog ═══ -->
+@if (deleteConfirmOpen()) {
+  <kendo-dialog title="אישור מחיקה" [width]="400" (close)="cancelDelete()">
+    <div class="confirm-body">
+      <mat-icon class="confirm-icon">warning_amber</mat-icon>
+      <p class="confirm-text">
+        למחוק את הפריט <strong>{{ itemToDelete()?.MenuItemName }}</strong>?<br>
+        <span class="confirm-sub">פעולה זו אינה הפיכה.</span>
+      </p>
+    </div>
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-danger-solid" (click)="confirmDelete()">מחק</button>
+        <button class="btn-cancel" (click)="cancelDelete()">ביטול</button>
       </div>
     </kendo-dialog-actions>
   </kendo-dialog>
