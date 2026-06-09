@@ -37,7 +37,20 @@ USING (VALUES
   ('tr', N'Turkish',    N'Türkçe',     'LTR', 1, 12),
   ('ja', N'Japanese',   N'日本語',     'LTR', 1, 13),
   ('ko', N'Korean',     N'한국어',     'LTR', 1, 14),
-  ('pl', N'Polish',     N'Polski',     'LTR', 1, 15)
+  ('pl', N'Polish',     N'Polski',     'LTR', 1, 15),
+  ('sv', N'Swedish',   N'Svenska',    'LTR', 1, 16),
+  ('no', N'Norwegian', N'Norsk',      'LTR', 1, 17),
+  ('da', N'Danish',    N'Dansk',      'LTR', 1, 18),
+  ('fi', N'Finnish',   N'Suomi',      'LTR', 1, 19),
+  ('cs', N'Czech',     N'Čeština',    'LTR', 1, 20),
+  ('el', N'Greek',     N'Ελληνικά',   'LTR', 1, 21),
+  ('ro', N'Romanian',  N'Română',     'LTR', 1, 22),
+  ('hu', N'Hungarian', N'Magyar',     'LTR', 1, 23),
+  ('uk', N'Ukrainian', N'Українська', 'LTR', 1, 24),
+  ('hi', N'Hindi',     N'हिन्दी',     'LTR', 1, 25),
+  ('th', N'Thai',      N'ภาษาไทย',    'LTR', 1, 26),
+  ('ms', N'Malay',     N'Bahasa Melayu', 'LTR', 1, 27),
+  ('id', N'Indonesian',N'Bahasa Indonesia', 'LTR', 1, 28)
 ) AS S(LanguageCode, LanguageName, NativeName, Direction, IsActive, SortOrder)
 ON T.LanguageCode = S.LanguageCode
 WHEN NOT MATCHED THEN
@@ -92,7 +105,21 @@ USING (VALUES
   ('SEK', N'Swedish Krona',            N'kr', 2, 1),
   ('NOK', N'Norwegian Krone',          N'kr', 2, 1),
   ('DKK', N'Danish Krone',             N'kr', 2, 1),
-  ('NZD', N'New Zealand Dollar',       N'NZ$',2, 1)
+  ('NZD', N'New Zealand Dollar',       N'NZ$',2, 1),
+  ('IQD', N'Iraqi Dinar',              N'ع.د', 3, 1),
+  ('SYP', N'Syrian Pound',             N'£',  2, 1),
+  ('CZK', N'Czech Koruna',             N'Kč', 2, 1),
+  ('RON', N'Romanian Leu',             N'lei',2, 1),
+  ('HUF', N'Hungarian Forint',         N'Ft', 2, 1),
+  ('UAH', N'Ukrainian Hryvnia',        N'₴',  2, 1),
+  ('ARS', N'Argentine Peso',           N'$',  2, 1),
+  ('COP', N'Colombian Peso',           N'$',  2, 1),
+  ('THB', N'Thai Baht',               N'฿',  2, 1),
+  ('MYR', N'Malaysian Ringgit',        N'RM', 2, 1),
+  ('IDR', N'Indonesian Rupiah',        N'Rp', 2, 1),
+  ('HRK', N'Croatian Kuna',            N'kn', 2, 1),
+  ('HKD', N'Hong Kong Dollar',         N'HK$',2, 1),
+  ('TWD', N'New Taiwan Dollar',        N'NT$',2, 1)
 ) AS S(CurrencyCode, CurrencyName, CurrencySymbol, DecimalDigits, IsActive)
 ON T.CurrencyCode = S.CurrencyCode
 WHEN NOT MATCHED THEN

@@ -18,6 +18,7 @@ router.get('/', async (req, res) => {
              t.BusinessNumber, t.Address, t.City, t.Country, t.ContactName,
              t.Phone2, t.Fax, t.Website,
              t.BankName, t.BankBranch, t.BankAccount, t.AccountingRef,
+             t.OrgType, t.CountryCode, t.DefaultLanguageCode, t.DefaultCurrencyCode,
              COUNT(DISTINCT u.UserID)     AS UserCount,
              COUNT(DISTINCT c.CustomerID) AS CustomerCount,
              COUNT(DISTINCT tk.TicketID)  AS OpenTickets
@@ -31,7 +32,8 @@ router.get('/', async (req, res) => {
                t.Notes,t.SubscribedAt,t.ExpiresAt,
                t.BusinessNumber,t.Address,t.City,t.Country,t.ContactName,
                t.Phone2,t.Fax,t.Website,
-               t.BankName,t.BankBranch,t.BankAccount,t.AccountingRef
+               t.BankName,t.BankBranch,t.BankAccount,t.AccountingRef,
+               t.OrgType,t.CountryCode,t.DefaultLanguageCode,t.DefaultCurrencyCode
       ORDER BY t.TenantID
     `);
     return res.json({ success: true, tenants: result.recordset });
@@ -185,7 +187,8 @@ router.put('/:id', async (req, res) => {
   const id = parseInt(req.params.id);
   const { companyName, email, phone, planType, maxUsers, maxTickets, isActive, logoUrl, notes,
           businessNumber, address, city, country, contactName, phone2, fax, website,
-          bankName, bankBranch, bankAccount, accountingRef } = req.body;
+          bankName, bankBranch, bankAccount, accountingRef,
+          countryCode, defaultLanguageCode, defaultCurrencyCode } = req.body;
 
   try {
     const db = await getPool();
@@ -230,6 +233,21 @@ router.put('/:id', async (req, res) => {
     if (r.output.ResultCode !== 0) {
       const httpCode = r.output.ResultCode === 99 ? 500 : 400;
       return res.status(httpCode).json({ success: false, message: r.output.ResultMessage });
+    }
+
+    // עדכון שדות לוקל (CountryCode, DefaultLanguageCode, DefaultCurrencyCode)
+    if (countryCode !== undefined || defaultLanguageCode !== undefined || defaultCurrencyCode !== undefined) {
+      await db.request()
+        .input('TenantID',            sql.Int,      id)
+        .input('CountryCode',         sql.Char(2),  countryCode          || null)
+        .input('DefaultLanguageCode', sql.VarChar(5), defaultLanguageCode || null)
+        .input('DefaultCurrencyCode', sql.Char(3),  defaultCurrencyCode  || null)
+        .query(`UPDATE dbo.tblTenants SET
+                  CountryCode         = @CountryCode,
+                  DefaultLanguageCode = @DefaultLanguageCode,
+                  DefaultCurrencyCode = @DefaultCurrencyCode,
+                  UpdatedAt           = GETDATE()
+                WHERE TenantID = @TenantID`);
     }
 
     // בניית diff — רק שדות שהשתנו (null/undefined/'' נחשבים שווים)
