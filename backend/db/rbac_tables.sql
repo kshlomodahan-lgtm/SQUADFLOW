@@ -1,13 +1,13 @@
--- ============================================================
--- SQUADFLOW — RBAC + Org Chart Tables
--- Phase 1.1–1.4  |  DB Architect Standard
+﻿-- ============================================================
+-- SQUADFLOW ג€” RBAC + Org Chart Tables
+-- Phase 1.1ג€“1.4  |  DB Architect Standard
 -- ============================================================
 
-USE SquadFlowDB;
+USE ProfitsCRM;
 GO
 
 -- ============================================================
--- PHASE 1.1 — Core RBAC Tables
+-- PHASE 1.1 ג€” Core RBAC Tables
 -- ============================================================
 
 -- Action Types (catalog: READ, CREATE, UPDATE, DELETE, ...)
@@ -21,7 +21,7 @@ CREATE TABLE tblActionTypes (
 );
 GO
 
--- Menu Items — hierarchical tree per tenant (TenantID=0 = platform)
+-- Menu Items ג€” hierarchical tree per tenant (TenantID=0 = platform)
 IF NOT EXISTS (SELECT 1 FROM sysobjects WHERE name='tblMenuItems' AND xtype='U')
 CREATE TABLE tblMenuItems (
     MenuItemID      INT            NOT NULL IDENTITY(1,1) CONSTRAINT PK_MenuItems PRIMARY KEY,
@@ -80,7 +80,7 @@ GO
 CREATE UNIQUE INDEX UX_Roles_Code_Tenant ON tblRoles(TenantID, RoleCode);
 GO
 
--- Permission Matrix: Role × MenuItem × ActionCode
+-- Permission Matrix: Role ֳ— MenuItem ֳ— ActionCode
 IF NOT EXISTS (SELECT 1 FROM sysobjects WHERE name='tblRolePermissions' AND xtype='U')
 CREATE TABLE tblRolePermissions (
     RoleID          INT         NOT NULL,
@@ -109,7 +109,7 @@ CREATE TABLE tblGroups (
 );
 GO
 
--- Group → Roles (M:M)
+-- Group ג†’ Roles (M:M)
 IF NOT EXISTS (SELECT 1 FROM sysobjects WHERE name='tblGroupRoles' AND xtype='U')
 CREATE TABLE tblGroupRoles (
     GroupID INT NOT NULL,
@@ -120,7 +120,7 @@ CREATE TABLE tblGroupRoles (
 );
 GO
 
--- User → Groups (M:M)
+-- User ג†’ Groups (M:M)
 IF NOT EXISTS (SELECT 1 FROM sysobjects WHERE name='tblUserGroups' AND xtype='U')
 CREATE TABLE tblUserGroups (
     UserID    INT      NOT NULL,
@@ -131,7 +131,7 @@ CREATE TABLE tblUserGroups (
 );
 GO
 
--- User → Roles (direct assignment, optional expiry)
+-- User ג†’ Roles (direct assignment, optional expiry)
 IF NOT EXISTS (SELECT 1 FROM sysobjects WHERE name='tblUserRoles' AND xtype='U')
 CREATE TABLE tblUserRoles (
     UserID            INT      NOT NULL,
@@ -163,7 +163,7 @@ CREATE TABLE tblUserPermissionOverrides (
 GO
 
 -- ============================================================
--- PHASE 1.2 — Security Tables
+-- PHASE 1.2 ג€” Security Tables
 -- ============================================================
 
 IF NOT EXISTS (SELECT 1 FROM sysobjects WHERE name='tblUserSecuritySettings' AND xtype='U')
@@ -240,7 +240,7 @@ CREATE TABLE tblUserIPWhitelist (
 GO
 
 -- ============================================================
--- PHASE 1.3 — Org Structure
+-- PHASE 1.3 ג€” Org Structure
 -- ============================================================
 
 IF NOT EXISTS (SELECT 1 FROM sysobjects WHERE name='tblJobTitles' AND xtype='U')
@@ -303,7 +303,7 @@ CREATE TABLE tblUserPositions (
 GO
 
 -- ============================================================
--- PHASE 1.4 — Content Groups + SaaS Features
+-- PHASE 1.4 ג€” Content Groups + SaaS Features
 -- ============================================================
 
 IF NOT EXISTS (SELECT 1 FROM sysobjects WHERE name='tblContentGroups' AND xtype='U')
@@ -388,3 +388,4 @@ GO
 
 PRINT 'RBAC + Org Chart tables created successfully.';
 GO
+

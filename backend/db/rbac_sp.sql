@@ -1,9 +1,9 @@
--- ============================================================
--- SQUADFLOW — RBAC Stored Procedures
+﻿-- ============================================================
+-- SQUADFLOW ג€” RBAC Stored Procedures
 -- Phase 1.5-1.6  |  DB Architect Standard
 -- ============================================================
 
-USE SquadFlowDB;
+USE ProfitsCRM;
 GO
 
 -- ============================================================
@@ -13,21 +13,21 @@ GO
 -- Action Types
 IF NOT EXISTS (SELECT 1 FROM tblActionTypes WHERE ActionCode='READ')
 INSERT INTO tblActionTypes (ActionCode, ActionName, ActionGroup, SortOrder) VALUES
-('READ',          N'צפייה',           'VIEW',     1),
-('CREATE',        N'הוספה',           'CRUD',     2),
-('UPDATE',        N'עדכון',           'CRUD',     3),
-('DELETE',        N'מחיקה',           'CRUD',     4),
-('EXPORT',        N'ייצוא',           'VIEW',     5),
-('IMPORT',        N'ייבוא',           'MANAGE',   6),
-('PRINT',         N'הדפסה',           'VIEW',     7),
-('CLONE',         N'שכפול',           'MANAGE',   8),
-('APPROVE',       N'אישור',           'WORKFLOW', 9),
-('REJECT',        N'דחייה',           'WORKFLOW', 10),
-('CANCEL',        N'ביטול',           'WORKFLOW', 11),
-('VIEW_SENSITIVE', N'צפייה ברגישים', 'VIEW',     12),
-('VIEW_AMOUNTS',  N'צפייה בסכומים',  'VIEW',     13),
-('VIEW_HISTORY',  N'היסטוריה',        'VIEW',     14),
-('LOCK',          N'נעילה',           'MANAGE',   15);
+('READ',          N'׳¦׳₪׳™׳™׳”',           'VIEW',     1),
+('CREATE',        N'׳”׳•׳¡׳₪׳”',           'CRUD',     2),
+('UPDATE',        N'׳¢׳“׳›׳•׳',           'CRUD',     3),
+('DELETE',        N'׳׳—׳™׳§׳”',           'CRUD',     4),
+('EXPORT',        N'׳™׳™׳¦׳•׳',           'VIEW',     5),
+('IMPORT',        N'׳™׳™׳‘׳•׳',           'MANAGE',   6),
+('PRINT',         N'׳”׳“׳₪׳¡׳”',           'VIEW',     7),
+('CLONE',         N'׳©׳›׳₪׳•׳',           'MANAGE',   8),
+('APPROVE',       N'׳׳™׳©׳•׳¨',           'WORKFLOW', 9),
+('REJECT',        N'׳“׳—׳™׳™׳”',           'WORKFLOW', 10),
+('CANCEL',        N'׳‘׳™׳˜׳•׳',           'WORKFLOW', 11),
+('VIEW_SENSITIVE', N'׳¦׳₪׳™׳™׳” ׳‘׳¨׳’׳™׳©׳™׳', 'VIEW',     12),
+('VIEW_AMOUNTS',  N'׳¦׳₪׳™׳™׳” ׳‘׳¡׳›׳•׳׳™׳',  'VIEW',     13),
+('VIEW_HISTORY',  N'׳”׳™׳¡׳˜׳•׳¨׳™׳”',        'VIEW',     14),
+('LOCK',          N'׳ ׳¢׳™׳׳”',           'MANAGE',   15);
 GO
 
 -- Platform Super Admin Role (TenantID=0, immutable)
@@ -51,30 +51,30 @@ IF NOT EXISTS (SELECT 1 FROM tblMenuItems WHERE MenuItemCode='DASHBOARD' AND Ten
 BEGIN
   -- Root items
   INSERT INTO tblMenuItems (TenantID, ParentID, MenuItemCode, MenuItemName, MenuItemType, Route, Icon, SortOrder) VALUES
-  (0, NULL, 'DASHBOARD',     N'דשבורד',           'SCREEN',  '/app/dashboard',      'grid',          1),
-  (0, NULL, 'ORGANIZATIONS', N'ארגונים',           'SCREEN',  '/app/organizations',  'buildings',     2),
-  (0, NULL, 'USERS',         N'משתמשים',           'SCREEN',  '/app/users',          'person',        3),
-  (0, NULL, 'CATALOG',       N'קטלוג',             'FOLDER',  NULL,                  'grid-layout',   4),
-  (0, NULL, 'AUDIT',         N'יומן פעילות',       'SCREEN',  '/app/audit',          'clipboard',     5),
-  (0, NULL, 'SETTINGS',      N'הגדרות',            'FOLDER',  NULL,                  'gear',          9);
+  (0, NULL, 'DASHBOARD',     N'׳“׳©׳‘׳•׳¨׳“',           'SCREEN',  '/app/dashboard',      'grid',          1),
+  (0, NULL, 'ORGANIZATIONS', N'׳׳¨׳’׳•׳ ׳™׳',           'SCREEN',  '/app/organizations',  'buildings',     2),
+  (0, NULL, 'USERS',         N'׳׳©׳×׳׳©׳™׳',           'SCREEN',  '/app/users',          'person',        3),
+  (0, NULL, 'CATALOG',       N'׳§׳˜׳׳•׳’',             'FOLDER',  NULL,                  'grid-layout',   4),
+  (0, NULL, 'AUDIT',         N'׳™׳•׳׳ ׳₪׳¢׳™׳׳•׳×',       'SCREEN',  '/app/audit',          'clipboard',     5),
+  (0, NULL, 'SETTINGS',      N'׳”׳’׳“׳¨׳•׳×',            'FOLDER',  NULL,                  'gear',          9);
 
   DECLARE @CatalogID INT = (SELECT MenuItemID FROM tblMenuItems WHERE MenuItemCode='CATALOG' AND TenantID=0);
   DECLARE @SettingsID INT = (SELECT MenuItemID FROM tblMenuItems WHERE MenuItemCode='SETTINGS' AND TenantID=0);
 
   -- Catalog sub-items
   INSERT INTO tblMenuItems (TenantID, ParentID, MenuItemCode, MenuItemName, MenuItemType, Route, Icon, SortOrder) VALUES
-  (0, @CatalogID, 'CATALOG_PACKAGES',  N'חבילות',   'SCREEN', '/app/catalog/packages',  'layers',  1),
-  (0, @CatalogID, 'CATALOG_PRODUCTS',  N'מוצרים',   'SCREEN', '/app/catalog/products',  'box',     2),
-  (0, @CatalogID, 'CATALOG_CATEGORIES',N'קטגוריות', 'SCREEN', '/app/catalog/categories','tag',     3);
+  (0, @CatalogID, 'CATALOG_PACKAGES',  N'׳—׳‘׳™׳׳•׳×',   'SCREEN', '/app/catalog/packages',  'layers',  1),
+  (0, @CatalogID, 'CATALOG_PRODUCTS',  N'׳׳•׳¦׳¨׳™׳',   'SCREEN', '/app/catalog/products',  'box',     2),
+  (0, @CatalogID, 'CATALOG_CATEGORIES',N'׳§׳˜׳’׳•׳¨׳™׳•׳×', 'SCREEN', '/app/catalog/categories','tag',     3);
 
   -- Settings sub-items
   INSERT INTO tblMenuItems (TenantID, ParentID, MenuItemCode, MenuItemName, MenuItemType, Route, Icon, SortOrder) VALUES
-  (0, @SettingsID, 'SETTINGS_GENERAL',    N'כללי',             'SCREEN', '/app/settings', 'gear',      1),
-  (0, @SettingsID, 'SETTINGS_MENU',       N'עץ תפריטים',       'SCREEN', '/app/settings', 'menu',      2),
-  (0, @SettingsID, 'SETTINGS_ROLES',      N'תפקידים והרשאות',  'SCREEN', '/app/settings', 'person',    3),
-  (0, @SettingsID, 'SETTINGS_ORGCHART',   N'מבנה ארגוני',      'SCREEN', '/app/settings', 'buildings', 4),
-  (0, @SettingsID, 'SETTINGS_SECURITY',   N'אבטחה',            'SCREEN', '/app/settings', 'lock',      5),
-  (0, @SettingsID, 'SETTINGS_AUDIT_LOG',  N'יומן פעילות',      'SCREEN', '/app/settings', 'clipboard', 8);
+  (0, @SettingsID, 'SETTINGS_GENERAL',    N'׳›׳׳׳™',             'SCREEN', '/app/settings', 'gear',      1),
+  (0, @SettingsID, 'SETTINGS_MENU',       N'׳¢׳¥ ׳×׳₪׳¨׳™׳˜׳™׳',       'SCREEN', '/app/settings', 'menu',      2),
+  (0, @SettingsID, 'SETTINGS_ROLES',      N'׳×׳₪׳§׳™׳“׳™׳ ׳•׳”׳¨׳©׳׳•׳×',  'SCREEN', '/app/settings', 'person',    3),
+  (0, @SettingsID, 'SETTINGS_ORGCHART',   N'׳׳‘׳ ׳” ׳׳¨׳’׳•׳ ׳™',      'SCREEN', '/app/settings', 'buildings', 4),
+  (0, @SettingsID, 'SETTINGS_SECURITY',   N'׳׳‘׳˜׳—׳”',            'SCREEN', '/app/settings', 'lock',      5),
+  (0, @SettingsID, 'SETTINGS_AUDIT_LOG',  N'׳™׳•׳׳ ׳₪׳¢׳™׳׳•׳×',      'SCREEN', '/app/settings', 'clipboard', 8);
 
   -- Assign default actions to menu items
   INSERT INTO tblMenuItemActions (MenuItemID, ActionCode, IsDefault)
@@ -95,7 +95,7 @@ END
 GO
 
 -- ============================================================
--- SP: sp_MenuItemList — get tree for tenant
+-- SP: sp_MenuItemList ג€” get tree for tenant
 -- ============================================================
 IF OBJECT_ID('sp_MenuItemList') IS NOT NULL DROP PROC sp_MenuItemList;
 GO
@@ -132,7 +132,7 @@ END
 GO
 
 -- ============================================================
--- SP: sp_MenuItemSave — create / update menu item
+-- SP: sp_MenuItemSave ג€” create / update menu item
 -- ============================================================
 IF OBJECT_ID('sp_MenuItemSave') IS NOT NULL DROP PROC sp_MenuItemSave;
 GO
@@ -189,7 +189,7 @@ END
 GO
 
 -- ============================================================
--- SP: sp_RoleList — list roles per tenant
+-- SP: sp_RoleList ג€” list roles per tenant
 -- ============================================================
 IF OBJECT_ID('sp_RoleList') IS NOT NULL DROP PROC sp_RoleList;
 GO
@@ -223,7 +223,7 @@ END
 GO
 
 -- ============================================================
--- SP: sp_RoleSave — create / update role
+-- SP: sp_RoleSave ג€” create / update role
 -- ============================================================
 IF OBJECT_ID('sp_RoleSave') IS NOT NULL DROP PROC sp_RoleSave;
 GO
@@ -255,7 +255,7 @@ BEGIN
         BEGIN
             IF EXISTS (SELECT 1 FROM tblRoles WHERE RoleID=@RoleID AND IsSystem=1)
             BEGIN
-                SET @ResultCode=-2; SET @ResultMessage=N'לא ניתן לעדכן תפקיד מערכת'; RETURN;
+                SET @ResultCode=-2; SET @ResultMessage=N'׳׳ ׳ ׳™׳×׳ ׳׳¢׳“׳›׳ ׳×׳₪׳§׳™׳“ ׳׳¢׳¨׳›׳×'; RETURN;
             END
             UPDATE tblRoles SET
                 ParentRoleID=NULLIF(@ParentRoleID,0), RoleName=@RoleName, RoleCode=@RoleCode,
@@ -273,7 +273,7 @@ END
 GO
 
 -- ============================================================
--- SP: sp_RoleClone — duplicate role with all permissions
+-- SP: sp_RoleClone ג€” duplicate role with all permissions
 -- ============================================================
 IF OBJECT_ID('sp_RoleClone') IS NOT NULL DROP PROC sp_RoleClone;
 GO
@@ -307,7 +307,7 @@ END
 GO
 
 -- ============================================================
--- SP: sp_RolePermissionMatrix_Get — full matrix for a role
+-- SP: sp_RolePermissionMatrix_Get ג€” full matrix for a role
 -- ============================================================
 IF OBJECT_ID('sp_RolePermissionMatrix_Get') IS NOT NULL DROP PROC sp_RolePermissionMatrix_Get;
 GO
@@ -345,7 +345,7 @@ END
 GO
 
 -- ============================================================
--- SP: sp_RolePermissionMatrix_Save — save all permissions for a role
+-- SP: sp_RolePermissionMatrix_Save ג€” save all permissions for a role
 -- ============================================================
 IF OBJECT_ID('sp_RolePermissionMatrix_Save') IS NOT NULL DROP PROC sp_RolePermissionMatrix_Save;
 GO
@@ -362,7 +362,7 @@ BEGIN
     BEGIN TRY
         IF EXISTS (SELECT 1 FROM tblRoles WHERE RoleID=@RoleID AND IsSystem=1 AND TenantID=0)
         BEGIN
-            SET @ResultCode=-2; SET @ResultMessage=N'לא ניתן לשנות הרשאות Super Admin'; RETURN;
+            SET @ResultCode=-2; SET @ResultMessage=N'׳׳ ׳ ׳™׳×׳ ׳׳©׳ ׳•׳× ׳”׳¨׳©׳׳•׳× Super Admin'; RETURN;
         END
 
         DELETE FROM tblRolePermissions WHERE RoleID=@RoleID;
@@ -390,7 +390,7 @@ END
 GO
 
 -- ============================================================
--- SP: sp_UserPermissionResolve — compute effective permissions
+-- SP: sp_UserPermissionResolve ג€” compute effective permissions
 -- ============================================================
 IF OBJECT_ID('sp_UserPermissionResolve') IS NOT NULL DROP PROC sp_UserPermissionResolve;
 GO
@@ -438,14 +438,14 @@ BEGIN
         SELECT
             ap.MenuItemID, ap.ActionCode,
             CASE
-                -- If any override explicitly denies → deny
+                -- If any override explicitly denies ג†’ deny
                 WHEN EXISTS (
                     SELECT 1 FROM tblUserPermissionOverrides upo
                     WHERE upo.UserID=@UserID AND upo.MenuItemID=ap.MenuItemID
                       AND upo.ActionCode=ap.ActionCode AND upo.IsAllowed=0
                       AND (upo.ExpiryDate IS NULL OR upo.ExpiryDate > GETDATE())
                 ) THEN 0
-                -- If any override explicitly grants → allow
+                -- If any override explicitly grants ג†’ allow
                 WHEN EXISTS (
                     SELECT 1 FROM tblUserPermissionOverrides upo
                     WHERE upo.UserID=@UserID AND upo.MenuItemID=ap.MenuItemID
@@ -469,7 +469,7 @@ END
 GO
 
 -- ============================================================
--- SP: sp_UserRoleAssign — assign / remove role from user
+-- SP: sp_UserRoleAssign ג€” assign / remove role from user
 -- ============================================================
 IF OBJECT_ID('sp_UserRoleAssign') IS NOT NULL DROP PROC sp_UserRoleAssign;
 GO
@@ -512,7 +512,7 @@ END
 GO
 
 -- ============================================================
--- SP: sp_OrgUnitList — tree for tenant
+-- SP: sp_OrgUnitList ג€” tree for tenant
 -- ============================================================
 IF OBJECT_ID('sp_OrgUnitList') IS NOT NULL DROP PROC sp_OrgUnitList;
 GO
@@ -588,7 +588,7 @@ END
 GO
 
 -- ============================================================
--- SP: sp_OrgPositionList — positions for a unit
+-- SP: sp_OrgPositionList ג€” positions for a unit
 -- ============================================================
 IF OBJECT_ID('sp_OrgPositionList') IS NOT NULL DROP PROC sp_OrgPositionList;
 GO
@@ -630,7 +630,7 @@ END
 GO
 
 -- ============================================================
--- SP: sp_UserPositionSave — assign user to position
+-- SP: sp_UserPositionSave ג€” assign user to position
 -- ============================================================
 IF OBJECT_ID('sp_UserPositionSave') IS NOT NULL DROP PROC sp_UserPositionSave;
 GO
@@ -731,3 +731,4 @@ GO
 
 PRINT 'RBAC Stored Procedures created successfully.';
 GO
+
