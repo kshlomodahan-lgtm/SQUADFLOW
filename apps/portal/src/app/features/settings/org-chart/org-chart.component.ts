@@ -13,7 +13,7 @@ import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { BadgeModule } from '@progress/kendo-angular-indicators';
 import {
   plusIcon, pencilIcon, trashIcon, buildingsIcon, gearIcon,
-  personIcon, chevronDownIcon, chevronRightIcon, folderIcon
+  userIcon, chevronDownIcon, chevronRightIcon, folderIcon
 } from '@progress/kendo-svg-icons';
 
 import { MatIconModule } from '@angular/material/icon';
@@ -83,7 +83,7 @@ export class OrgChartComponent implements OnInit {
 
   readonly icons = {
     plus: plusIcon, pencil: pencilIcon, trash: trashIcon,
-    buildings: buildingsIcon, gear: gearIcon, person: personIcon,
+    buildings: buildingsIcon, gear: gearIcon, person: userIcon,
     chevronDown: chevronDownIcon, chevronRight: chevronRightIcon, folder: folderIcon,
   };
 

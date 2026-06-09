@@ -10,7 +10,7 @@ import { IconsModule } from '@progress/kendo-angular-icons';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { GridModule, PageChangeEvent, RowArgs } from '@progress/kendo-angular-grid';
 import { SortDescriptor, orderBy } from '@progress/kendo-data-query';
-import { SVGIcon, paletteIcon, gearIcon, passwordIcon, bellIcon, buildingsIcon, walletIcon, tableIcon, plusIcon, pencilIcon, lockIcon, clipboardTextIcon, filterIcon, calendarIcon, chartLineIcon, menuIcon, shieldIcon } from '@progress/kendo-svg-icons';
+import { SVGIcon, paletteIcon, gearIcon, passwordIcon, bellIcon, buildingsIcon, walletIcon, tableIcon, plusIcon, pencilIcon, lockIcon, clipboardTextIcon, filterIcon, calendarIcon, chartLineIcon, menuIcon } from '@progress/kendo-svg-icons';
 import { DialogModule } from '@progress/kendo-angular-dialog';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ThemeService, COLOR_SCHEMES, ColorScheme } from '../../core/services/theme.service';
@@ -59,7 +59,7 @@ export class SettingsComponent {
     { id: 'counters',      text: 'מונים',         icon: tableIcon          },
     { id: 'audit-log',     text: 'יומן פעילות',  icon: clipboardTextIcon  },
     { id: 'menu-tree',     text: 'עץ תפריטים',  icon: menuIcon           },
-    { id: 'roles',         text: 'תפקידים והרשאות', icon: shieldIcon      },
+    { id: 'roles',         text: 'תפקידים והרשאות', icon: lockIcon        },
     { id: 'org-chart',     text: 'מבנה ארגוני', icon: buildingsIcon      },
   ];
 

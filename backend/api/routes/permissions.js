@@ -32,11 +32,11 @@ router.get('/users/:userId/roles', async (req, res) => {
     const result = await pool.request()
       .input('UserID', sql.Int, userId)
       .query(`
-        SELECT ur.RoleID, r.RoleName, r.RoleCode, r.ColorHex, r.RoleType,
-               ur.AssignedAt, ur.ExpiryDate, ur.IsActive
-        FROM tblUserRoles ur
-        JOIN tblRoles r ON r.RoleID=ur.RoleID
-        WHERE ur.UserID=@UserID AND ur.IsActive=1
+        SELECT ura.RoleID, r.RoleName, r.RoleCode, r.ColorHex, r.RoleType,
+               ura.AssignedAt, ura.ExpiryDate, ura.IsActive
+        FROM tblUserRoleAssignments ura
+        JOIN tblRoles r ON r.RoleID=ura.RoleID
+        WHERE ura.UserID=@UserID AND ura.IsActive=1
         ORDER BY r.SortOrder
       `);
     res.json({ success: true, data: result.recordset });

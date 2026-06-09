@@ -13,7 +13,7 @@ import { BadgeModule } from '@progress/kendo-angular-indicators';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import {
   plusIcon, pencilIcon, trashIcon, checkIcon, xIcon,
-  clipboardTextIcon, copyIcon, shieldIcon
+  clipboardTextIcon, copyIcon, lockIcon
 } from '@progress/kendo-svg-icons';
 
 import { MatIconModule } from '@angular/material/icon';
@@ -74,7 +74,7 @@ export class RolesManagerComponent implements OnInit {
   readonly icons = {
     plus: plusIcon, pencil: pencilIcon, trash: trashIcon,
     check: checkIcon, x: xIcon, clipboard: clipboardTextIcon,
-    copy: copyIcon, shield: shieldIcon,
+    copy: copyIcon, shield: lockIcon,
   };
 
   readonly roleTypeOptions = [
