@@ -1,8 +1,10 @@
 require('dotenv').config();
-const express = require('express');
-const cors    = require('cors');
-const helmet  = require('helmet');
-const path    = require('path');
+const express  = require('express');
+const cors     = require('cors');
+const helmet   = require('helmet');
+const path     = require('path');
+const cron     = require('node-cron');
+const { refreshRates, isUpToDate } = require('./services/exchangeRateService');
 
 const app = express();
 app.set('trust proxy', true);
@@ -41,7 +43,8 @@ app.use('/api/menu-items',   require('./routes/menu-items'));
 app.use('/api/roles',        require('./routes/roles'));
 app.use('/api/permissions',  require('./routes/permissions'));
 app.use('/api/org',          require('./routes/org'));
-app.use('/api/reference',    require('./routes/reference'));
+app.use('/api/reference',       require('./routes/reference'));
+app.use('/api/exchange-rates',  require('./routes/exchange-rates'));
 
 // 404
 app.use('/api/{*path}', (_req, res) => res.status(404).json({ success: false, message: 'Endpoint not found' }));
@@ -53,7 +56,32 @@ app.use((_req, res) => {
 
 // ── Start ─────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`\n✅  Profits CRM Server running on http://localhost:${PORT}`);
   console.log(`📦  DB: ${process.env.DB_SERVER} / ${process.env.DB_NAME}\n`);
+
+  // Auto-fetch exchange rates on startup if not yet updated today
+  try {
+    const upToDate = await isUpToDate();
+    if (!upToDate) {
+      console.log('[BOI] Rates not yet updated today — fetching now...');
+      await refreshRates();
+    } else {
+      console.log('[BOI] Exchange rates already up-to-date for today.');
+    }
+  } catch (err) {
+    console.warn('[BOI] Startup fetch failed (non-fatal):', err.message);
+  }
 });
+
+// ── Cron: Daily exchange rate refresh ─────────────────────
+// בנק ישראל מפרסם שערים ב-15:30 ישראל → מרענן ב-16:15 (UTC+3 = 13:15 UTC)
+// ימים א'-ה' (weekdays) בלבד — BOI לא מפרסם בסופי שבוע
+cron.schedule('15 13 * * 1-5', async () => {
+  console.log('[CRON] Daily exchange rate refresh triggered');
+  try {
+    await refreshRates();
+  } catch (err) {
+    console.error('[CRON] Exchange rate refresh failed:', err.message);
+  }
+}, { timezone: 'Asia/Jerusalem' });
