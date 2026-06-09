@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, NgZone, ChangeDetectorRef, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, NgZone, ChangeDetectorRef, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -51,6 +51,7 @@ export class OrgDialogComponent implements OnInit {
   mapLoading  = signal(false);
   mapError    = signal('');
   mapUrl      = signal<SafeResourceUrl | null>(null);
+  showMapPref = signal(false); // מסונכרן עם form.showMapInDialog
 
   plans = [
     { label: 'בסיסי',   value: 'basic'      },
@@ -80,11 +81,24 @@ export class OrgDialogComponent implements OnInit {
     private refSvc:    ReferenceService,
     private http:      HttpClient,
     private sanitizer: DomSanitizer,
-  ) {}
+  ) {
+    // auto-show map when navigating to address tab if preference is set and countries loaded
+    effect(() => {
+      const onAddress     = this.activeGroup() === 'address';
+      const countriesReady = this.countries().length > 0;
+      const pref          = this.showMapPref();
+      if (onAddress && countriesReady && pref && !this.mapVisible() && !this.mapLoading()) {
+        this.showMap();
+      }
+    });
+  }
 
   ngOnInit() {
     this.buildForm();
     this.loadReferenceData();
+    // sync showMapPref signal from form value (for effect tracking)
+    this.showMapPref.set(!!this.form.get('showMapInDialog')?.value);
+    this.form.get('showMapInDialog')?.valueChanges.subscribe(v => this.showMapPref.set(!!v));
   }
 
   private loadReferenceData() {
@@ -122,6 +136,7 @@ export class OrgDialogComponent implements OnInit {
         countryCode:         [o.CountryCode         ?? 'IL'],
         defaultLanguageCode: [o.DefaultLanguageCode ?? 'he'],
         defaultCurrencyCode: [o.DefaultCurrencyCode ?? 'ILS'],
+        showMapInDialog:     [!!o.ShowMapInDialog],
       });
     } else {
       this.form = this.fb.group({
@@ -149,6 +164,7 @@ export class OrgDialogComponent implements OnInit {
         countryCode:         ['IL'],
         defaultLanguageCode: ['he'],
         defaultCurrencyCode: ['ILS'],
+        showMapInDialog:     [false],
       });
     }
   }

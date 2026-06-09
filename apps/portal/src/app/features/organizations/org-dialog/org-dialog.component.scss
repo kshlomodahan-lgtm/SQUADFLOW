@@ -352,34 +352,19 @@ label {
 
 
 // ── Map ──────────────────────────────────────────────────
-.map-trigger-row {
+.map-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding-right: 162px; // align with input-col (150px label + 12px gap)
+  flex-wrap: wrap;
 }
 
-.btn-show-map {
+.map-loading-hint {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 16px;
-  border-radius: 8px;
-  border: 1px solid var(--sf-border);
-  background: var(--sf-bg-card);
-  color: var(--sf-text);
-  font-size: .83rem;
-  font-weight: 500;
-  font-family: 'Noto Sans Hebrew', sans-serif;
-  cursor: pointer;
-  transition: background .12s, border-color .12s;
-
-  &:hover:not(:disabled) {
-    background: var(--sf-bg-hover);
-    border-color: var(--sf-primary);
-    color: var(--sf-primary);
-  }
-  &:disabled { opacity: .6; cursor: default; }
+  font-size: .8rem;
+  color: var(--sf-text-secondary);
 }
 
 .map-error {

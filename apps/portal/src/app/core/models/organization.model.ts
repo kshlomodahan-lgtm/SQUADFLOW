@@ -33,4 +33,5 @@ export interface Organization {
   DefaultLanguageCode: string;
   DefaultCurrencyCode: string;
   OrgType:             string;
+  ShowMapInDialog:     boolean;
 }

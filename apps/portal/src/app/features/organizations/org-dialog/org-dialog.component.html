@@ -199,19 +199,33 @@
               </div>
             </div>
 
-            <!-- Map trigger -->
-            <div class="map-trigger-row">
-              <button type="button" class="btn-show-map" (click)="showMap()" [disabled]="mapLoading()">
-                @if (mapLoading()) {
-                  <kendo-loader type="pulsing" size="small" themeColor="primary" />
-                  מאתר כתובת...
-                } @else {
-                  📍 הצג במפה
-                }
-              </button>
-              @if (mapError()) {
-                <span class="map-error">{{ mapError() }}</span>
-              }
+            <!-- Map preference + trigger -->
+            <div class="form-row">
+              <label>הצג מפה</label>
+              <div class="input-col">
+                <div class="map-row">
+                  <div class="seg-ctrl">
+                    <button type="button" class="seg-btn"
+                            [class.seg-on]="!!form.get('showMapInDialog')?.value"
+                            (click)="form.get('showMapInDialog')?.setValue(true); showMap()">
+                      📍 כן
+                    </button>
+                    <button type="button" class="seg-btn"
+                            [class.seg-off]="!form.get('showMapInDialog')?.value"
+                            (click)="form.get('showMapInDialog')?.setValue(false); mapVisible.set(false); mapError.set('')">
+                      ✕ לא
+                    </button>
+                  </div>
+                  @if (mapLoading()) {
+                    <span class="map-loading-hint">
+                      <kendo-loader type="pulsing" size="small" themeColor="primary" /> מאתר כתובת...
+                    </span>
+                  }
+                  @if (mapError()) {
+                    <span class="map-error">{{ mapError() }}</span>
+                  }
+                </div>
+              </div>
             </div>
 
             @if (mapVisible()) {

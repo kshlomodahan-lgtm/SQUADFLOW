@@ -19,6 +19,7 @@ router.get('/', async (req, res) => {
              t.Phone2, t.Fax, t.Website,
              t.BankName, t.BankBranch, t.BankAccount, t.AccountingRef,
              t.OrgType, t.CountryCode, t.DefaultLanguageCode, t.DefaultCurrencyCode,
+             t.ShowMapInDialog,
              COUNT(DISTINCT u.UserID)     AS UserCount,
              COUNT(DISTINCT c.CustomerID) AS CustomerCount,
              COUNT(DISTINCT tk.TicketID)  AS OpenTickets
@@ -33,7 +34,8 @@ router.get('/', async (req, res) => {
                t.BusinessNumber,t.Address,t.City,t.Country,t.ContactName,
                t.Phone2,t.Fax,t.Website,
                t.BankName,t.BankBranch,t.BankAccount,t.AccountingRef,
-               t.OrgType,t.CountryCode,t.DefaultLanguageCode,t.DefaultCurrencyCode
+               t.OrgType,t.CountryCode,t.DefaultLanguageCode,t.DefaultCurrencyCode,
+               t.ShowMapInDialog
       ORDER BY t.TenantID
     `);
     return res.json({ success: true, tenants: result.recordset });
@@ -188,7 +190,8 @@ router.put('/:id', async (req, res) => {
   const { companyName, email, phone, planType, maxUsers, maxTickets, isActive, logoUrl, notes,
           businessNumber, address, city, country, contactName, phone2, fax, website,
           bankName, bankBranch, bankAccount, accountingRef,
-          countryCode, defaultLanguageCode, defaultCurrencyCode } = req.body;
+          countryCode, defaultLanguageCode, defaultCurrencyCode,
+          showMapInDialog } = req.body;
 
   try {
     const db = await getPool();
@@ -242,10 +245,12 @@ router.put('/:id', async (req, res) => {
         .input('CountryCode',         sql.Char(2),  countryCode          || null)
         .input('DefaultLanguageCode', sql.VarChar(5), defaultLanguageCode || null)
         .input('DefaultCurrencyCode', sql.Char(3),  defaultCurrencyCode  || null)
+        .input('ShowMapInDialog',     sql.Bit,      showMapInDialog ? 1 : 0)
         .query(`UPDATE dbo.tblTenants SET
                   CountryCode         = @CountryCode,
                   DefaultLanguageCode = @DefaultLanguageCode,
                   DefaultCurrencyCode = @DefaultCurrencyCode,
+                  ShowMapInDialog     = @ShowMapInDialog,
                   UpdatedAt           = GETDATE()
                 WHERE TenantID = @TenantID`);
     }
