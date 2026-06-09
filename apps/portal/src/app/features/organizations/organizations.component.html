@@ -192,6 +192,13 @@
         </ng-template>
       </kendo-grid-column>
 
+      <!-- סוג ארגון -->
+      <kendo-grid-column field="OrgType" title="סוג" [width]="130">
+        <ng-template kendoGridCellTemplate let-o>
+          <span [class]="orgTypeClass(o.OrgType)">{{ orgTypeLabel(o.OrgType) }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
       <!-- אימייל — גמיש, קולט שטח נותר -->
       <kendo-grid-column field="Email" title='דוא"ל' [minResizableWidth]="140" />
 

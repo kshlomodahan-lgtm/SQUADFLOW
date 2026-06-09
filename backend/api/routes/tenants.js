@@ -191,7 +191,7 @@ router.put('/:id', async (req, res) => {
           businessNumber, address, city, country, contactName, phone2, fax, website,
           bankName, bankBranch, bankAccount, accountingRef,
           countryCode, defaultLanguageCode, defaultCurrencyCode,
-          showMapInDialog } = req.body;
+          showMapInDialog, orgType } = req.body;
 
   try {
     const db = await getPool();
@@ -238,22 +238,22 @@ router.put('/:id', async (req, res) => {
       return res.status(httpCode).json({ success: false, message: r.output.ResultMessage });
     }
 
-    // עדכון שדות לוקל (CountryCode, DefaultLanguageCode, DefaultCurrencyCode)
-    if (countryCode !== undefined || defaultLanguageCode !== undefined || defaultCurrencyCode !== undefined) {
-      await db.request()
-        .input('TenantID',            sql.Int,      id)
-        .input('CountryCode',         sql.Char(2),  countryCode          || null)
-        .input('DefaultLanguageCode', sql.VarChar(5), defaultLanguageCode || null)
-        .input('DefaultCurrencyCode', sql.Char(3),  defaultCurrencyCode  || null)
-        .input('ShowMapInDialog',     sql.Bit,      showMapInDialog ? 1 : 0)
-        .query(`UPDATE dbo.tblTenants SET
-                  CountryCode         = @CountryCode,
-                  DefaultLanguageCode = @DefaultLanguageCode,
-                  DefaultCurrencyCode = @DefaultCurrencyCode,
-                  ShowMapInDialog     = @ShowMapInDialog,
-                  UpdatedAt           = GETDATE()
-                WHERE TenantID = @TenantID`);
-    }
+    // עדכון שדות לוקל + OrgType
+    await db.request()
+      .input('TenantID',            sql.Int,         id)
+      .input('CountryCode',         sql.Char(2),     countryCode          || null)
+      .input('DefaultLanguageCode', sql.VarChar(5),  defaultLanguageCode  || null)
+      .input('DefaultCurrencyCode', sql.Char(3),     defaultCurrencyCode  || null)
+      .input('ShowMapInDialog',     sql.Bit,         showMapInDialog ? 1 : 0)
+      .input('OrgType',             sql.VarChar(30), orgType              || 'SOFTWARE_HOUSE')
+      .query(`UPDATE dbo.tblTenants SET
+                CountryCode         = @CountryCode,
+                DefaultLanguageCode = @DefaultLanguageCode,
+                DefaultCurrencyCode = @DefaultCurrencyCode,
+                ShowMapInDialog     = @ShowMapInDialog,
+                OrgType             = @OrgType,
+                UpdatedAt           = GETDATE()
+              WHERE TenantID = @TenantID`);
 
     // בניית diff — רק שדות שהשתנו (null/undefined/'' נחשבים שווים)
     const norm = v => (v === null || v === undefined) ? '' : String(v);

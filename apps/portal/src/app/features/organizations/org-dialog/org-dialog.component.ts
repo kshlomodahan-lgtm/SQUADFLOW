@@ -59,6 +59,12 @@ export class OrgDialogComponent implements OnInit {
     { label: 'ארגוני',  value: 'enterprise' },
   ];
 
+  readonly orgTypes = [
+    { value: 'SOFTWARE_HOUSE', label: 'בית תוכנה' },
+    { value: 'IMPLEMENTER',    label: 'מיישם'      },
+    { value: 'CLIENT',         label: 'לקוח'       },
+  ];
+
   readonly groups: NavGroup[] = [
     { id: 'general', text: 'פרטי ארגון',    icon: buildingsIcon   },
     { id: 'contact', text: 'פרטי קשר',      icon: userIcon        },
@@ -137,6 +143,7 @@ export class OrgDialogComponent implements OnInit {
         defaultLanguageCode: [o.DefaultLanguageCode ?? 'he'],
         defaultCurrencyCode: [o.DefaultCurrencyCode ?? 'ILS'],
         showMapInDialog:     [!!o.ShowMapInDialog],
+        orgType:             [o.OrgType ?? 'SOFTWARE_HOUSE'],
       });
     } else {
       this.form = this.fb.group({
@@ -165,6 +172,7 @@ export class OrgDialogComponent implements OnInit {
         defaultLanguageCode: ['he'],
         defaultCurrencyCode: ['ILS'],
         showMapInDialog:     [false],
+        orgType:             ['SOFTWARE_HOUSE'],
       });
     }
   }
@@ -259,7 +267,7 @@ export class OrgDialogComponent implements OnInit {
   }
 
   private readonly groupFields: Record<string, string[]> = {
-    general: ['tenantCode', 'companyName', 'businessNumber'],
+    general: ['tenantCode', 'companyName', 'businessNumber', 'orgType'],
     contact: ['contactName', 'email', 'phone', 'phone2', 'fax', 'website'],
     address: ['countryCode', 'city', 'address'],
     locale:  ['defaultLanguageCode', 'defaultCurrencyCode'],

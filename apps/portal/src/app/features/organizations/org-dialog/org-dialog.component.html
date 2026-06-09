@@ -74,6 +74,19 @@
                   </div>
                 </div>
 
+                <div class="form-row">
+                  <label>סוג ארגון</label>
+                  <div class="input-col">
+                    <kendo-dropdownlist
+                      formControlName="orgType"
+                      [data]="orgTypes"
+                      textField="label"
+                      valueField="value"
+                      [valuePrimitive]="true">
+                    </kendo-dropdownlist>
+                  </div>
+                </div>
+
               </div>
 
               <!-- לוגו -->

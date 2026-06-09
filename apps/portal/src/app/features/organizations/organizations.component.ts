@@ -131,6 +131,14 @@ export class OrganizationsComponent implements OnInit {
     return ({ basic: 'בסיסי', pro: 'מקצועי', enterprise: 'ארגוני' } as any)[p] ?? p;
   }
 
+  orgTypeLabel(t: string) {
+    return ({ PLATFORM: 'פלטפורמה', SOFTWARE_HOUSE: 'בית תוכנה', IMPLEMENTER: 'מיישם', CLIENT: 'לקוח' } as any)[t] ?? t;
+  }
+
+  orgTypeClass(t: string) {
+    return 'chip chip-ot-' + (t || 'CLIENT');
+  }
+
   daysLeft(expiry: string) {
     return Math.ceil((new Date(expiry).getTime() - Date.now()) / 86400000);
   }

@@ -165,6 +165,12 @@
 .chip-pro        { background: #eff6ff; color: #3b82f6; }
 .chip-enterprise { background: #faf5ff; color: #8b5cf6; }
 
+// OrgType badges
+.chip-ot-PLATFORM       { background: #ede9fe; color: #7c3aed; }
+.chip-ot-SOFTWARE_HOUSE { background: #dbeafe; color: #1d4ed8; }
+.chip-ot-IMPLEMENTER    { background: #e0f2fe; color: #0369a1; }
+.chip-ot-CLIENT         { background: #d1fae5; color: #065f46; }
+
 // ── Status ───────────────────────────────────────────────
 .status-dot-wrap { display: flex; align-items: center; gap: 7px; }
 .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
