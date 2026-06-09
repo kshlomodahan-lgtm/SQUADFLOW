@@ -350,23 +350,6 @@ label {
   direction: ltr; text-align: center;
 }
 
-// ── Dropdown item templates ───────────────────────────────
-.flag-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  direction: rtl;
-}
-.flag-emoji { font-size: 1.2em; line-height: 1; flex-shrink: 0; }
-.flag-code  { font-size: .72rem; color: var(--sf-text-muted); font-family: 'Share Tech Mono', monospace; }
-
-.lang-item  { display: flex; align-items: baseline; gap: 6px; direction: rtl; }
-.lang-native { font-weight: 600; color: var(--sf-text); }
-.lang-en    { font-size: .75rem; color: var(--sf-text-muted); }
-
-.currency-item { display: flex; align-items: center; gap: 6px; direction: ltr; }
-.currency-symbol { font-weight: 700; color: var(--sf-primary); min-width: 20px; text-align: center; }
-.currency-name   { font-size: .75rem; color: var(--sf-text-muted); }
 
 // ── Error banner ─────────────────────────────────────────
 .form-error-banner {

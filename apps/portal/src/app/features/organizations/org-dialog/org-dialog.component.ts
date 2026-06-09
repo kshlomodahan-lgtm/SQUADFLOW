@@ -206,8 +206,8 @@ export class OrgDialogComponent implements OnInit {
   private readonly groupFields: Record<string, string[]> = {
     general: ['tenantCode', 'companyName', 'businessNumber'],
     contact: ['contactName', 'email', 'phone', 'phone2', 'fax', 'website'],
-    address: ['address', 'city', 'country'],
-    locale:  ['countryCode', 'defaultLanguageCode', 'defaultCurrencyCode'],
+    address: ['countryCode', 'city', 'address'],
+    locale:  ['defaultLanguageCode', 'defaultCurrencyCode'],
     plan:    ['planType', 'maxUsers', 'maxTickets', 'isActive'],
     bank:    ['bankName', 'bankBranch', 'bankAccount', 'accountingRef'],
     notes:   ['notes'],
