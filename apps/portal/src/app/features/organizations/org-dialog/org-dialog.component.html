@@ -163,12 +163,12 @@
           </div>
         }
 
-        <!-- ══ כתובת ולוקל ══ -->
+        <!-- ══ כתובת ══ -->
         @if (activeGroup() === 'address') {
           <div class="content-section">
             <div class="section-header">
-              <h3>כתובת ולוקל</h3>
-              <p>כתובת, מדינה, שפה ומטבע</p>
+              <h3>כתובת</h3>
+              <p>כתובת פיזית של הארגון</p>
             </div>
 
             <div class="form-row">
@@ -185,8 +185,22 @@
               </div>
             </div>
 
-            <div class="locale-divider">
-              <span>הגדרות לוקל</span>
+            <div class="form-row">
+              <label>מדינה (טקסט חופשי)</label>
+              <div class="input-col">
+                <input kendoTextBox formControlName="country" placeholder="לדוגמה: ישראל" />
+              </div>
+            </div>
+
+          </div>
+        }
+
+        <!-- ══ שפה ומטבע ══ -->
+        @if (activeGroup() === 'locale') {
+          <div class="content-section">
+            <div class="section-header">
+              <h3>שפה ומטבע</h3>
+              <p>הגדרות לוקל ברירת מחדל לארגון</p>
             </div>
 
             <div class="form-row">
@@ -199,7 +213,21 @@
                   valueField="CountryCode"
                   [valuePrimitive]="true"
                   [filterable]="true"
-                  placeholder="בחר מדינה..." />
+                  placeholder="בחר מדינה...">
+                  <ng-template kendoDropDownListItemTemplate let-dataItem>
+                    <span class="flag-item">
+                      <span class="flag-emoji">{{ dataItem.FlagEmoji }}</span>
+                      <span>{{ dataItem.ShortName }}</span>
+                      <span class="flag-code">{{ dataItem.CountryCode }}</span>
+                    </span>
+                  </ng-template>
+                  <ng-template kendoDropDownListValueTemplate let-dataItem>
+                    <span class="flag-item" *ngIf="dataItem">
+                      <span class="flag-emoji">{{ dataItem.FlagEmoji }}</span>
+                      <span>{{ dataItem.ShortName }}</span>
+                    </span>
+                  </ng-template>
+                </kendo-dropdownlist>
               </div>
             </div>
 
@@ -212,7 +240,14 @@
                   textField="displayName"
                   valueField="LanguageCode"
                   [valuePrimitive]="true"
-                  placeholder="בחר שפה..." />
+                  placeholder="בחר שפה...">
+                  <ng-template kendoDropDownListItemTemplate let-dataItem>
+                    <span class="lang-item">
+                      <span class="lang-native">{{ dataItem.NativeName }}</span>
+                      <span class="lang-en">{{ dataItem.LanguageName }}</span>
+                    </span>
+                  </ng-template>
+                </kendo-dropdownlist>
               </div>
             </div>
 
@@ -225,7 +260,15 @@
                   textField="displayName"
                   valueField="CurrencyCode"
                   [valuePrimitive]="true"
-                  placeholder="בחר מטבע..." />
+                  placeholder="בחר מטבע...">
+                  <ng-template kendoDropDownListItemTemplate let-dataItem>
+                    <span class="currency-item">
+                      <span class="currency-symbol">{{ dataItem.CurrencySymbol }}</span>
+                      <span>{{ dataItem.CurrencyCode }}</span>
+                      <span class="currency-name">— {{ dataItem.CurrencyName }}</span>
+                    </span>
+                  </ng-template>
+                </kendo-dropdownlist>
               </div>
             </div>
 

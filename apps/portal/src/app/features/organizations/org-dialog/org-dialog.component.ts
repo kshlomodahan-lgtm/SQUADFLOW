@@ -8,7 +8,7 @@ import { DropDownListModule } from '@progress/kendo-angular-dropdowns';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { IndicatorsModule } from '@progress/kendo-angular-indicators';
 import { IconsModule } from '@progress/kendo-angular-icons';
-import { SVGIcon, buildingsIcon, userIcon, homeIcon, checkCircleIcon, walletIcon, pencilIcon } from '@progress/kendo-svg-icons';
+import { SVGIcon, buildingsIcon, userIcon, homeIcon, checkCircleIcon, walletIcon, pencilIcon, globeIcon } from '@progress/kendo-svg-icons';
 
 import { Organization } from '../../../core/models/organization.model';
 import { OrganizationService } from '../../../core/services/organization.service';
@@ -54,7 +54,8 @@ export class OrgDialogComponent implements OnInit {
   readonly groups: NavGroup[] = [
     { id: 'general', text: 'פרטי ארגון',    icon: buildingsIcon   },
     { id: 'contact', text: 'פרטי קשר',      icon: userIcon        },
-    { id: 'address', text: 'כתובת ולוקל',   icon: homeIcon        },
+    { id: 'address', text: 'כתובת',         icon: homeIcon        },
+    { id: 'locale',  text: 'שפה ומטבע',     icon: globeIcon       },
     { id: 'plan',    text: 'מנוי ומגבלות', icon: checkCircleIcon },
     { id: 'bank',    text: 'פרטי חיוב',     icon: walletIcon      },
     { id: 'notes',   text: 'הערות',         icon: pencilIcon      },
@@ -205,7 +206,8 @@ export class OrgDialogComponent implements OnInit {
   private readonly groupFields: Record<string, string[]> = {
     general: ['tenantCode', 'companyName', 'businessNumber'],
     contact: ['contactName', 'email', 'phone', 'phone2', 'fax', 'website'],
-    address: ['address', 'city', 'country', 'countryCode', 'defaultLanguageCode', 'defaultCurrencyCode'],
+    address: ['address', 'city', 'country'],
+    locale:  ['countryCode', 'defaultLanguageCode', 'defaultCurrencyCode'],
     plan:    ['planType', 'maxUsers', 'maxTickets', 'isActive'],
     bank:    ['bankName', 'bankBranch', 'bankAccount', 'accountingRef'],
     notes:   ['notes'],
