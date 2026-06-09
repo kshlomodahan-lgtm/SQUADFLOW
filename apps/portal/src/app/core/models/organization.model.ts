@@ -24,8 +24,13 @@ export interface Organization {
   Phone2:         string;
   Fax:            string;
   Website:        string;
-  BankName:       string;
-  BankBranch:     string;
-  BankAccount:    string;
-  AccountingRef:  string;
+  BankName:            string;
+  BankBranch:          string;
+  BankAccount:         string;
+  AccountingRef:       string;
+  // locale fields
+  CountryCode:         string;
+  DefaultLanguageCode: string;
+  DefaultCurrencyCode: string;
+  OrgType:             string;
 }

@@ -71,9 +71,11 @@ export class OrgChartComponent implements OnInit {
   unitPositions     = signal<OrgPosition[]>([]);
   positionsLoading  = signal(false);
 
-  unitDialogOpen    = signal(false);
-  titleDialogOpen   = signal(false);
+  unitDialogOpen     = signal(false);
+  titleDialogOpen    = signal(false);
   positionDialogOpen = signal(false);
+  deleteConfirmOpen  = signal(false);
+  unitToDelete       = signal<OrgUnit | null>(null);
   editingUnit       = signal<OrgUnit | null>(null);
   editingTitle      = signal<JobTitle | null>(null);
 
@@ -213,14 +215,27 @@ export class OrgChartComponent implements OnInit {
   }
 
   deleteUnit(unit: OrgUnit) {
-    if (!confirm(`למחוק "${unit.UnitName}"? כל תתי-היחידות יוסתרו.`)) return;
+    this.unitToDelete.set(unit);
+    this.deleteConfirmOpen.set(true);
+  }
+
+  confirmDeleteUnit() {
+    const unit = this.unitToDelete();
+    if (!unit) return;
     this.svc.deleteOrgUnit(unit.OrgUnitID).subscribe({
       next: () => {
         if (this.selectedUnit()?.OrgUnitID === unit.OrgUnitID) this.selectedUnit.set(null);
         this.loadAll();
-        this.notify.show({ content: 'נמחק', type: { style: 'warning', icon: true }, position: { horizontal: 'center', vertical: 'top' } });
+        this.notify.show({ content: 'יחידה נמחקה', type: { style: 'warning', icon: true }, position: { horizontal: 'center', vertical: 'top' } });
       },
     });
+    this.deleteConfirmOpen.set(false);
+    this.unitToDelete.set(null);
+  }
+
+  cancelDeleteUnit() {
+    this.deleteConfirmOpen.set(false);
+    this.unitToDelete.set(null);
   }
 
   // ─── Job Title CRUD ────────────────────────────────────────

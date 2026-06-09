@@ -163,12 +163,12 @@
           </div>
         }
 
-        <!-- ══ כתובת ══ -->
+        <!-- ══ כתובת ולוקל ══ -->
         @if (activeGroup() === 'address') {
           <div class="content-section">
             <div class="section-header">
-              <h3>כתובת</h3>
-              <p>כתובת מפתח הארגון</p>
+              <h3>כתובת ולוקל</h3>
+              <p>כתובת, מדינה, שפה ומטבע</p>
             </div>
 
             <div class="form-row">
@@ -185,10 +185,47 @@
               </div>
             </div>
 
+            <div class="locale-divider">
+              <span>הגדרות לוקל</span>
+            </div>
+
             <div class="form-row">
               <label>מדינה</label>
               <div class="input-col">
-                <input kendoTextBox formControlName="country" />
+                <kendo-dropdownlist
+                  formControlName="countryCode"
+                  [data]="countries()"
+                  textField="displayName"
+                  valueField="CountryCode"
+                  [valuePrimitive]="true"
+                  [filterable]="true"
+                  placeholder="בחר מדינה..." />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>שפה ברירת מחדל</label>
+              <div class="input-col">
+                <kendo-dropdownlist
+                  formControlName="defaultLanguageCode"
+                  [data]="languages()"
+                  textField="displayName"
+                  valueField="LanguageCode"
+                  [valuePrimitive]="true"
+                  placeholder="בחר שפה..." />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>מטבע ברירת מחדל</label>
+              <div class="input-col">
+                <kendo-dropdownlist
+                  formControlName="defaultCurrencyCode"
+                  [data]="currencies()"
+                  textField="displayName"
+                  valueField="CurrencyCode"
+                  [valuePrimitive]="true"
+                  placeholder="בחר מטבע..." />
               </div>
             </div>
 

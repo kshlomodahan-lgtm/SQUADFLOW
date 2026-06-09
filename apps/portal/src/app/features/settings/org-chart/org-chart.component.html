@@ -315,6 +315,25 @@
   </kendo-dialog>
 }
 
+<!-- ═══ Delete Confirm Dialog ═══ -->
+@if (deleteConfirmOpen()) {
+  <kendo-dialog title="אישור מחיקה" [width]="400" (close)="cancelDeleteUnit()">
+    <div class="confirm-body">
+      <mat-icon class="confirm-icon">warning_amber</mat-icon>
+      <p class="confirm-text">
+        למחוק את היחידה <strong>{{ unitToDelete()?.UnitName }}</strong>?<br>
+        <span class="confirm-sub">כל תתי-היחידות יוסתרו. פעולה זו אינה הפיכה.</span>
+      </p>
+    </div>
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-danger-solid" (click)="confirmDeleteUnit()">מחק</button>
+        <button class="btn-cancel" (click)="cancelDeleteUnit()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}
+
 <!-- ═══ Position Dialog ═══ -->
 @if (positionDialogOpen()) {
   <kendo-dialog title="משרה חדשה" [width]="440" (close)="positionDialogOpen.set(false)">

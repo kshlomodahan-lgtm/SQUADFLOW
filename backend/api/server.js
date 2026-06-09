@@ -41,6 +41,7 @@ app.use('/api/menu-items',   require('./routes/menu-items'));
 app.use('/api/roles',        require('./routes/roles'));
 app.use('/api/permissions',  require('./routes/permissions'));
 app.use('/api/org',          require('./routes/org'));
+app.use('/api/reference',    require('./routes/reference'));
 
 // 404
 app.use('/api/{*path}', (_req, res) => res.status(404).json({ success: false, message: 'Endpoint not found' }));

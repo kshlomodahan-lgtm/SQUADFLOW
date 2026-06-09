@@ -13,6 +13,7 @@ import { SVGIcon, buildingsIcon, userIcon, homeIcon, checkCircleIcon, walletIcon
 import { Organization } from '../../../core/models/organization.model';
 import { OrganizationService } from '../../../core/services/organization.service';
 import { UploadService } from '../../../core/services/upload.service';
+import { ReferenceService, Country, Language, Currency } from '../../../core/services/reference.service';
 
 interface NavGroup { id: string; text: string; icon: SVGIcon; }
 
@@ -40,6 +41,10 @@ export class OrgDialogComponent implements OnInit {
   logoPreview: string | null = null;
   activeGroup = signal('general');
 
+  countries  = signal<Country[]>([]);
+  languages  = signal<Language[]>([]);
+  currencies = signal<Currency[]>([]);
+
   plans = [
     { label: 'בסיסי',   value: 'basic'      },
     { label: 'מקצועי',  value: 'pro'        },
@@ -49,7 +54,7 @@ export class OrgDialogComponent implements OnInit {
   readonly groups: NavGroup[] = [
     { id: 'general', text: 'פרטי ארגון',    icon: buildingsIcon   },
     { id: 'contact', text: 'פרטי קשר',      icon: userIcon        },
-    { id: 'address', text: 'כתובת',         icon: homeIcon        },
+    { id: 'address', text: 'כתובת ולוקל',   icon: homeIcon        },
     { id: 'plan',    text: 'מנוי ומגבלות', icon: checkCircleIcon },
     { id: 'bank',    text: 'פרטי חיוב',     icon: walletIcon      },
     { id: 'notes',   text: 'הערות',         icon: pencilIcon      },
@@ -64,9 +69,19 @@ export class OrgDialogComponent implements OnInit {
     private upload: UploadService,
     private zone:   NgZone,
     private cdr:    ChangeDetectorRef,
+    private refSvc: ReferenceService,
   ) {}
 
-  ngOnInit() { this.buildForm(); }
+  ngOnInit() {
+    this.buildForm();
+    this.loadReferenceData();
+  }
+
+  private loadReferenceData() {
+    this.refSvc.getCountries('he').subscribe(c  => this.countries.set(c));
+    this.refSvc.getLanguages().subscribe(l       => this.languages.set(l));
+    this.refSvc.getCurrencies().subscribe(c      => this.currencies.set(c));
+  }
 
   private buildForm() {
     const o = this.org;
@@ -89,11 +104,14 @@ export class OrgDialogComponent implements OnInit {
         maxTickets:     [o.MaxTickets,          [Validators.required, Validators.min(1)]],
         isActive:       [o.IsActive],
         logoUrl:        [o.LogoUrl        ?? ''],
-        bankName:       [o.BankName       ?? ''],
-        bankBranch:     [o.BankBranch     ?? ''],
-        bankAccount:    [o.BankAccount    ?? ''],
-        accountingRef:  [o.AccountingRef  ?? ''],
-        notes:          [o.Notes          ?? ''],
+        bankName:            [o.BankName            ?? ''],
+        bankBranch:          [o.BankBranch          ?? ''],
+        bankAccount:         [o.BankAccount         ?? ''],
+        accountingRef:       [o.AccountingRef       ?? ''],
+        notes:               [o.Notes               ?? ''],
+        countryCode:         [o.CountryCode         ?? 'IL'],
+        defaultLanguageCode: [o.DefaultLanguageCode ?? 'he'],
+        defaultCurrencyCode: [o.DefaultCurrencyCode ?? 'ILS'],
       });
     } else {
       this.form = this.fb.group({
@@ -113,11 +131,14 @@ export class OrgDialogComponent implements OnInit {
         maxUsers:       [10,  [Validators.required, Validators.min(1)]],
         maxTickets:     [200, [Validators.required, Validators.min(1)]],
         logoUrl:        [''],
-        bankName:       [''],
-        bankBranch:     [''],
-        bankAccount:    [''],
-        accountingRef:  [''],
-        notes:          [''],
+        bankName:            [''],
+        bankBranch:          [''],
+        bankAccount:         [''],
+        accountingRef:       [''],
+        notes:               [''],
+        countryCode:         ['IL'],
+        defaultLanguageCode: ['he'],
+        defaultCurrencyCode: ['ILS'],
       });
     }
   }
@@ -184,7 +205,7 @@ export class OrgDialogComponent implements OnInit {
   private readonly groupFields: Record<string, string[]> = {
     general: ['tenantCode', 'companyName', 'businessNumber'],
     contact: ['contactName', 'email', 'phone', 'phone2', 'fax', 'website'],
-    address: ['address', 'city', 'country'],
+    address: ['address', 'city', 'country', 'countryCode', 'defaultLanguageCode', 'defaultCurrencyCode'],
     plan:    ['planType', 'maxUsers', 'maxTickets', 'isActive'],
     bank:    ['bankName', 'bankBranch', 'bankAccount', 'accountingRef'],
     notes:   ['notes'],
