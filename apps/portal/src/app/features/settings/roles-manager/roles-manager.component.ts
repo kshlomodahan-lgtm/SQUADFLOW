@@ -436,7 +436,7 @@ export class RolesManagerComponent implements OnInit {
 
   isSuperAdmin(): boolean {
     const role = this.selectedRole();
-    return !!role && (role.RoleCode === 'SUPER_ADMIN' || role.RoleType === 'PLATFORM');
+    return !!role && (role.RoleCode === 'PLATFORM_ADMIN' || role.RoleType === 'PLATFORM');
   }
 
   getActionShortLabel(action: string): string {

@@ -39,23 +39,24 @@ const PLATFORM_MENU = [
 ];
 
 // ── Default permission matrix ─────────────────────────────────
-// RoleCodes from tblRoles: PLATFORM_USER(2) TMPL_ADMIN(3) TMPL_MANAGER(4) TMPL_EMPLOYEE(5) TMPL_READONLY(6)
+// Hierarchy: PLATFORM_ADMIN(1)=bypass > SUPER_ADMIN(2)=bypass-within-tenant > TMPL_*(3-6)=explicit perms
+// PLATFORM_ADMIN and SUPER_ADMIN bypass checkPermission entirely — no rows needed for them.
 // { MenuItemCode → { RoleCode → [ActionCodes] } }
 const DEFAULT_PERMS = {
-  DASHBOARD:          { PLATFORM_USER: ['READ'],                                                         TMPL_ADMIN: ['READ'],                        TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: ['READ']  },
-  ORGANIZATIONS:      { PLATFORM_USER: ['READ','CREATE','UPDATE','DELETE','EXPORT'],                      TMPL_ADMIN: ['READ','CREATE','UPDATE'],       TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: []        },
-  USERS:              { PLATFORM_USER: ['READ','CREATE','UPDATE','DELETE','EXPORT','VIEW_SENSITIVE'],      TMPL_ADMIN: ['READ','CREATE','UPDATE'],       TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: []        },
-  CATALOG_CATEGORIES: { PLATFORM_USER: ['READ','CREATE','UPDATE','DELETE'],                               TMPL_ADMIN: ['READ','CREATE','UPDATE'],       TMPL_MANAGER: ['READ','CREATE','UPDATE'],  TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: ['READ']  },
-  CATALOG_PRODUCTS:   { PLATFORM_USER: ['READ','CREATE','UPDATE','DELETE','EXPORT'],                      TMPL_ADMIN: ['READ','CREATE','UPDATE'],       TMPL_MANAGER: ['READ','CREATE','UPDATE'],  TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: ['READ']  },
-  CATALOG_PACKAGES:   { PLATFORM_USER: ['READ','CREATE','UPDATE','DELETE','EXPORT'],                      TMPL_ADMIN: ['READ','CREATE','UPDATE'],       TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: []        },
-  AUDIT:              { PLATFORM_USER: ['READ','EXPORT'],                                                 TMPL_ADMIN: ['READ','EXPORT'],               TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: [],        TMPL_READONLY: []        },
-  SETTINGS_GENERAL:   { PLATFORM_USER: ['READ','UPDATE'],                                                 TMPL_ADMIN: ['READ','UPDATE'],               TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: []        },
-  SETTINGS_ROLES:     { PLATFORM_USER: ['READ','CREATE','UPDATE','DELETE'],                               TMPL_ADMIN: ['READ'],                        TMPL_MANAGER: [],                         TMPL_EMPLOYEE: [],        TMPL_READONLY: []        },
-  SETTINGS_ORGCHART:  { PLATFORM_USER: ['READ','CREATE','UPDATE','DELETE'],                               TMPL_ADMIN: ['READ','CREATE','UPDATE'],       TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: []        },
-  SETTINGS_MENU:      { PLATFORM_USER: ['READ','CREATE','UPDATE','DELETE'],                               TMPL_ADMIN: ['READ'],                        TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: [],        TMPL_READONLY: []        },
-  SETTINGS_SECURITY:  { PLATFORM_USER: ['READ','UPDATE','VIEW_SENSITIVE'],                                TMPL_ADMIN: ['READ'],                        TMPL_MANAGER: [],                         TMPL_EMPLOYEE: [],        TMPL_READONLY: []        },
-  SETTINGS_GROUPS:    { PLATFORM_USER: ['READ','CREATE','UPDATE','DELETE'],                               TMPL_ADMIN: ['READ','CREATE','UPDATE'],       TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: []        },
-  GROUPS:             { PLATFORM_USER: ['READ','CREATE','UPDATE','DELETE'],                               TMPL_ADMIN: ['READ','CREATE','UPDATE'],       TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: []        },
+  DASHBOARD:          { SUPER_ADMIN: ['READ'],                                                         TMPL_ADMIN: ['READ'],                        TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: ['READ']  },
+  ORGANIZATIONS:      { SUPER_ADMIN: ['READ','CREATE','UPDATE','DELETE','EXPORT'],                      TMPL_ADMIN: ['READ','CREATE','UPDATE'],       TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: []        },
+  USERS:              { SUPER_ADMIN: ['READ','CREATE','UPDATE','DELETE','EXPORT','VIEW_SENSITIVE'],      TMPL_ADMIN: ['READ','CREATE','UPDATE'],       TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: []        },
+  CATALOG_CATEGORIES: { SUPER_ADMIN: ['READ','CREATE','UPDATE','DELETE'],                               TMPL_ADMIN: ['READ','CREATE','UPDATE'],       TMPL_MANAGER: ['READ','CREATE','UPDATE'],  TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: ['READ']  },
+  CATALOG_PRODUCTS:   { SUPER_ADMIN: ['READ','CREATE','UPDATE','DELETE','EXPORT'],                      TMPL_ADMIN: ['READ','CREATE','UPDATE'],       TMPL_MANAGER: ['READ','CREATE','UPDATE'],  TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: ['READ']  },
+  CATALOG_PACKAGES:   { SUPER_ADMIN: ['READ','CREATE','UPDATE','DELETE','EXPORT'],                      TMPL_ADMIN: ['READ','CREATE','UPDATE'],       TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: []        },
+  AUDIT:              { SUPER_ADMIN: ['READ','EXPORT'],                                                 TMPL_ADMIN: ['READ','EXPORT'],               TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: [],        TMPL_READONLY: []        },
+  SETTINGS_GENERAL:   { SUPER_ADMIN: ['READ','UPDATE'],                                                 TMPL_ADMIN: ['READ','UPDATE'],               TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: []        },
+  SETTINGS_ROLES:     { SUPER_ADMIN: ['READ','CREATE','UPDATE','DELETE'],                               TMPL_ADMIN: ['READ'],                        TMPL_MANAGER: [],                         TMPL_EMPLOYEE: [],        TMPL_READONLY: []        },
+  SETTINGS_ORGCHART:  { SUPER_ADMIN: ['READ','CREATE','UPDATE','DELETE'],                               TMPL_ADMIN: ['READ','CREATE','UPDATE'],       TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: []        },
+  SETTINGS_MENU:      { SUPER_ADMIN: ['READ','CREATE','UPDATE','DELETE'],                               TMPL_ADMIN: ['READ'],                        TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: [],        TMPL_READONLY: []        },
+  SETTINGS_SECURITY:  { SUPER_ADMIN: ['READ','UPDATE','VIEW_SENSITIVE'],                                TMPL_ADMIN: ['READ'],                        TMPL_MANAGER: [],                         TMPL_EMPLOYEE: [],        TMPL_READONLY: []        },
+  SETTINGS_GROUPS:    { SUPER_ADMIN: ['READ','CREATE','UPDATE','DELETE'],                               TMPL_ADMIN: ['READ','CREATE','UPDATE'],       TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: []        },
+  GROUPS:             { SUPER_ADMIN: ['READ','CREATE','UPDATE','DELETE'],                               TMPL_ADMIN: ['READ','CREATE','UPDATE'],       TMPL_MANAGER: ['READ'],                   TMPL_EMPLOYEE: ['READ'],  TMPL_READONLY: []        },
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -64,6 +65,7 @@ async function runSeed() {
   try {
     const pool = await getPool();
     await fixLoginAuditFK(pool);
+    await renameCorePlatformRoles(pool);
     await seedActionTypes(pool);
     await createMissingTables(pool);
     await syncPlatformMenu(pool);
@@ -74,7 +76,20 @@ async function runSeed() {
   }
 }
 
-// ── 0. Fix tblLoginAudit FK — allows NULL/0 UserID for failed logins ──
+// ── 0a. Rename core platform roles (idempotent) ───────────────
+async function renameCorePlatformRoles(pool) {
+  await pool.request().query(`
+    -- RoleID=1: was SUPER_ADMIN → now PLATFORM_ADMIN (god mode, cross-tenant)
+    IF EXISTS (SELECT 1 FROM dbo.tblRoles WHERE RoleID=1 AND RoleCode='SUPER_ADMIN')
+      UPDATE dbo.tblRoles SET RoleCode='PLATFORM_ADMIN', RoleName=N'מנהל פלטפורמה' WHERE RoleID=1;
+
+    -- RoleID=2: was PLATFORM_USER → now SUPER_ADMIN (full access within own tenant)
+    IF EXISTS (SELECT 1 FROM dbo.tblRoles WHERE RoleID=2 AND RoleCode='PLATFORM_USER')
+      UPDATE dbo.tblRoles SET RoleCode='SUPER_ADMIN', RoleName=N'מנהל עליון' WHERE RoleID=2;
+  `);
+}
+
+// ── 0b. Fix tblLoginAudit FK — allows NULL/0 UserID for failed logins ──
 async function fixLoginAuditFK(pool) {
   await pool.request().query(`
     -- Drop FK on UserID so failed logins (UserID=0/NULL) can be audited

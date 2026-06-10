@@ -18,8 +18,9 @@ async function _loadRolePerms(roleId, pool) {
 
   const promise = (async () => {
     const perms = new Set();
-    if (roleId === 1) {
-      // Super Admin — synthesise ALL
+    if (roleId === 1 || roleId === 2) {
+      // PLATFORM_ADMIN(1) cross-tenant + SUPER_ADMIN(2) within-tenant — both get all permissions
+      // Tenant isolation for SUPER_ADMIN is enforced in SQL (TenantID filter per query), not here
       const r = await pool.request().query(`
         SELECT mi.MenuItemCode, at2.ActionCode
         FROM   dbo.tblMenuItems   mi
@@ -69,7 +70,7 @@ function verifyToken(req, res, next) {
 // Usage: router.post('/', requireAuth, checkPermission('ORGANIZATIONS','CREATE'), handler)
 function checkPermission(screenCode, actionCode) {
   return async (req, res, next) => {
-    if (req.user?.roleId === 1) return next(); // Super Admin — bypass
+    if (req.user?.roleId === 1 || req.user?.roleId === 2) return next(); // PLATFORM_ADMIN + SUPER_ADMIN bypass
 
     try {
       const { getPool } = require('../db');
