@@ -71,6 +71,8 @@ async function runSeed() {
     await addEntityTokenColumns(pool);
     await seedActionTypes(pool);
     await createMissingTables(pool);
+    await createConnectorsTable(pool);
+    await seedDefaultConnectors(pool);
     await syncPlatformMenu(pool);
     await seedDefaultPermissions(pool);
     console.log('[seeder] ✅ DB seed complete');
@@ -396,6 +398,235 @@ async function upsertGroupPerms(pool) {
       }
     }
   }
+}
+
+// ── Connectors table + seed ───────────────────────────────────
+const { encryptConfig } = require('./connectorEncryption');
+
+const CONNECTOR_DEFS = [
+  // ── AI & Agents ──────────────────────────────────────────────
+  {
+    key: 'claude_api', category: 'AI', name: 'Claude (Anthropic API)', icon: '🤖',
+    description: 'חיבור ל-Claude AI של Anthropic לביצוע פעולות AI, העשרת נתונים וסוכנים',
+    schema: [
+      { key: 'api_key',   label: 'API Key',          type: 'password', required: true,  placeholder: 'sk-ant-api03-...' },
+      { key: 'model_id',  label: 'מודל ברירת מחדל', type: 'text',     required: false, default: 'claude-haiku-4-5-20251001', placeholder: 'claude-haiku-4-5-20251001' },
+      { key: 'max_tokens',label: 'Max Tokens',        type: 'number',   required: false, default: 1024 },
+    ],
+    defaultConfig: { model_id: 'claude-haiku-4-5-20251001', max_tokens: 1024 },
+  },
+  {
+    key: 'openai_api', category: 'AI', name: 'OpenAI', icon: '🧠',
+    description: 'חיבור ל-OpenAI (GPT-4, GPT-4o) כגיבוי או לשימוש ייעודי',
+    schema: [
+      { key: 'api_key', label: 'API Key',    type: 'password', required: true,  placeholder: 'sk-...' },
+      { key: 'org_id',  label: 'Org ID',     type: 'text',     required: false, placeholder: 'org-...' },
+      { key: 'model',   label: 'מודל',       type: 'text',     required: false, default: 'gpt-4o-mini' },
+    ],
+    defaultConfig: { model: 'gpt-4o-mini' },
+  },
+  // ── Databases ────────────────────────────────────────────────
+  {
+    key: 'mssql_primary', category: 'DATABASE', name: 'MS-SQL ראשי', icon: '🗄️',
+    description: 'בסיס הנתונים הראשי של המערכת — Microsoft SQL Server',
+    schema: [
+      { key: 'server',   label: 'שרת (IP / Hostname)', type: 'text',     required: true  },
+      { key: 'database', label: 'שם מסד נתונים',       type: 'text',     required: true  },
+      { key: 'userName', label: 'שם משתמש',            type: 'text',     required: true  },
+      { key: 'password', label: 'סיסמה',               type: 'password', required: true  },
+      { key: 'port',     label: 'פורט',                type: 'number',   required: false, default: 1433 },
+      { key: 'encrypt',  label: 'הצפנת TLS',          type: 'boolean',  required: false, default: false },
+    ],
+    defaultConfig: {},
+  },
+  {
+    key: 'mssql_backup', category: 'DATABASE', name: 'MS-SQL גיבוי', icon: '💾',
+    description: 'שרת SQL גיבוי (Failover) — לא חובה',
+    schema: [
+      { key: 'server',   label: 'שרת (IP / Hostname)', type: 'text',     required: true  },
+      { key: 'database', label: 'שם מסד נתונים',       type: 'text',     required: true  },
+      { key: 'userName', label: 'שם משתמש',            type: 'text',     required: true  },
+      { key: 'password', label: 'סיסמה',               type: 'password', required: true  },
+      { key: 'port',     label: 'פורט',                type: 'number',   required: false, default: 1433 },
+    ],
+    defaultConfig: {},
+  },
+  // ── Email ────────────────────────────────────────────────────
+  {
+    key: 'smtp', category: 'EMAIL', name: 'SMTP', icon: '📧',
+    description: 'שרת דואר יוצא — לשליחת התראות, אישורים ודוחות',
+    schema: [
+      { key: 'host',         label: 'שרת SMTP',        type: 'text',     required: true,  placeholder: 'smtp.gmail.com' },
+      { key: 'port',         label: 'פורט',            type: 'number',   required: true,  default: 587 },
+      { key: 'userName',     label: 'שם משתמש',        type: 'text',     required: true  },
+      { key: 'password',     label: 'סיסמה / App Password', type: 'password', required: true  },
+      { key: 'from_address', label: 'כתובת שולח',      type: 'text',     required: true,  placeholder: 'noreply@company.com' },
+      { key: 'tls',          label: 'STARTTLS',         type: 'boolean',  required: false, default: true },
+    ],
+    defaultConfig: { port: 587, tls: true },
+  },
+  {
+    key: 'sendgrid', category: 'EMAIL', name: 'SendGrid', icon: '📨',
+    description: 'SendGrid API לשליחת אימיילים בנפח גדול',
+    schema: [
+      { key: 'api_key',      label: 'API Key',      type: 'password', required: true,  placeholder: 'SG.xxx...' },
+      { key: 'from_address', label: 'כתובת שולח',  type: 'text',     required: true,  placeholder: 'noreply@company.com' },
+    ],
+    defaultConfig: {},
+  },
+  // ── Storage ──────────────────────────────────────────────────
+  {
+    key: 'azure_blob', category: 'STORAGE', name: 'Azure Blob Storage', icon: '☁️',
+    description: 'אחסון קבצים ב-Microsoft Azure',
+    schema: [
+      { key: 'account_name', label: 'Account Name',  type: 'text',     required: true  },
+      { key: 'account_key',  label: 'Account Key',   type: 'password', required: true  },
+      { key: 'container',    label: 'Container Name', type: 'text',    required: true  },
+    ],
+    defaultConfig: {},
+  },
+  {
+    key: 'aws_s3', category: 'STORAGE', name: 'AWS S3', icon: '📦',
+    description: 'אחסון קבצים ב-Amazon S3',
+    schema: [
+      { key: 'access_key', label: 'Access Key ID',     type: 'text',     required: true  },
+      { key: 'secret_key', label: 'Secret Access Key', type: 'password', required: true  },
+      { key: 'region',     label: 'Region',            type: 'text',     required: true,  placeholder: 'us-east-1' },
+      { key: 'bucket',     label: 'Bucket Name',       type: 'text',     required: true  },
+    ],
+    defaultConfig: {},
+  },
+  // ── Webhooks & Integrations ──────────────────────────────────
+  {
+    key: 'slack', category: 'WEBHOOK', name: 'Slack', icon: '💬',
+    description: 'שליחת התראות ועדכונים לערוצי Slack',
+    schema: [
+      { key: 'bot_token',       label: 'Bot Token',        type: 'password', required: true,  placeholder: 'xoxb-...' },
+      { key: 'default_channel', label: 'ערוץ ברירת מחדל', type: 'text',     required: false, default: '#general' },
+      { key: 'webhook_url',     label: 'Incoming Webhook URL', type: 'text', required: false },
+    ],
+    defaultConfig: { default_channel: '#general' },
+  },
+  {
+    key: 'teams', category: 'WEBHOOK', name: 'Microsoft Teams', icon: '👥',
+    description: 'שליחת התראות ל-Microsoft Teams',
+    schema: [
+      { key: 'webhook_url', label: 'Incoming Webhook URL', type: 'text', required: true, placeholder: 'https://xxx.webhook.office.com/...' },
+    ],
+    defaultConfig: {},
+  },
+  {
+    key: 'github', category: 'WEBHOOK', name: 'GitHub', icon: '🐙',
+    description: 'חיבור ל-GitHub — Repos, Issues, Actions',
+    schema: [
+      { key: 'personal_access_token', label: 'Personal Access Token', type: 'password', required: true,  placeholder: 'ghp_...' },
+      { key: 'org_name',              label: 'Organization Name',      type: 'text',     required: false },
+    ],
+    defaultConfig: {},
+  },
+  {
+    key: 'boi_rates', category: 'WEBHOOK', name: 'שע"ח בנק ישראל', icon: '🏦',
+    description: 'שערי חליפין מבנק ישראל — מתעדכן אוטומטית כל יום',
+    schema: [
+      { key: 'base_url', label: 'Base URL', type: 'text', required: false, default: 'https://edge.boi.gov.il/FusionEdgeServer/sdmx/v2/data/dataflow/BOI.STATISTICS/EXR', placeholder: 'https://...' },
+      { key: 'timeout',  label: 'Timeout (שניות)', type: 'number', required: false, default: 30 },
+    ],
+    defaultConfig: { timeout: 30 },
+  },
+  // ── Auth / Identity ──────────────────────────────────────────
+  {
+    key: 'google_oauth', category: 'AUTH', name: 'Google OAuth', icon: '🔑',
+    description: 'כניסה עם חשבון Google (OAuth 2.0)',
+    schema: [
+      { key: 'client_id',     label: 'Client ID',     type: 'text',     required: true  },
+      { key: 'client_secret', label: 'Client Secret', type: 'password', required: true  },
+      { key: 'redirect_uri',  label: 'Redirect URI',  type: 'text',     required: true,  placeholder: 'https://yourdomain.com/auth/google/callback' },
+    ],
+    defaultConfig: {},
+  },
+  {
+    key: 'azure_ad', category: 'AUTH', name: 'Microsoft Azure AD', icon: '🔐',
+    description: 'כניסה עם חשבון Microsoft / Azure Active Directory',
+    schema: [
+      { key: 'tenant_id',     label: 'Tenant ID',     type: 'text',     required: true  },
+      { key: 'client_id',     label: 'Client ID',     type: 'text',     required: true  },
+      { key: 'client_secret', label: 'Client Secret', type: 'password', required: true  },
+    ],
+    defaultConfig: {},
+  },
+];
+
+async function createConnectorsTable(pool) {
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT 1 FROM sysobjects WHERE name='tblConnectors' AND xtype='U')
+    CREATE TABLE dbo.tblConnectors (
+      ConnectorID    INT IDENTITY(1,1) PRIMARY KEY,
+      TenantID       INT           NOT NULL DEFAULT 0,
+      ProductID      INT           NOT NULL DEFAULT 0,
+      ScopeLevel     VARCHAR(20)   NOT NULL DEFAULT 'PLATFORM',
+      ConnectorKey   VARCHAR(50)   NOT NULL,
+      Category       VARCHAR(30)   NOT NULL,
+      ConnectorName  NVARCHAR(100) NOT NULL,
+      IconEmoji      NVARCHAR(10)  NOT NULL DEFAULT '',
+      Description    NVARCHAR(300) NOT NULL DEFAULT '',
+      SchemaJSON     NVARCHAR(MAX) NULL,
+      ConfigJSON     NVARCHAR(MAX) NULL,
+      IsEnabled      BIT           NOT NULL DEFAULT 0,
+      LastTestedAt   DATETIME      NULL,
+      LastTestStatus VARCHAR(10)   NULL,
+      LastTestMsg    NVARCHAR(300) NULL,
+      UpdatedAt      DATETIME      NOT NULL DEFAULT GETDATE(),
+      UpdatedBy      INT           NULL,
+      CONSTRAINT UQ_Connector_Scope UNIQUE (TenantID, ProductID, ConnectorKey)
+    )
+  `);
+}
+
+async function seedDefaultConnectors(pool) {
+  // Read .env values for mssql_primary default config
+  const mssqlDefault = encryptConfig({
+    server:   process.env.DB_SERVER   || '',
+    database: process.env.DB_NAME     || '',
+    userName: process.env.DB_USER     || '',
+    password: process.env.DB_PASSWORD || '',
+    port:     1433,
+    encrypt:  false,
+  });
+
+  for (const def of CONNECTOR_DEFS) {
+    const schemaJson = JSON.stringify(def.schema);
+    // For mssql_primary: auto-populate from .env; others: empty config (user must fill)
+    const configJson = def.key === 'mssql_primary'
+      ? mssqlDefault
+      : (Object.keys(def.defaultConfig).length ? encryptConfig(def.defaultConfig) : null);
+
+    const isEnabled = def.key === 'mssql_primary' || def.key === 'boi_rates';
+
+    await pool.request()
+      .input('TenantID',      sql.Int,           0)
+      .input('ProductID',     sql.Int,           0)
+      .input('ScopeLevel',    sql.VarChar(20),   'PLATFORM')
+      .input('ConnectorKey',  sql.VarChar(50),   def.key)
+      .input('Category',      sql.VarChar(30),   def.category)
+      .input('ConnectorName', sql.NVarChar(100), def.name)
+      .input('IconEmoji',     sql.NVarChar(10),  def.icon)
+      .input('Description',   sql.NVarChar(300), def.description)
+      .input('SchemaJSON',    sql.NVarChar(sql.MAX), schemaJson)
+      .input('ConfigJSON',    sql.NVarChar(sql.MAX), configJson)
+      .input('IsEnabled',     sql.Bit,           isEnabled ? 1 : 0)
+      .query(`
+        IF NOT EXISTS (SELECT 1 FROM dbo.tblConnectors WHERE TenantID=@TenantID AND ProductID=@ProductID AND ConnectorKey=@ConnectorKey)
+          INSERT INTO dbo.tblConnectors
+            (TenantID, ProductID, ScopeLevel, ConnectorKey, Category, ConnectorName, IconEmoji, Description, SchemaJSON, ConfigJSON, IsEnabled, UpdatedAt)
+          VALUES
+            (@TenantID, @ProductID, @ScopeLevel, @ConnectorKey, @Category, @ConnectorName, @IconEmoji, @Description, @SchemaJSON, @ConfigJSON, @IsEnabled, GETDATE())
+        ELSE
+          UPDATE dbo.tblConnectors
+          SET SchemaJSON=@SchemaJSON, ConnectorName=@ConnectorName, IconEmoji=@IconEmoji, Description=@Description
+          WHERE TenantID=@TenantID AND ProductID=@ProductID AND ConnectorKey=@ConnectorKey
+      `);
+  }
+  console.log('[seeder] connectors seeded/updated');
 }
 
 module.exports = { runSeed };

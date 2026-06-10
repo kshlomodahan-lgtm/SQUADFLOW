@@ -49,6 +49,7 @@ app.use('/api/groups',       require('./routes/groups'));
 app.use('/api/reference',       require('./routes/reference'));
 app.use('/api/exchange-rates',  require('./routes/exchange-rates'));
 app.use('/api/ai',             require('./routes/ai'));
+app.use('/api/connectors',     require('./routes/connectors'));
 
 // 404
 app.use('/api/{*path}', (_req, res) => res.status(404).json({ success: false, message: 'Endpoint not found' }));

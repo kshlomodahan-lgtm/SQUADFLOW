@@ -79,14 +79,18 @@ GO
 --  sp_UserUpdate — עדכון פרטי משתמש
 -- ════════════════════════════════════════════════════
 CREATE OR ALTER PROCEDURE dbo.sp_UserUpdate
-  @UserID        INT,
-  @FirstName     NVARCHAR(100),
-  @LastName      NVARCHAR(100),
-  @Email         NVARCHAR(150),
-  @RoleID        INT,
-  @IsActive      BIT,
-  @ResultCode    INT           OUTPUT,
-  @ResultMessage NVARCHAR(200) OUTPUT
+  @UserID           INT,
+  @FirstName        NVARCHAR(100),
+  @LastName         NVARCHAR(100),
+  @Email            NVARCHAR(150),
+  @RoleID           INT,
+  @IsActive         BIT,
+  @Phone            NVARCHAR(30)  = NULL,
+  @JobTitle         NVARCHAR(100) = NULL,
+  @Notes            NVARCHAR(500) = NULL,
+  @PrimaryOrgUnitID INT           = NULL,
+  @ResultCode       INT           OUTPUT,
+  @ResultMessage    NVARCHAR(200) OUTPUT
 AS
 BEGIN
   SET NOCOUNT ON;
@@ -98,7 +102,6 @@ BEGIN
     RETURN;
   END;
 
-  -- ולידציה: מייל ייחודי (לא כולל המשתמש הנוכחי)
   IF EXISTS (
     SELECT 1 FROM dbo.tblUsers
     WHERE Email = @Email AND UserID <> @UserID AND UserID > 0
@@ -110,11 +113,15 @@ BEGIN
   END;
 
   UPDATE dbo.tblUsers
-  SET    FirstName = @FirstName,
-         LastName  = @LastName,
-         Email     = @Email,
-         RoleID    = @RoleID,
-         IsActive  = @IsActive
+  SET    FirstName        = @FirstName,
+         LastName         = @LastName,
+         Email            = @Email,
+         RoleID           = @RoleID,
+         IsActive         = @IsActive,
+         Phone            = @Phone,
+         JobTitle         = @JobTitle,
+         Notes            = @Notes,
+         PrimaryOrgUnitID = @PrimaryOrgUnitID
   WHERE  UserID = @UserID;
 
   SET @ResultCode    = 0;

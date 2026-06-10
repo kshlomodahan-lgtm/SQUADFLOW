@@ -1,0 +1,202 @@
+<div class="conn-wrap">
+
+  <!-- ── Page Header ── -->
+  <div class="conn-header">
+    <div class="conn-title">
+      <h2>חיבורים חיצוניים</h2>
+      <p>הגדרת חיבורי המערכת לשירותים חיצוניים — AI, בסיסי נתונים, דוא"ל, אחסון ועוד</p>
+    </div>
+    <div class="scope-chip" [class.scope-platform]="scope === 'PLATFORM'" [class.scope-tenant]="scope === 'TENANT'">
+      {{ scope === 'PLATFORM' ? '🏢 פלטפורמה' : '🏬 ארגון' }}
+    </div>
+  </div>
+
+  <!-- ── Category Tabs ── -->
+  <div class="cat-tabs">
+    @for (cat of categories; track cat.id) {
+      <button class="cat-tab" [class.active]="activeCategory() === cat.id"
+              (click)="activeCategory.set(cat.id)" type="button">
+        <span class="cat-icon">{{ cat.icon }}</span>
+        <span class="cat-label">{{ cat.label }}</span>
+        @if (catCount(cat.id) > 0) {
+          <span class="cat-badge" [class.has-enabled]="catEnabledCount(cat.id) > 0">
+            {{ catEnabledCount(cat.id) }}/{{ catCount(cat.id) }}
+          </span>
+        }
+      </button>
+    }
+  </div>
+
+  <!-- ── Content ── -->
+  @if (loading()) {
+    <div class="conn-loading">
+      <mat-spinner diameter="36" />
+    </div>
+  } @else if (error()) {
+    <div class="conn-error">{{ error() }}</div>
+  } @else {
+
+    <!-- Test Result Banner -->
+    @if (testResult()) {
+      <div class="test-banner" [class.test-ok]="testResult()!.status === 'OK'"
+           [class.test-fail]="testResult()!.status === 'FAIL'"
+           [class.test-pending]="testResult()!.status === 'PENDING'">
+        {{ testResult()!.message }}
+        <button type="button" class="test-banner-close" (click)="testResult.set(null)">✕</button>
+      </div>
+    }
+
+    <!-- Connector Cards -->
+    <div class="conn-grid">
+      @for (c of categorized(); track c.ConnectorKey) {
+        <div class="conn-card" [class.enabled]="c.IsEnabled" [class.no-config]="!c.hasConfig">
+
+          <div class="card-top">
+            <div class="card-icon">{{ c.IconEmoji }}</div>
+            <div class="card-info">
+              <div class="card-name">{{ c.ConnectorName }}</div>
+              <div class="card-desc">{{ c.Description }}</div>
+            </div>
+            <div class="card-status" [class]="statusClass(c.LastTestStatus)">
+              {{ c.hasConfig ? statusLabel(c.LastTestStatus) : 'לא הוגדר' }}
+            </div>
+          </div>
+
+          @if (c.hasConfig && c.LastTestedAt) {
+            <div class="card-meta">
+              בדיקה אחרונה: {{ formatDate(c.LastTestedAt) }}
+              @if (c.LastTestMsg) {
+                <span class="card-meta-msg">— {{ c.LastTestMsg }}</span>
+              }
+            </div>
+          }
+
+          <div class="card-actions">
+            <button type="button" class="btn-test"
+                    [disabled]="testRunning() === c.ConnectorKey"
+                    (click)="testConnection(c)">
+              @if (testRunning() === c.ConnectorKey) {
+                <kendo-loader type="pulsing" size="small" themeColor="primary" />
+              } @else {
+                ▶
+              }
+              בדוק חיבור
+            </button>
+            <button type="button" class="btn-edit" (click)="openEdit(c)">
+              ✎ {{ c.hasConfig ? 'ערוך' : 'הגדר' }}
+            </button>
+            <div class="enabled-dot" [class.on]="c.IsEnabled" [title]="c.IsEnabled ? 'פעיל' : 'מושבת'"></div>
+          </div>
+
+        </div>
+      }
+
+      @if (categorized().length === 0) {
+        <div class="conn-empty">
+          <div class="conn-empty-icon">{{ categoryMeta[activeCategory()]?.icon }}</div>
+          <p>אין חיבורים בקטגוריה זו</p>
+        </div>
+      }
+    </div>
+  }
+
+</div>
+
+<!-- ── Edit Dialog ── -->
+@if (editOpen() && editConnector()) {
+  <kendo-dialog
+    [title]="editConnector()!.IconEmoji + ' ' + editConnector()!.ConnectorName"
+    [width]="520" [minWidth]="400"
+    (close)="closeEdit()">
+
+    <div class="edit-body">
+
+      @if (editError()) {
+        <div class="edit-error">{{ editError() }}</div>
+      }
+
+      <div class="edit-desc">{{ editConnector()!.Description }}</div>
+
+      <!-- Dynamic fields from SchemaJSON -->
+      @for (field of editConnector()!.SchemaJSON; track field.key) {
+        <div class="edit-row">
+          <label class="edit-label">
+            {{ field.label }}
+            @if (field.required) { <span class="req">*</span> }
+          </label>
+          <div class="edit-field">
+
+            @if (field.type === 'password') {
+              <div class="pass-wrap">
+                <input
+                  [type]="editShowPass[field.key] ? 'text' : 'password'"
+                  class="edit-input"
+                  [value]="getField(field.key)"
+                  [placeholder]="field.placeholder || ''"
+                  (input)="setField(field.key, $any($event.target).value)" />
+                <button type="button" class="btn-eye"
+                        (click)="toggleShow(field.key)">
+                  {{ editShowPass[field.key] ? '🙈' : '👁' }}
+                </button>
+              </div>
+            } @else if (field.type === 'boolean') {
+              <div class="seg-ctrl">
+                <button type="button" class="seg-btn"
+                        [class.seg-on]="!!getField(field.key)"
+                        (click)="setField(field.key, true)">✓ כן</button>
+                <button type="button" class="seg-btn"
+                        [class.seg-off]="!getField(field.key)"
+                        (click)="setField(field.key, false)">✗ לא</button>
+              </div>
+            } @else if (field.type === 'number') {
+              <input type="number" class="edit-input"
+                     [value]="getField(field.key) || field.default || ''"
+                     (input)="setField(field.key, +$any($event.target).value)" />
+            } @else {
+              <input type="text" class="edit-input"
+                     [value]="getField(field.key)"
+                     [placeholder]="field.placeholder || field.default || ''"
+                     (input)="setField(field.key, $any($event.target).value)" />
+            }
+
+          </div>
+        </div>
+      }
+
+      <!-- Enable toggle -->
+      <div class="edit-row">
+        <label class="edit-label">סטטוס חיבור</label>
+        <div class="edit-field">
+          <div class="seg-ctrl">
+            <button type="button" class="seg-btn"
+                    [class.seg-on]="editEnabled()"
+                    (click)="editEnabled.set(true)">✓ פעיל</button>
+            <button type="button" class="seg-btn"
+                    [class.seg-off]="!editEnabled()"
+                    (click)="editEnabled.set(false)">✗ מושבת</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <kendo-dialog-actions>
+      <div class="edit-footer">
+        <button kendoButton class="btn-save" (click)="saveEdit()" [disabled]="editSaving()">
+          @if (editSaving()) { <kendo-loader type="pulsing" size="small" /> } @else { ✓ }
+          שמור
+        </button>
+        <button kendoButton class="btn-test-dialog"
+                [disabled]="testRunning() !== null"
+                (click)="testConnection(editConnector()!, true)">
+          @if (testRunning() === editConnector()?.ConnectorKey) {
+            <kendo-loader type="pulsing" size="small" />
+          } @else { ▶ }
+          בדוק חיבור
+        </button>
+        <button kendoButton fillMode="outline" class="btn-cancel" (click)="closeEdit()" [disabled]="editSaving()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+
+  </kendo-dialog>
+}

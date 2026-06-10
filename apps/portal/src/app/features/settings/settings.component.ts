@@ -10,7 +10,7 @@ import { IconsModule } from '@progress/kendo-angular-icons';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { GridModule, PageChangeEvent, RowArgs } from '@progress/kendo-angular-grid';
 import { SortDescriptor, orderBy } from '@progress/kendo-data-query';
-import { SVGIcon, paletteIcon, gearIcon, passwordIcon, bellIcon, buildingsIcon, walletIcon, tableIcon, plusIcon, pencilIcon, lockIcon, clipboardTextIcon, filterIcon, calendarIcon, chartLineIcon, menuIcon } from '@progress/kendo-svg-icons';
+import { SVGIcon, paletteIcon, gearIcon, passwordIcon, bellIcon, buildingsIcon, walletIcon, tableIcon, plusIcon, pencilIcon, lockIcon, clipboardTextIcon, filterIcon, calendarIcon, chartLineIcon, menuIcon, globeIcon } from '@progress/kendo-svg-icons';
 import { DialogModule } from '@progress/kendo-angular-dialog';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ThemeService, COLOR_SCHEMES, ColorScheme } from '../../core/services/theme.service';
@@ -23,6 +23,7 @@ import { MenuManagerComponent } from './menu-manager/menu-manager.component';
 import { RolesManagerComponent } from './roles-manager/roles-manager.component';
 import { OrgChartComponent } from './org-chart/org-chart.component';
 import { GroupsComponent } from './groups/groups.component';
+import { ConnectorsComponent } from './connectors/connectors.component';
 
 interface SettingGroup  { id: string; text: string; icon: SVGIcon; }
 interface EditNavGroup  { id: string; text: string; icon: SVGIcon; }
@@ -35,7 +36,8 @@ interface EditNavGroup  { id: string; text: string; icon: SVGIcon; }
             ButtonModule, IndicatorsModule, NotificationModule, IconsModule,
             GridModule, MatProgressSpinnerModule, DialogModule,
             AuditActionTypesComponent, AuditEntityTypesComponent,
-            MenuManagerComponent, RolesManagerComponent, OrgChartComponent, GroupsComponent],
+            MenuManagerComponent, RolesManagerComponent, OrgChartComponent, GroupsComponent,
+            ConnectorsComponent],
   providers: [NotificationService],
   templateUrl: './settings.component.html',
   styleUrl:    './settings.component.scss',
@@ -63,6 +65,7 @@ export class SettingsComponent {
     { id: 'roles',         text: 'תפקידים והרשאות', icon: lockIcon        },
     { id: 'org-chart',     text: 'מבנה ארגוני', icon: buildingsIcon      },
     { id: 'groups',        text: 'קבוצות',       icon: filterIcon         },
+    { id: 'connectors',   text: 'חיבורים',      icon: globeIcon          },
   ];
 
   // ── Counters — רשימה ──────────────────────────────────────
