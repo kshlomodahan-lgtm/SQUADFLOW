@@ -1,4 +1,13 @@
-<kendo-dialog [title]="title" [width]="720" [minWidth]="560" (close)="close()">
+<kendo-dialog [title]="title" [width]="760" [minWidth]="580" (close)="close()">
+
+  @if (isEdit && user?.OrgName) {
+    <div class="org-context-bar">
+      <span class="ctx-label">ארגון:</span>
+      <strong class="ctx-org">{{ user!.OrgName }}</strong>
+      <span class="ctx-sep">·</span>
+      <span class="ctx-user">&#64;{{ user!.Username }}</span>
+    </div>
+  }
 
   @if (loading()) {
     <div class="dialog-loading">
@@ -90,6 +99,30 @@
                 </div>
               </div>
 
+              <!-- טלפון -->
+              <div class="form-row">
+                <label class="field-label">טלפון</label>
+                <div class="field-wrap">
+                  <kendo-textbox formControlName="phone" placeholder="050-0000000" />
+                </div>
+              </div>
+
+              <!-- תפקיד / כותרת -->
+              <div class="form-row">
+                <label class="field-label">כותרת תפקיד</label>
+                <div class="field-wrap">
+                  <kendo-textbox formControlName="jobTitle" placeholder="לדוגמה: מפתח Full Stack" />
+                </div>
+              </div>
+
+              <!-- הערות -->
+              <div class="form-row">
+                <label class="field-label">הערות</label>
+                <div class="field-wrap">
+                  <kendo-textarea formControlName="notes" placeholder="הערות פנימיות..." [rows]="3" />
+                </div>
+              </div>
+
               <!-- סיסמה — יצירה בלבד -->
               @if (!isEdit) {
                 <div class="form-row">
@@ -157,6 +190,59 @@
                       </button>
                     </div>
                   </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- ── Group: שיוך ארגוני ── -->
+          @if (activeGroup() === 'org') {
+            <div class="form-section">
+              <h3 class="section-title">שיוך ארגוני</h3>
+
+              <div class="form-row">
+                <label class="field-label">יחידה ארגונית</label>
+                <div class="field-wrap">
+                  @if (orgUnits.length === 0) {
+                    <div class="empty-org-units">
+                      <span>לא הוגדרו יחידות ארגוניות בארגון זה.</span>
+                      <small>ניתן להגדיר יחידות ארגוניות תחת: הגדרות → מבנה ארגוני</small>
+                    </div>
+                  } @else {
+                    <div class="org-unit-list">
+                      <div class="org-unit-item" [class.selected]="!form.get('primaryOrgUnitId')?.value"
+                           (click)="selectOrgUnit(null)">
+                        <span class="ou-icon">—</span>
+                        <span class="ou-name">ללא שיוך</span>
+                      </div>
+                      @for (unit of orgUnits; track unit.OrgUnitID) {
+                        <div class="org-unit-item"
+                             [class.selected]="form.get('primaryOrgUnitId')?.value === unit.OrgUnitID"
+                             [class.has-parent]="!!unit.ParentOrgUnitID"
+                             (click)="selectOrgUnit(unit)">
+                          <span class="ou-icon">
+                            @switch (unit.UnitType) {
+                              @case ('COMPANY')    { 🏢 }
+                              @case ('DIVISION')   { 🔷 }
+                              @case ('DEPARTMENT') { 🏬 }
+                              @case ('BRANCH')     { 🌿 }
+                              @case ('TEAM')       { 👥 }
+                              @default             { 📌 }
+                            }
+                          </span>
+                          <span class="ou-name">{{ unit.UnitName }}</span>
+                          <span class="ou-type">{{ unit.UnitType }}</span>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+
+              @if (form.get('primaryOrgUnitId')?.value) {
+                <div class="org-selected-info">
+                  <span class="org-selected-label">יחידה נבחרת:</span>
+                  <strong>{{ selectedOrgUnitName }}</strong>
                 </div>
               }
             </div>

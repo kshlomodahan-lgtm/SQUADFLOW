@@ -1,0 +1,116 @@
+<kendo-dialog [title]="title" [width]="760" [minWidth]="480" (close)="cancel()">
+
+  <!-- toolbar: search + filters -->
+  <div class="picker-toolbar">
+    <div class="search-wrap">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input
+        class="search-input"
+        type="text"
+        placeholder="חיפוש לפי שם או ארגון..."
+        [value]="searchText"
+        (input)="onSearch($any($event.target).value)"
+      />
+    </div>
+
+    <kendo-dropdownlist
+      class="filter-drop"
+      [data]="roles()"
+      [(ngModel)]="filterRole"
+      [defaultItem]="'כל התפקידים'"
+      (valueChange)="skip = 0"
+    />
+
+    <kendo-dropdownlist
+      class="filter-drop filter-drop-sm"
+      [data]="statuses"
+      [(ngModel)]="filterStatus"
+      [defaultItem]="'כל הסטטוסים'"
+      (valueChange)="skip = 0"
+    />
+  </div>
+
+  <!-- loading -->
+  @if (loading()) {
+    <div class="picker-loading">
+      <kendo-loader type="converging-spinner" themeColor="primary" size="medium" />
+    </div>
+  }
+
+  <!-- grid -->
+  @if (!loading()) {
+    <kendo-grid
+      class="picker-grid"
+      [data]="{ data: pageData, total: filtered.length }"
+      [skip]="skip"
+      [pageSize]="pageSize"
+      [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [10, 25, 50] }"
+      [sortable]="{ mode: 'single', allowUnsort: false }"
+      [sort]="sort"
+      scrollable="none"
+      (pageChange)="onPageChange($event)"
+      (sortChange)="onSortChange($event)"
+    >
+      <!-- שם מלא -->
+      <kendo-grid-column field="FullName" title="שם מלא" [sortable]="true">
+        <ng-template kendoGridCellTemplate let-row>
+          <div
+            class="user-row"
+            [class.row-selected]="isSelected(row)"
+            (click)="selectRow(row)"
+          >
+            <span class="user-avatar">{{ row.FullName?.charAt(0) }}</span>
+            <span class="user-name">{{ row.FullName }}</span>
+            @if (isSelected(row)) {
+              <mat-icon class="check-icon">check_circle</mat-icon>
+            }
+          </div>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- ארגון -->
+      <kendo-grid-column field="OrgName" title="ארגון" [width]="180" [sortable]="true" />
+
+      <!-- תפקיד -->
+      <kendo-grid-column field="RoleName" title="תפקיד" [width]="140" [sortable]="true" />
+
+      <!-- סטטוס -->
+      <kendo-grid-column title="סטטוס" [width]="90" [sortable]="false">
+        <ng-template kendoGridCellTemplate let-row>
+          <span class="status-badge" [class.active]="row.IsActive">
+            {{ row.IsActive ? 'פעיל' : 'מושהה' }}
+          </span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-messages
+        pagerItemsPerPage="שורות בעמוד"
+        pagerOf="מתוך"
+        pagerItems="משתמשים"
+        noRecords="לא נמצאו משתמשים"
+        loading="טוען..."
+      />
+    </kendo-grid>
+
+    @if (filtered.length === 0) {
+      <div class="picker-empty">לא נמצאו משתמשים התואמים לחיפוש</div>
+    }
+  }
+
+  <kendo-dialog-actions>
+    <div class="picker-footer">
+      <button
+        class="btn-save"
+        [disabled]="!selected()"
+        (click)="confirm()"
+      >
+        ✓ בחר
+      </button>
+      <button class="btn-cancel" (click)="cancel()">ביטול</button>
+      @if (selected()) {
+        <span class="selected-hint">נבחר: {{ selected()?.FullName }}</span>
+      }
+    </div>
+  </kendo-dialog-actions>
+
+</kendo-dialog>

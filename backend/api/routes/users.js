@@ -33,14 +33,23 @@ router.get('/', requireAuth, async (req, res) => {
       query = `
         SELECT u.UserID, u.TenantID, u.Username,
                u.FirstName+N' '+u.LastName AS FullName,
-               u.FirstName, u.LastName,
+               u.FirstName, u.LastName, u.Phone, u.JobTitle, u.Notes,
                u.Email, u.IsActive, u.LastLoginAt, u.MustChangePass, u.RoleID,
+               u.CreatedAt, u.PrimaryOrgUnitID,
                t.TenantCode, t.CompanyName AS OrgName, t.LogoUrl,
-               COALESCE(r.RoleName, ur.RoleName) AS RoleName
+               COALESCE(r.RoleName, ur.RoleName) AS RoleName,
+               COALESCE(r.RoleCode, ur.RoleCode) AS RoleCode,
+               COALESCE(ou2.UnitName,
+                 (SELECT TOP 1 ou.UnitName
+                  FROM dbo.tblUserPositions up2
+                  JOIN dbo.tblOrgPositions  op ON op.PositionID = up2.PositionID
+                  JOIN dbo.tblOrgUnits      ou ON ou.OrgUnitID  = op.OrgUnitID
+                  WHERE up2.UserID = u.UserID AND up2.IsActive = 1)) AS DeptName
         FROM   dbo.tblUsers     u
-        JOIN   dbo.tblTenants   t   ON t.TenantID  = u.TenantID
-        LEFT JOIN dbo.tblRoles  r   ON r.RoleID     = u.RoleID
-        LEFT JOIN dbo.tblUserRoles ur ON ur.RoleID  = u.RoleID
+        JOIN   dbo.tblTenants   t    ON t.TenantID  = u.TenantID
+        LEFT JOIN dbo.tblRoles  r    ON r.RoleID     = u.RoleID
+        LEFT JOIN dbo.tblUserRoles ur ON ur.RoleID   = u.RoleID
+        LEFT JOIN dbo.tblOrgUnits ou2 ON ou2.OrgUnitID = u.PrimaryOrgUnitID
         WHERE  u.TenantID > 1 AND u.UserID > 0
         ORDER  BY t.CompanyName, u.Username`;
     } else {
@@ -48,13 +57,21 @@ router.get('/', requireAuth, async (req, res) => {
       query = `
         SELECT u.UserID, u.TenantID, u.Username,
                u.FirstName+N' '+u.LastName AS FullName,
-               u.FirstName, u.LastName,
+               u.FirstName, u.LastName, u.Phone, u.JobTitle, u.Notes,
                u.Email, u.IsActive, u.LastLoginAt, u.MustChangePass, u.RoleID,
+               u.CreatedAt, u.PrimaryOrgUnitID,
                COALESCE(r.RoleName, ur.RoleName) AS RoleName,
-               COALESCE(r.RoleCode, ur.RoleCode) AS RoleCode
+               COALESCE(r.RoleCode, ur.RoleCode) AS RoleCode,
+               COALESCE(ou2.UnitName,
+                 (SELECT TOP 1 ou.UnitName
+                  FROM dbo.tblUserPositions up2
+                  JOIN dbo.tblOrgPositions  op ON op.PositionID = up2.PositionID
+                  JOIN dbo.tblOrgUnits      ou ON ou.OrgUnitID  = op.OrgUnitID
+                  WHERE up2.UserID = u.UserID AND up2.IsActive = 1)) AS DeptName
         FROM   dbo.tblUsers     u
-        LEFT JOIN dbo.tblRoles     r   ON r.RoleID   = u.RoleID
-        LEFT JOIN dbo.tblUserRoles ur  ON ur.RoleID  = u.RoleID
+        LEFT JOIN dbo.tblRoles     r    ON r.RoleID   = u.RoleID
+        LEFT JOIN dbo.tblUserRoles ur   ON ur.RoleID  = u.RoleID
+        LEFT JOIN dbo.tblOrgUnits  ou2  ON ou2.OrgUnitID = u.PrimaryOrgUnitID
         WHERE  u.TenantID = @TenantID AND u.UserID > 0
         ORDER  BY u.Username`;
     }
@@ -160,7 +177,7 @@ router.put('/:id', requireAuth, checkPermission('USERS', 'UPDATE'), async (req, 
   const id = parseInt(req.params.id);
   if (!id || id <= 0) return res.status(400).json({ success: false, message: 'ID לא תקין' });
 
-  const { firstName, lastName, email, roleId, isActive } = req.body;
+  const { firstName, lastName, email, roleId, isActive, phone, jobTitle, notes, primaryOrgUnitId } = req.body;
 
   try {
     const db = await getPool();
@@ -168,18 +185,22 @@ router.put('/:id', requireAuth, checkPermission('USERS', 'UPDATE'), async (req, 
     // שליפת ערכים קיימים לפני העדכון
     const existing = await db.request()
       .input('UserID', sql.Int, id)
-      .query('SELECT FirstName, LastName, Email, RoleID, IsActive FROM tblUsers WHERE UserID = @UserID');
+      .query('SELECT FirstName, LastName, Email, RoleID, IsActive, Phone, JobTitle, Notes, PrimaryOrgUnitID FROM tblUsers WHERE UserID = @UserID');
     const old = existing.recordset[0] || {};
 
     const r = await db.request()
-      .input ('UserID',        sql.Int,          id)
-      .input ('FirstName',     sql.NVarChar(100), firstName)
-      .input ('LastName',      sql.NVarChar(100), lastName)
-      .input ('Email',         sql.NVarChar(150), email)
-      .input ('RoleID',        sql.Int,           roleId)
-      .input ('IsActive',      sql.Bit,           isActive !== false ? 1 : 0)
-      .output('ResultCode',    sql.Int)
-      .output('ResultMessage', sql.NVarChar(200))
+      .input ('UserID',           sql.Int,           id)
+      .input ('FirstName',        sql.NVarChar(100), firstName)
+      .input ('LastName',         sql.NVarChar(100), lastName)
+      .input ('Email',            sql.NVarChar(150), email)
+      .input ('RoleID',           sql.Int,           roleId)
+      .input ('IsActive',         sql.Bit,           isActive !== false ? 1 : 0)
+      .input ('Phone',            sql.NVarChar(30),  phone            || null)
+      .input ('JobTitle',         sql.NVarChar(100), jobTitle         || null)
+      .input ('Notes',            sql.NVarChar(500), notes            || null)
+      .input ('PrimaryOrgUnitID', sql.Int,           primaryOrgUnitId || null)
+      .output('ResultCode',       sql.Int)
+      .output('ResultMessage',    sql.NVarChar(200))
       .execute('dbo.sp_UserUpdate');
 
     const { ResultCode, ResultMessage } = r.output;

@@ -6,14 +6,16 @@
       <p>{{ users().length }} משתמשים במערכת</p>
     </div>
     <button *appHasPerm="'USERS:CREATE'"
-            kendoButton themeColor="primary" [svgIcon]="addIcon" (click)="openAdd()">משתמש חדש</button>
+            kendoButton themeColor="primary" [svgIcon]="addIcon" (click)="openAdd()">
+      משתמש חדש
+    </button>
   </div>
 
   <div class="toolbar">
     <div class="search-wrap">
       <mat-icon class="search-icon">search</mat-icon>
       <input class="search-input" type="text"
-             placeholder="חיפוש לפי שם, מייל, ארגון..."
+             placeholder="חיפוש לפי שם, מייל, מחלקה..."
              (input)="onSearch($any($event.target).value)" />
     </div>
     <div class="export-btns">
@@ -23,7 +25,7 @@
   </div>
 
   @if (loading()) {
-    <div class="state-box"><kendo-loader type="converging-spinner" size="medium" /></div>
+    <div class="state-box"><mat-spinner diameter="36" /></div>
   }
   @if (!loading() && error()) {
     <div class="state-box error">{{ error() }}</div>
@@ -44,7 +46,7 @@
       (sortChange)="onSortChange($event)"
       class="users-grid">
 
-      <!-- הרחבת שורה — Kendo built-in detail expansion -->
+      <!-- הרחבת שורה — פרטים מורחבים -->
       <ng-template kendoGridDetailTemplate let-u>
         <div class="user-detail-card">
           <div class="detail-group">
@@ -60,18 +62,19 @@
             <div class="detail-fields">
               <div class="detail-field"><span class="df-label">תפקיד</span><span class="df-val">{{ u.RoleName }}</span></div>
               <div class="detail-field"><span class="df-label">ארגון</span><span class="df-val">{{ u.OrgName }}</span></div>
-              <div class="detail-field"><span class="df-label">קוד ארגון</span><span class="df-val df-mono">{{ u.TenantCode }}</span></div>
+              <div class="detail-field"><span class="df-label">מחלקה</span><span class="df-val">{{ u.DeptName || '—' }}</span></div>
             </div>
           </div>
           <div class="detail-group">
-            <div class="detail-group-title">סטטוס</div>
+            <div class="detail-group-title">פעילות</div>
             <div class="detail-fields">
               <div class="detail-field"><span class="df-label">מצב</span>
                 <span class="badge" [class.badge-active]="u.IsActive" [class.badge-inactive]="!u.IsActive">{{ u.IsActive ? 'פעיל' : 'מושהה' }}</span>
               </div>
+              <div class="detail-field"><span class="df-label">הצטרף</span><span class="df-val">{{ formatDate(u.CreatedAt) }}</span></div>
               <div class="detail-field"><span class="df-label">כניסה אחרונה</span><span class="df-val">{{ formatLastLogin(u.LastLoginAt) }}</span></div>
               @if (u.MustChangePass) {
-                <div class="detail-field"><span class="df-label">שינוי סיסמה</span><span class="badge badge-warn">נדרש</span></div>
+                <div class="detail-field"><span class="df-label">סיסמה</span><span class="badge badge-warn">נדרש שינוי</span></div>
               }
             </div>
           </div>
@@ -84,8 +87,10 @@
         <kendo-excelexport-column field="Username"    title="שם משתמש"     [width]="120" />
         <kendo-excelexport-column field="Email"       title='דוא"ל'        [width]="200" />
         <kendo-excelexport-column field="OrgName"     title="ארגון"        [width]="160" />
+        <kendo-excelexport-column field="DeptName"    title="מחלקה"        [width]="140" />
         <kendo-excelexport-column field="RoleName"    title="תפקיד"        [width]="120" />
         <kendo-excelexport-column field="IsActive"    title="פעיל"         [width]="60"  />
+        <kendo-excelexport-column field="CreatedAt"   title="הצטרף"        [width]="110" />
         <kendo-excelexport-column field="LastLoginAt" title="כניסה אחרונה" [width]="140" />
       </kendo-grid-excel>
 
@@ -104,8 +109,9 @@
 
       <kendo-grid-checkbox-column [width]="44" [showSelectAll]="true" [columnMenu]="false" />
 
+      <!-- ארגון — פלטפורמה בלבד -->
       @if (isPlatform()) {
-        <kendo-grid-column field="OrgName" title="ארגון" [width]="240">
+        <kendo-grid-column field="OrgName" title="ארגון" [width]="200">
           <ng-template kendoGridCellTemplate let-u>
             <div class="org-tag">
               @if (u.LogoUrl) {
@@ -122,41 +128,71 @@
         </kendo-grid-column>
       }
 
+      <!-- שם מלא + Avatar -->
       <kendo-grid-column field="FullName" title="שם" [minResizableWidth]="160">
         <ng-template kendoGridCellTemplate let-u>
           <div class="user-cell">
-            <div class="user-avatar" [class.avatar-inactive]="!u.IsActive">{{ u.FullName ? u.FullName.charAt(0) : '?' }}</div>
+            <div class="user-avatar" [class]="avatarColor(u.RoleCode)" [class.avatar-inactive]="!u.IsActive">
+              {{ u.FullName ? u.FullName.charAt(0) : '?' }}
+            </div>
             <div class="user-info">
-              <span class="user-name">{{ u.FullName }}</span>
+              <span class="user-name" [class.name-inactive]="!u.IsActive">{{ u.FullName }}</span>
               <span class="user-username">&#64;{{ u.Username }}</span>
             </div>
           </div>
         </ng-template>
       </kendo-grid-column>
 
-      <kendo-grid-column field="Email" title='דוא"ל' [width]="220" />
-
-      <kendo-grid-column field="RoleName" title="תפקיד" [width]="140">
+      <!-- תפקיד -->
+      <kendo-grid-column field="RoleName" title="תפקיד / תפקיד" [width]="150">
         <ng-template kendoGridCellTemplate let-u>
-          <span class="badge" [class]="roleClass(u.RoleCode)">{{ u.RoleName }}</span>
+          <span class="role-badge" [class]="roleClass(u.RoleCode)">{{ u.RoleName }}</span>
         </ng-template>
       </kendo-grid-column>
 
-      <kendo-grid-column field="LastLoginAt" title="כניסה אחרונה" [width]="145">
+      <!-- מחלקה -->
+      <kendo-grid-column field="DeptName" title="מחלקה" [width]="140">
         <ng-template kendoGridCellTemplate let-u>
-          <span class="last-login" [class.never]="!hasLogin(u.LastLoginAt)">{{ formatLastLogin(u.LastLoginAt) }}</span>
+          @if (u.DeptName) {
+            <div class="dept-cell">
+              <mat-icon class="dept-icon">business</mat-icon>
+              <span>{{ u.DeptName }}</span>
+            </div>
+          } @else {
+            <span class="no-dept">—</span>
+          }
         </ng-template>
       </kendo-grid-column>
 
-      <kendo-grid-column field="IsActive" title="סטטוס" [width]="160">
+      <!-- תאריך הצטרפות -->
+      <kendo-grid-column field="CreatedAt" title="תאריך הצטרפות" [width]="145">
+        <ng-template kendoGridCellTemplate let-u>
+          <span class="date-cell">{{ formatDate(u.CreatedAt) }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- רמת הרשאה -->
+      <kendo-grid-column field="RoleCode" title="רמת הרשאה" [width]="170">
+        <ng-template kendoGridCellTemplate let-u>
+          <span class="auth-badge" [class]="authLevelLabel(u.RoleCode).cls">
+            {{ authLevelLabel(u.RoleCode).label }}
+          </span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- סטטוס עסקה -->
+      <kendo-grid-column field="IsActive" title="סטטוס" [width]="110">
         <ng-template kendoGridCellTemplate let-u>
           <div class="status-wrap">
-            <span class="badge" [class.badge-active]="u.IsActive" [class.badge-inactive]="!u.IsActive">{{ u.IsActive ? 'פעיל' : 'מושהה' }}</span>
-            @if (u.MustChangePass) { <span class="badge badge-warn">סיסמה</span> }
+            <span class="emp-status-badge" [class.emp-active]="u.IsActive" [class.emp-inactive]="!u.IsActive">
+              <span class="status-dot"></span>
+              {{ u.IsActive ? 'פעיל' : 'מושהה' }}
+            </span>
           </div>
         </ng-template>
       </kendo-grid-column>
 
+      <!-- פעולות inline -->
       <kendo-grid-column title="" [width]="104" [sortable]="false" [resizable]="false" [columnMenu]="false">
         <ng-template kendoGridCellTemplate let-u let-rowIndex="rowIndex">
           <div class="row-actions">
@@ -167,8 +203,11 @@
               <i class="pi" [class.pi-chevron-down]="!isExpanded(u.UserID)" [class.pi-chevron-up]="isExpanded(u.UserID)"></i>
             </button>
             <button *appHasPerm="'USERS:UPDATE'"
-                    class="act-btn" [class.act-lock]="u.IsActive" [class.act-unlock]="!u.IsActive"
-                    [title]="u.IsActive ? 'השבת' : 'הפעל'" (click)="toggleActive(u)">
+                    class="act-btn"
+                    [class.act-lock]="u.IsActive"
+                    [class.act-unlock]="!u.IsActive"
+                    [title]="u.IsActive ? 'השבת' : 'הפעל'"
+                    (click)="toggleActive(u)">
               <i class="pi" [class.pi-lock]="u.IsActive" [class.pi-lock-open]="!u.IsActive"></i>
             </button>
             <button *appHasPerm="'USERS:UPDATE'"

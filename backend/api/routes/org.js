@@ -8,12 +8,20 @@ router.use(verifyToken);
 // ─── ORG UNITS ───────────────────────────────────────────────
 
 // GET /api/org/units
+// PLATFORM_ADMIN may pass ?tenantId=X to view another tenant's units
 router.get('/units', async (req, res) => {
   try {
     await poolConnect;
     const pool = await getPool();
+
+    const isPlatformAdmin = req.user.tenantId === 1 && req.user.roleId === 1;
+    const requestedTenant = parseInt(req.query.tenantId || '0');
+    const targetTenantId  = (isPlatformAdmin && requestedTenant > 0)
+      ? requestedTenant
+      : req.user.tenantId;
+
     const result = await pool.request()
-      .input('TenantID',      sql.Int, req.user.tenantId)
+      .input('TenantID',      sql.Int, targetTenantId)
       .output('ResultCode',    sql.Int)
       .output('ResultMessage', sql.NVarChar(200))
       .execute('sp_OrgUnitList');

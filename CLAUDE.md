@@ -510,6 +510,86 @@ save() {
 
 ---
 
+## Selection Table Dialog — סטנדרט למסכי בחירה מודליים
+
+**מתי:** כל מקום שמשתמש צריך לבחור ישות מרשימה (משתמש, מוצר, לקוח, ארגון וכד'). **אסור** `kendo-dropdownlist` לבחירות מורכבות — Selection Table בלבד.
+
+**עקרון:** הקומפוננטה היא **object** — מקבל פרמטר קונטקסט (`@Input`) ומחזיר את הישות הנבחרת (`@Output`).
+
+### מבנה הקומפוננטה
+
+```typescript
+// shared/components/xxx-picker/xxx-picker-dialog.component.ts
+@Component({ standalone: true, ... })
+export class XxxPickerDialogComponent implements OnInit {
+  @Input() tenantId: number | null = null;   // קונטקסט סינון
+  @Input() excludeIds: number[] = [];         // להסיר מהרשימה
+  @Input() title = 'בחר...';
+
+  @Output() selected  = new EventEmitter<PickedXxx>();
+  @Output() cancelled = new EventEmitter<void>();
+}
+```
+
+### מבנה HTML
+
+```html
+<kendo-dialog [title]="title" [width]="760">
+  <!-- toolbar: search + filters -->
+  <div class="picker-toolbar">
+    <div class="search-wrap">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input class="search-input" type="text" placeholder="חיפוש..."
+             [value]="searchText" (input)="onSearch($any($event.target).value)" />
+    </div>
+    <kendo-dropdownlist class="filter-drop" [data]="roles()" [(ngModel)]="filterRole" [defaultItem]="'הכל'" />
+    <!-- filter נוספים לפי הקשר -->
+  </div>
+
+  <!-- grid -->
+  <kendo-grid [data]="{ data: pageData, total: filtered.length }" scrollable="none" ...>
+    <!-- col: שם — עם avatar + highlight בשורה נבחרת -->
+    <!-- cols: metadata -->
+    <!-- col: סטטוס badge -->
+  </kendo-grid>
+
+  <kendo-dialog-actions>
+    <div class="picker-footer">
+      <button class="btn-save" [disabled]="!selected()" (click)="confirm()">✓ בחר</button>
+      <button class="btn-cancel" (click)="cancel()">ביטול</button>
+      @if (selected()) { <span class="selected-hint">נבחר: {{ selected()?.name }}</span> }
+    </div>
+  </kendo-dialog-actions>
+</kendo-dialog>
+```
+
+### חוקי ברזל
+
+- טולבר עם `search-wrap` + `mat-icon search` תמיד בראש
+- שורה נבחרת: `[class.row-selected]="isSelected(row)"` → `color: var(--sf-primary); font-weight: 600`
+- Avatar בתא שם: אות ראשונה, `background: var(--sf-primary-light)`, `color: var(--sf-primary)`
+- כפתור "בחר" — `[disabled]="!selected()"` (לא ניתן לאישור ללא בחירה)
+- `selected-hint` מצד שמאל (RTL: `margin-right: auto`) מציג מי נבחר
+- `::ng-deep .k-dialog-actions { direction: rtl !important; }`
+- לחיצה על שורה → `selectRow(user)` (לא checkbox)
+- פגינציה: `pageSizes: [10, 25, 50]`
+
+### מיקום בפרויקט
+
+```
+apps/portal/src/app/shared/components/
+├── user-picker/
+│   ├── user-picker-dialog.component.ts
+│   ├── user-picker-dialog.component.html
+│   └── user-picker-dialog.component.scss
+├── product-picker/     ← עתידי
+└── org-picker/         ← עתידי
+```
+
+**דוגמה מיושמת:** `apps/portal/src/app/shared/components/user-picker/`
+
+---
+
 ## סטטוס הפרויקט (2026)
 
 | מודול | סטטוס |

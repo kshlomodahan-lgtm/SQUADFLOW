@@ -404,6 +404,51 @@ label {
   &:hover { color: var(--sf-primary); }
 }
 
+// ── AI Enrichment ─────────────────────────────────────────
+.company-name-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+
+  .company-name-input { flex: 1; }
+}
+
+.btn-ai-enrich {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-bg-card);
+  color: var(--sf-text-secondary);
+  font-size: .78rem;
+  font-weight: 600;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background .15s, border-color .15s, color .15s;
+
+  &:hover:not(:disabled) {
+    background: var(--sf-primary-light, #eff6ff);
+    border-color: var(--sf-primary);
+    color: var(--sf-primary);
+  }
+
+  &:disabled { opacity: .45; cursor: not-allowed; }
+
+  kendo-loader { display: inline-flex; }
+}
+
+.enrich-msg {
+  font-size: .76rem;
+  font-weight: 500;
+
+  &.enrich-ok  { color: #059669; }
+  &.enrich-err { color: var(--sf-danger); }
+}
+
 // ── Error banner ─────────────────────────────────────────
 .form-error-banner {
   display: flex; align-items: center; gap: 8px;

@@ -8,6 +8,7 @@ import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { IndicatorsModule } from '@progress/kendo-angular-indicators';
 import { SVGIcon, plusIcon, fileExcelIcon, filePdfIcon } from '@progress/kendo-svg-icons';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { UserService } from '../../core/services/user.service';
 import { User } from '../../core/models/user.model';
@@ -20,7 +21,7 @@ import { HasPermDirective } from '../../core/directives/has-perm.directive';
   imports: [
     CommonModule, FormsModule,
     GridModule, ExcelModule, PDFModule, ButtonsModule, IndicatorsModule,
-    MatIconModule,
+    MatIconModule, MatProgressSpinnerModule,
     UserDialogComponent,
     HasPermDirective,
   ],
@@ -75,7 +76,8 @@ export class UsersComponent implements OnInit {
           u.FullName.toLowerCase().includes(q) ||
           u.Username.toLowerCase().includes(q)  ||
           u.Email.toLowerCase().includes(q)      ||
-          (u.OrgName || '').toLowerCase().includes(q))
+          (u.OrgName  || '').toLowerCase().includes(q) ||
+          (u.DeptName || '').toLowerCase().includes(q))
       : [...this.users()];
     this.gridData = orderBy(filtered, this.sort) as User[];
     this.skip = 0;
@@ -86,7 +88,7 @@ export class UsersComponent implements OnInit {
   onSortChange(s: SortDescriptor[]) { this.sort = s; this.applyFilter(); }
 
   openAdd()         { this.dialogUser.set(null); this.dialogOpen.set(false); setTimeout(() => this.dialogOpen.set(true)); }
-  openEdit(u: User) { this.dialogUser.set(u);    this.dialogOpen.set(false); setTimeout(() => this.dialogOpen.set(true)); }
+  openEdit(u: User) { this.dialogUser.set(u); this.dialogOpen.set(false); setTimeout(() => this.dialogOpen.set(true)); }
   onSaved()         { this.load(); }
 
   toggleDetail(u: User, rowIndex: number) {
@@ -119,10 +121,17 @@ export class UsersComponent implements OnInit {
 
   get pagedData() { return this.gridData.slice(this.skip, this.skip + this.pageSize); }
 
+  formatDate(dt: string | null): string {
+    if (!dt) return '—';
+    const d = new Date(dt);
+    if (isNaN(d.getTime()) || d.getFullYear() < 2000) return '—';
+    return d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
   formatLastLogin(dt: string | null): string {
     if (!dt) return 'מעולם לא';
     const d = new Date(dt);
-    if (d.getFullYear() < 2000) return 'מעולם לא';
+    if (isNaN(d.getTime()) || d.getFullYear() < 2000) return 'מעולם לא';
     return d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
@@ -134,8 +143,31 @@ export class UsersComponent implements OnInit {
   roleClass(roleCode: string): string {
     if (!roleCode) return 'badge-gray';
     const c = roleCode.toUpperCase();
-    if (c.includes('SUPER') || c.includes('ADMIN') || c === 'SYSTEM_ADMIN') return 'badge-platform';
-    if (c.includes('MANAGER') || c.includes('PLATFORM'))                     return 'badge-blue';
+    if (c === 'PLATFORM_ADMIN')                         return 'badge-platform';
+    if (c === 'SUPER_ADMIN'   || c.includes('ADMIN'))   return 'badge-blue';
+    if (c.includes('MANAGER'))                           return 'badge-purple';
     return 'badge-gray';
+  }
+
+  authLevelLabel(roleCode: string): { label: string; cls: string } {
+    if (!roleCode) return { label: '—', cls: '' };
+    const c = roleCode.toUpperCase();
+    if (c === 'PLATFORM_ADMIN') return { label: 'גישה לכל הפלטפורמה', cls: 'auth-full auth-platform' };
+    if (c === 'SUPER_ADMIN')    return { label: 'גישה מלאה',          cls: 'auth-full' };
+    if (c.includes('ADMIN'))    return { label: 'גישה מלאה',          cls: 'auth-full' };
+    if (c.includes('MANAGER'))  return { label: 'ניהול (מוגבל)',       cls: 'auth-mgr'  };
+    if (c.includes('EMPLOYEE')) return { label: 'עובד',               cls: 'auth-emp'  };
+    if (c.includes('READONLY')) return { label: 'צפייה בלבד',        cls: 'auth-ro'   };
+    return { label: '—', cls: '' };
+  }
+
+  avatarColor(roleCode: string): string {
+    if (!roleCode) return '';
+    const c = roleCode.toUpperCase();
+    if (c === 'PLATFORM_ADMIN') return 'av-platform';
+    if (c === 'SUPER_ADMIN')    return 'av-super';
+    if (c.includes('ADMIN'))    return 'av-admin';
+    if (c.includes('MANAGER'))  return 'av-manager';
+    return 'av-default';
   }
 }

@@ -1,3 +1,20 @@
+// ── Org Context Bar ──────────────────────────────────
+.org-context-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  direction: rtl;
+  padding: 7px 20px;
+  background: var(--sf-bg);
+  border-bottom: 1px solid var(--sf-border);
+  font-size: .8rem;
+
+  .ctx-label { color: var(--sf-text-muted); }
+  .ctx-org   { font-weight: 700; color: var(--sf-text); }
+  .ctx-sep   { color: var(--sf-text-muted); }
+  .ctx-user  { color: var(--sf-text-secondary); font-family: 'Share Tech Mono', monospace; font-size: .76rem; }
+}
+
 // ── Dialog Layout ────────────────────────────────────
 .dialog-loading {
   display: flex; align-items: center; justify-content: center;
@@ -208,6 +225,80 @@
 }
 
 .ltr-wrap { direction: ltr; display: inline-flex; }
+
+// ── Org Unit Picker ─────────────────────────────────
+.empty-org-units {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 14px;
+  background: var(--sf-bg);
+  border: 1px dashed var(--sf-border);
+  border-radius: 8px;
+  color: var(--sf-text-secondary);
+  font-size: .83rem;
+
+  small { font-size: .75rem; color: var(--sf-text-muted); }
+}
+
+.org-unit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--sf-border);
+  border-radius: 8px;
+  padding: 6px;
+  background: var(--sf-bg-card);
+}
+
+.org-unit-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  direction: rtl;
+  transition: background .12s;
+
+  &:hover { background: var(--sf-bg-hover); }
+
+  &.selected {
+    background: var(--sf-primary-light, #eff6ff);
+    color: var(--sf-primary);
+
+    .ou-name { font-weight: 600; }
+  }
+
+  &.has-parent { padding-right: 28px; }
+
+  .ou-icon { font-size: .9rem; flex-shrink: 0; width: 20px; text-align: center; }
+  .ou-name  { flex: 1; font-size: .85rem; }
+  .ou-type  {
+    font-size: .7rem;
+    color: var(--sf-text-muted);
+    background: var(--sf-bg);
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--sf-border);
+  }
+}
+
+.org-selected-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  direction: rtl;
+  font-size: .83rem;
+  color: var(--sf-text-secondary);
+  padding: 8px 12px;
+  background: var(--sf-bg);
+  border-radius: 8px;
+  border: 1px solid var(--sf-border);
+
+  .org-selected-label { color: var(--sf-text-muted); }
+  strong { color: var(--sf-primary); }
+}
 
 :host ::ng-deep {
   .k-dialog {

@@ -5,6 +5,7 @@
 .page-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   direction: rtl;
   gap: 16px;
   margin-bottom: 20px;
@@ -21,11 +22,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  direction: rtl;
   gap: 8px;
 }
-
-.toolbar-right { display: flex; align-items: center; gap: 8px; }
-.toolbar-left  { display: flex; align-items: center; gap: 8px; }
 
 // ── Export Buttons ────────────────────────────────────
 .export-btns {
@@ -51,14 +50,12 @@
   & + .k-button { border-inline-start: 1px solid var(--sf-border) !important; }
 }
 
-:host ::ng-deep .export-btns .btn-excel:hover,
-:host ::ng-deep .export-btns .btn-excel .k-button-text { }
 :host ::ng-deep .export-btns .btn-excel:hover { color: #16a34a !important; }
 :host ::ng-deep .export-btns .btn-pdf:hover   { color: #dc2626 !important; }
 
 .search-wrap {
   display: flex; align-items: center; gap: 6px;
-  width: 300px; direction: rtl;
+  width: 320px; direction: rtl;
   background: var(--sf-bg-card);
   border: 1px solid var(--sf-border);
   border-radius: 8px; padding: 6px 12px;
@@ -80,20 +77,6 @@
   &::placeholder { color: var(--sf-text-muted); }
 }
 
-.rows-label { font-size: .83rem; color: var(--sf-text-secondary); }
-
-.rows-select {
-  border: 1px solid var(--sf-border);
-  border-radius: 6px;
-  padding: 5px 10px;
-  font-size: .83rem;
-  color: var(--sf-text);
-  background: var(--sf-bg-card);
-  cursor: pointer;
-  outline: none;
-  &:focus { border-color: var(--sf-border-focus); }
-}
-
 // ── States ────────────────────────────────────────────
 .state-box {
   display: flex; align-items: center; justify-content: center;
@@ -101,7 +84,7 @@
   &.error { color: var(--sf-danger); }
 }
 
-// ── Kendo Grid overrides ──────────────────────────────
+// ── Kendo Grid ────────────────────────────────────────
 :host ::ng-deep {
   .users-grid {
     border-radius: 12px;
@@ -112,7 +95,6 @@
     direction: rtl;
   }
 
-  // Header — צבעוני כמו ארגונים
   .users-grid .k-grid-header th.k-header {
     background: var(--sf-grid-hd-bg) !important;
     color: var(--sf-grid-hd-color) !important;
@@ -130,14 +112,12 @@
     border-bottom: 2px solid var(--sf-grid-hd-border) !important;
   }
 
-  // Column menu icon — כמו ארגונים
   .users-grid .k-column-menu-button {
     color: var(--sf-grid-hd-color);
     opacity: .7;
     &:hover { opacity: 1; }
   }
 
-  // Rows
   .users-grid td.k-table-td {
     text-align: right !important;
     vertical-align: middle !important;
@@ -150,17 +130,14 @@
 
   .users-grid tr.k-table-row:hover td { background: var(--sf-bg-hover) !important; }
 
-  // שורת הפרטים — ללא צבע רקע של Kendo
   .users-grid .k-detail-row > td {
     background: var(--sf-bg) !important;
     padding: 4px 0 12px !important;
     border-bottom: 1px solid var(--sf-border) !important;
   }
 
-  // Column resize handle
   .users-grid .k-column-resizer { background: var(--sf-border); width: 1px; opacity: .5; }
 
-  // Paginator
   .users-grid .k-pager {
     border-top: 1px solid var(--sf-border);
     background: var(--sf-bg);
@@ -174,6 +151,33 @@
   .users-grid .k-pager { direction: rtl !important; }
 
   .users-grid .k-sort-icon { margin-right: 4px; }
+
+  // עמודת פעולות — padding מינימלי + כפתורים אופקיים
+  .users-grid td.k-table-td:last-child { padding: 4px 6px !important; }
+
+  // Action buttons — חייב להיות בתוך ng-deep כי Kendo מרנדר ng-template מחוץ לscope
+  .row-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 2px;
+    flex-wrap: nowrap;
+  }
+
+  .act-btn {
+    background: none; border: none; cursor: pointer;
+    width: 30px; height: 30px; border-radius: 6px;
+    display: flex !important;
+    align-items: center; justify-content: center;
+    transition: background .15s; flex-shrink: 0;
+
+    i { font-size: .9rem; }
+  }
+
+  .act-expand  { color: var(--sf-text-secondary); &:hover { background: var(--sf-bg-hover); color: var(--sf-primary); } }
+  .act-edit    { color: #3b82f6; &:hover { background: #eff6ff; } }
+  .act-lock    { color: #ef4444; &:hover { background: #fef2f2; } }
+  .act-unlock  { color: #16a34a; &:hover { background: #f0fdf4; } }
 }
 
 // ── User Cell ─────────────────────────────────────────
@@ -181,141 +185,225 @@
 
 .user-avatar {
   width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
-  background: var(--sf-primary-light); color: var(--sf-primary);
   font-size: .9rem; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
+  text-transform: uppercase;
+
+  // Default
+  background: var(--sf-primary-light);
+  color: var(--sf-primary);
+
+  // Role-based colors
+  &.av-platform { background: #1e1b4b; color: #a5b4fc; }
+  &.av-super    { background: #0d47ff22; color: #0d47ff; }
+  &.av-admin    { background: #2563eb22; color: #2563eb; }
+  &.av-manager  { background: #7c3aed22; color: #7c3aed; }
+  &.av-default  { background: #f1f5f9;   color: #64748b; }
 
   &.avatar-inactive {
-    background: #f1f5f9; color: var(--sf-text-muted);
-    text-decoration: line-through;
+    background: #f1f5f9 !important;
+    color: var(--sf-text-muted) !important;
+    opacity: .6;
   }
 }
 
 .user-info { display: flex; flex-direction: column; gap: 2px; }
 .user-name { font-weight: 600; color: var(--sf-text); font-size: .88rem; line-height: 1.2; }
+.user-name.name-inactive { color: var(--sf-text-muted); text-decoration: line-through; }
 .user-username { font-size: .73rem; color: var(--sf-text-muted); font-family: 'Share Tech Mono', monospace; }
 
 // ── Org Tag ───────────────────────────────────────────
 .org-tag { display: flex; align-items: center; gap: 8px; }
-
 .org-logo {
   width: 28px; height: 28px; border-radius: 6px;
   object-fit: contain; border: 1px solid var(--sf-border);
   padding: 2px; background: #fff; flex-shrink: 0;
 }
-
 .org-avatar {
   width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
   background: var(--sf-primary-light); color: var(--sf-primary);
   font-size: .8rem; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
 }
-
 .org-name-sm { font-size: .84rem; font-weight: 600; color: var(--sf-text); line-height: 1.2; }
 .org-code    { font-size: .71rem; color: var(--sf-text-muted); font-family: 'Share Tech Mono', monospace; }
 
-// ── Badges (like reference image) ────────────────────
-.badge {
-  display: inline-flex; align-items: center;
-  padding: 4px 12px; border-radius: 20px;
-  font-size: .74rem; font-weight: 700;
-  letter-spacing: .02em;
+// ── Role Badge ────────────────────────────────────────
+.role-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: .75rem;
+  font-weight: 600;
   white-space: nowrap;
 }
+.badge-platform { background: #1e1b4b; color: #a5b4fc; }
+.badge-blue     { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.badge-purple   { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
+.badge-gray     { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
 
-// Status badges
-.badge-active   { background: #16a34a; color: #fff; }
-.badge-inactive { background: #dc2626; color: #fff; }
-.badge-warn     { background: #d97706; color: #fff; }
+// ── Department Cell ───────────────────────────────────
+.dept-cell {
+  display: flex; align-items: center; gap: 5px;
+  font-size: .83rem; color: var(--sf-text);
+  .dept-icon { font-size: 14px !important; width: 14px !important; height: 14px !important; color: var(--sf-text-muted); }
+}
+.no-dept { color: var(--sf-text-muted); font-style: italic; }
 
-// Role badges
-.badge-platform { background: #0d47ff; color: #fff; }
-.badge-blue     { background: #3b82f6; color: #fff; }
-.badge-purple   { background: #7c3aed; color: #fff; }
-.badge-gray     { background: #64748b; color: #fff; }
+// ── Date Cell ─────────────────────────────────────────
+.date-cell { font-size: .82rem; color: var(--sf-text); }
 
-// ── Status Wrap ───────────────────────────────────────
-.status-wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+// ── Authorization Level Badge ─────────────────────────
+.auth-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: .75rem;
+  font-weight: 600;
+  white-space: nowrap;
 
+  &.auth-platform { background: #1e1b4b; color: #a5b4fc; }
+  &.auth-full     { background: #d1fae5; color: #065f46; }
+  &.auth-mgr      { background: #fef3c7; color: #92400e; }
+  &.auth-emp      { background: #f1f5f9; color: #475569; }
+  &.auth-ro       { background: #fce7f3; color: #9d174d; }
+}
 
-// ── Last Login ────────────────────────────────────────
-.last-login { font-size: .83rem; color: var(--sf-text); }
-.last-login.never { color: var(--sf-text-muted); font-style: italic; }
+// ── Employment Status Badge ───────────────────────────
+.emp-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: .74rem;
+  font-weight: 600;
+
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  }
+
+  &.emp-active {
+    background: #dcfce7;
+    color: #15803d;
+    .status-dot { background: #16a34a; }
+  }
+
+  &.emp-inactive {
+    background: #fee2e2;
+    color: #dc2626;
+    .status-dot { background: #ef4444; }
+  }
+}
+
+.status-wrap { display: flex; align-items: center; gap: 6px; }
+
+// ── Actions Menu ──────────────────────────────────────
+.actions-wrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.menu-trigger {
+  background: none; border: none; cursor: pointer;
+  width: 32px; height: 32px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--sf-text-muted);
+  transition: background .15s, color .15s;
+
+  mat-icon { font-size: 18px !important; width: 18px !important; height: 18px !important; }
+
+  &:hover,
+  &.active { background: var(--sf-bg-hover); color: var(--sf-primary); }
+}
+
+.action-menu {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 4px);
+  z-index: 9999;
+  min-width: 140px;
+  background: var(--sf-bg-card);
+  border: 1px solid var(--sf-border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12), 0 2px 6px rgba(0,0,0,.06);
+  padding: 4px;
+  direction: rtl;
+  animation: menuFade .12s ease;
+}
+
+@keyframes menuFade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.menu-item {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 8px 12px;
+  background: none; border: none; cursor: pointer;
+  font-size: .83rem; font-family: 'Noto Sans Hebrew', sans-serif;
+  color: var(--sf-text); border-radius: 7px;
+  transition: background .1s;
+  white-space: nowrap;
+  direction: rtl;
+
+  mat-icon { font-size: 16px !important; width: 16px !important; height: 16px !important; color: var(--sf-text-secondary); }
+
+  &:hover { background: var(--sf-bg-hover); }
+
+  &.menu-danger { color: #dc2626;
+    mat-icon { color: #dc2626; }
+    &:hover { background: #fef2f2; }
+  }
+
+  &.menu-success { color: #16a34a;
+    mat-icon { color: #16a34a; }
+    &:hover { background: #f0fdf4; }
+  }
+}
+
+.menu-divider {
+  height: 1px;
+  background: var(--sf-border);
+  margin: 4px 8px;
+}
+
+// ── Badges (generic, used in detail) ─────────────────
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: .74rem; font-weight: 700;
+  white-space: nowrap;
+}
+.badge-active   { background: #dcfce7; color: #15803d; }
+.badge-inactive { background: #fee2e2; color: #dc2626; }
+.badge-warn     { background: #fef3c7; color: #92400e; }
 
 // ── Master-Detail Card ────────────────────────────────
 .user-detail-card {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  padding: 16px 12px;
-  direction: rtl;
+  display: flex; flex-wrap: wrap; gap: 14px;
+  padding: 16px 12px; direction: rtl;
   background: var(--sf-bg);
 }
 
 .detail-group {
   background: var(--sf-bg-card);
   border: 1px solid var(--sf-border);
-  border-radius: 12px;
-  padding: 14px 18px;
-  min-width: 200px;
-  flex: 1;
+  border-radius: 12px; padding: 14px 18px;
+  min-width: 200px; flex: 1;
   box-shadow: 0 4px 16px rgba(0,0,0,.07), 0 1px 4px rgba(0,0,0,.04);
 }
 
 .detail-group-title {
-  font-size: .71rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .07em;
-  color: var(--sf-text-muted);
-  margin-bottom: 10px;
-  padding-bottom: 7px;
+  font-size: .71rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .07em; color: var(--sf-text-muted);
+  margin-bottom: 10px; padding-bottom: 7px;
   border-bottom: 1px solid var(--sf-border);
 }
 
 .detail-fields { display: flex; flex-direction: column; gap: 6px; }
 .detail-field  { display: flex; align-items: center; gap: 8px; }
-
-.df-label {
-  font-size: .75rem;
-  color: var(--sf-text-muted);
-  min-width: 100px;
-  flex-shrink: 0;
-}
-
-.df-val  { font-size: .83rem; color: var(--sf-text); font-weight: 500; }
-.df-mono { font-family: 'Share Tech Mono', monospace; font-size: .8rem; }
-
-
-// ── דיאלוג פרטי משתמש ────────────────────────────────
-.detail-body {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 4px 0;
-  direction: rtl;
-}
-
-.detail-footer {
-  display: flex;
-  gap: 10px;
-  direction: rtl;
-  width: 100%;
-}
-
-// ── Actions ───────────────────────────────────────────
-.row-actions { display: flex; align-items: center; gap: 4px; }
-.act-btn {
-  background: none; border: none; cursor: pointer;
-  width: 30px; height: 30px; border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
-  transition: background .15s;
-  i { font-size: .9rem; }
-}
-.act-expand { color: var(--sf-text-secondary); &:hover { background: var(--sf-bg-hover); color: var(--sf-primary); }
-  i { transition: transform .2s; }
-  &.expanded i { transform: rotate(180deg); }
-}
-.act-edit   { color: #3b82f6; &:hover { background: #eff6ff; } }
-.act-lock   { color: #ef4444; &:hover { background: #fef2f2; } }
-.act-unlock { color: #16a34a; &:hover { background: #f0fdf4; } }
+.df-label { font-size: .75rem; color: var(--sf-text-muted); min-width: 100px; flex-shrink: 0; }
+.df-val   { font-size: .83rem; color: var(--sf-text); font-weight: 500; }
+.df-mono  { font-family: 'Share Tech Mono', monospace; font-size: .8rem; }

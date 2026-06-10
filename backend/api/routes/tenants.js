@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
              t.Phone2, t.Fax, t.Website,
              t.BankName, t.BankBranch, t.BankAccount, t.AccountingRef,
              t.OrgType, t.CountryCode, t.DefaultLanguageCode, t.DefaultCurrencyCode,
-             t.ShowMapInDialog,
+             t.ShowMapInDialog, t.Token,
              COUNT(DISTINCT u.UserID)     AS UserCount,
              COUNT(DISTINCT c.CustomerID) AS CustomerCount,
              COUNT(DISTINCT tk.TicketID)  AS OpenTickets
@@ -35,7 +35,7 @@ router.get('/', async (req, res) => {
                t.Phone2,t.Fax,t.Website,
                t.BankName,t.BankBranch,t.BankAccount,t.AccountingRef,
                t.OrgType,t.CountryCode,t.DefaultLanguageCode,t.DefaultCurrencyCode,
-               t.ShowMapInDialog
+               t.ShowMapInDialog,t.Token
       ORDER BY t.TenantID
     `);
     return res.json({ success: true, tenants: result.recordset });

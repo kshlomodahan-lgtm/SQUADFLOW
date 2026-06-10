@@ -7,6 +7,10 @@
         <kendo-svg-icon [icon]="icons.buildings" class="mgr-title-icon" />
         מבנה ארגוני
       </h2>
+      <div class="mgr-org-context">
+        <span class="org-context-label">ארגון:</span>
+        <span class="org-context-name">{{ orgName }}</span>
+      </div>
       <p class="mgr-subtitle">בנה את ההיררכיה הארגונית — יחידות, תארי תפקיד ומשרות</p>
     </div>
     <div class="header-actions">
@@ -134,10 +138,18 @@
                       } @else {
                         <div class="pos-vacant">⬡ משרה פנויה</div>
                       }
-                      <button class="assign-btn" type="button" (click)="openAssignDialog(pos)">
-                        <mat-icon>person_add</mat-icon>
-                        שייך עובד
-                      </button>
+                      <div class="pos-actions-row">
+                        <button class="assign-btn" type="button" (click)="openAssignDialog(pos)">
+                          <mat-icon>person_add</mat-icon>
+                          שייך עובד
+                        </button>
+                        @if (pos.FilledCount > 0) {
+                          <button class="manage-btn" type="button" (click)="openManageOccupants(pos)">
+                            <mat-icon>manage_accounts</mat-icon>
+                            מאיישים
+                          </button>
+                        }
+                      </div>
                     </div>
                   </div>
                 }
@@ -337,15 +349,22 @@
   </kendo-dialog>
 }
 
-<!-- ═══ Assign User Dialog ═══ -->
-@if (assignDialogOpen()) {
-  <kendo-dialog [title]="'שיוך עובד — ' + selectedPosition()?.DisplayName" [width]="480" (close)="assignDialogOpen.set(false)">
-    <div class="assign-dialog-body">
+<!-- ═══ User Picker Modal ═══ -->
+@if (pickerOpen()) {
+  <app-user-picker-dialog
+    [title]="'שיוך עובד — ' + (selectedPosition()?.DisplayName ?? '')"
+    [excludeUserIds]="assignedUserIds"
+    (userSelected)="onUserPicked($event)"
+    (cancelled)="pickerOpen.set(false)"
+  />
+}
 
-      <!-- רשימת מאיישים קיימים -->
+<!-- ═══ Manage Occupants Dialog ═══ -->
+@if (occupantsDialogOpen()) {
+  <kendo-dialog [title]="'מאיישים — ' + selectedPosition()?.DisplayName" [width]="440" (close)="occupantsDialogOpen.set(false)">
+    <div class="assign-dialog-body">
       @if (positionOccupants().length > 0) {
         <div class="occupants-list">
-          <div class="occupants-label">מאיישים נוכחיים</div>
           @for (occ of positionOccupants(); track occ.UserID) {
             <div class="occupant-row">
               <mat-icon class="occ-icon">person</mat-icon>
@@ -357,41 +376,16 @@
             </div>
           }
         </div>
-        <div class="assign-divider"></div>
-      }
-
-      <!-- טופס שיוך חדש -->
-      @if (usersForAssign.length > 0) {
-        <form [formGroup]="assignForm" class="org-form">
-          <div class="form-field">
-            <label class="field-label">עובד לשיוך <span class="req">*</span></label>
-            <kendo-dropdownlist
-              formControlName="userId"
-              [data]="usersForAssign"
-              textField="FullName"
-              valueField="UserID"
-              [valuePrimitive]="true"
-              [defaultItem]="{ UserID: null, FullName: 'בחר עובד...' }" />
-          </div>
-          <div class="form-field">
-            <label class="field-label">תאריך תחילת תפקיד</label>
-            <kendo-textbox formControlName="startDate" placeholder="YYYY-MM-DD" />
-          </div>
-        </form>
       } @else {
         <div class="assign-all-filled">
-          <mat-icon>check_circle</mat-icon>
-          כל המשתמשים כבר משויכים למשרה זו
+          <mat-icon>person_off</mat-icon>
+          אין מאיישים במשרה זו
         </div>
       }
-
     </div>
     <kendo-dialog-actions>
       <div class="dialog-footer">
-        @if (usersForAssign.length > 0) {
-          <button class="btn-save" (click)="saveAssignment()" [disabled]="saving()">✓ שייך</button>
-        }
-        <button class="btn-cancel" (click)="assignDialogOpen.set(false)">סגור</button>
+        <button class="btn-cancel" (click)="occupantsDialogOpen.set(false)">סגור</button>
       </div>
     </kendo-dialog-actions>
   </kendo-dialog>

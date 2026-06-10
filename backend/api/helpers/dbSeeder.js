@@ -66,6 +66,9 @@ async function runSeed() {
     const pool = await getPool();
     await fixLoginAuditFK(pool);
     await renameCorePlatformRoles(pool);
+    await addUserProfileColumns(pool);
+    await updateSpUserUpdate(pool);
+    await addEntityTokenColumns(pool);
     await seedActionTypes(pool);
     await createMissingTables(pool);
     await syncPlatformMenu(pool);
@@ -73,6 +76,54 @@ async function runSeed() {
     console.log('[seeder] ✅ DB seed complete');
   } catch (e) {
     console.warn('[seeder] ⚠ seed error (non-fatal):', e.message);
+  }
+}
+
+// ── 0e. Add Token UUID column to all main entities (idempotent) ──
+async function addEntityTokenColumns(pool) {
+  const tables = [
+    'tblTenants',
+    'tblUsers',
+    'tblOrgUnits',
+    'tblOrgPositions',
+    'tblRoles',
+    'tblJobTitles',
+    'tblMenuItems',
+    'tblActionTypes',
+  ];
+
+  for (const tbl of tables) {
+    // Skip if table doesn't exist yet
+    const exists = await pool.request().query(
+      `SELECT 1 FROM sysobjects WHERE name='${tbl}' AND xtype='U'`
+    );
+    if (!exists.recordset.length) continue;
+
+    // Step 1: add column if missing (nullable first, to avoid conflict with existing rows)
+    await pool.request().query(`
+      IF NOT EXISTS (
+        SELECT 1 FROM sys.columns
+        WHERE object_id = OBJECT_ID('dbo.${tbl}') AND name = 'Token'
+      )
+        ALTER TABLE dbo.${tbl} ADD Token NVARCHAR(36) NULL;
+    `);
+
+    // Step 2: backfill NULL tokens
+    await pool.request().query(`
+      UPDATE dbo.${tbl}
+      SET Token = CONVERT(NVARCHAR(36), NEWID())
+      WHERE Token IS NULL OR Token = '';
+    `);
+
+    // Step 3: add UNIQUE constraint if missing
+    await pool.request().query(`
+      IF NOT EXISTS (
+        SELECT 1 FROM sys.indexes
+        WHERE object_id = OBJECT_ID('dbo.${tbl}') AND name = 'UQ_${tbl}_Token'
+      )
+        ALTER TABLE dbo.${tbl}
+          ADD CONSTRAINT UQ_${tbl}_Token UNIQUE (Token);
+    `);
   }
 }
 
@@ -86,6 +137,60 @@ async function renameCorePlatformRoles(pool) {
     -- RoleID=2: was PLATFORM_USER → now SUPER_ADMIN (full access within own tenant)
     IF EXISTS (SELECT 1 FROM dbo.tblRoles WHERE RoleID=2 AND RoleCode='PLATFORM_USER')
       UPDATE dbo.tblRoles SET RoleCode='SUPER_ADMIN', RoleName=N'מנהל עליון' WHERE RoleID=2;
+
+    -- Roles 3-6: translate names to Hebrew
+    UPDATE dbo.tblRoles SET RoleName=N'מנהל מערכת' WHERE RoleID=3 AND RoleName IN ('System Admin','TMPL_ADMIN');
+    UPDATE dbo.tblRoles SET RoleName=N'מנהל'        WHERE RoleID=4 AND RoleName IN ('Manager','TMPL_MANAGER');
+    UPDATE dbo.tblRoles SET RoleName=N'עובד'         WHERE RoleID=5 AND RoleName IN ('Employee','TMPL_EMPLOYEE');
+    UPDATE dbo.tblRoles SET RoleName=N'קריאה בלבד'  WHERE RoleID=6 AND RoleName IN ('Read Only','TMPL_READONLY');
+  `);
+}
+
+// ── 0d. Update sp_UserUpdate to accept profile fields ─────────
+async function updateSpUserUpdate(pool) {
+  await pool.request().query(`
+    CREATE OR ALTER PROCEDURE dbo.sp_UserUpdate
+      @UserID           INT,
+      @FirstName        NVARCHAR(100),
+      @LastName         NVARCHAR(100),
+      @Email            NVARCHAR(150),
+      @RoleID           INT,
+      @IsActive         BIT,
+      @Phone            NVARCHAR(30)  = NULL,
+      @JobTitle         NVARCHAR(100) = NULL,
+      @Notes            NVARCHAR(500) = NULL,
+      @PrimaryOrgUnitID INT           = NULL,
+      @ResultCode       INT           OUTPUT,
+      @ResultMessage    NVARCHAR(200) OUTPUT
+    AS
+    BEGIN
+      SET NOCOUNT ON;
+      IF NOT EXISTS (SELECT 1 FROM dbo.tblUsers WHERE UserID=@UserID AND UserID>0)
+      BEGIN SET @ResultCode=404; SET @ResultMessage=N'משתמש לא נמצא'; RETURN; END;
+      IF EXISTS (SELECT 1 FROM dbo.tblUsers WHERE Email=@Email AND UserID<>@UserID AND UserID>0)
+      BEGIN SET @ResultCode=2; SET @ResultMessage=N'כתובת המייל כבר רשומה למשתמש אחר'; RETURN; END;
+      UPDATE dbo.tblUsers
+      SET FirstName=@FirstName, LastName=@LastName, Email=@Email,
+          RoleID=@RoleID, IsActive=@IsActive,
+          Phone=@Phone, JobTitle=@JobTitle, Notes=@Notes,
+          PrimaryOrgUnitID=@PrimaryOrgUnitID
+      WHERE UserID=@UserID;
+      SET @ResultCode=0; SET @ResultMessage=N'המשתמש עודכן בהצלחה';
+    END;
+  `);
+}
+
+// ── 0c. Add user profile columns (idempotent) ────────────────
+async function addUserProfileColumns(pool) {
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.tblUsers') AND name='Phone')
+      ALTER TABLE dbo.tblUsers ADD Phone NVARCHAR(30) NULL;
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.tblUsers') AND name='JobTitle')
+      ALTER TABLE dbo.tblUsers ADD JobTitle NVARCHAR(100) NULL;
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.tblUsers') AND name='Notes')
+      ALTER TABLE dbo.tblUsers ADD Notes NVARCHAR(500) NULL;
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.tblUsers') AND name='PrimaryOrgUnitID')
+      ALTER TABLE dbo.tblUsers ADD PrimaryOrgUnitID INT NULL;
   `);
 }
 

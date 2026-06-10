@@ -1,0 +1,187 @@
+/* ── toolbar ───────────────────────────────────────────── */
+.picker-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid var(--sf-border);
+  flex-wrap: wrap;
+  direction: rtl;
+}
+
+.search-wrap {
+  position: relative;
+  flex: 1 1 220px;
+  min-width: 180px;
+
+  .search-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: var(--sf-text-muted);
+    pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 7px 36px 7px 12px;
+    border: 1px solid var(--sf-border);
+    border-radius: 8px;
+    font-size: .84rem;
+    font-family: 'Noto Sans Hebrew', sans-serif;
+    color: var(--sf-text);
+    background: var(--sf-bg);
+    outline: none;
+    direction: rtl;
+
+    &::placeholder { color: var(--sf-text-muted); }
+    &:focus { border-color: var(--sf-border-focus); box-shadow: 0 0 0 2px rgba(var(--sf-primary-rgb, 13,71,255),.1); }
+  }
+}
+
+.filter-drop {
+  min-width: 140px;
+  font-size: .84rem;
+
+  &.filter-drop-sm { min-width: 110px; }
+}
+
+/* ── loading ───────────────────────────────────────────── */
+.picker-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 160px;
+}
+
+/* ── grid ──────────────────────────────────────────────── */
+.picker-grid {
+  direction: rtl;
+
+  /* header */
+  .k-grid-header th.k-header {
+    background: var(--sf-grid-hd-bg) !important;
+    color: var(--sf-grid-hd-color) !important;
+    font-weight: 700 !important;
+    font-size: .78rem !important;
+    border-bottom: 2px solid var(--sf-grid-hd-border) !important;
+    border-color: var(--sf-grid-hd-border) !important;
+  }
+
+  .k-grid-header { background: var(--sf-grid-hd-bg) !important; }
+
+  /* hover highlight per row */
+  .k-grid-content tr:hover td { background: var(--sf-bg-hover) !important; cursor: pointer; }
+
+  /* selected row */
+  .k-grid-content tr.k-selected td,
+  .k-grid-content tr:has(.row-selected) td {
+    background: color-mix(in srgb, var(--sf-primary) 8%, transparent) !important;
+  }
+}
+
+/* user-row cell layout */
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+
+  &.row-selected .user-name { font-weight: 600; color: var(--sf-primary); }
+}
+
+.user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--sf-primary-light, #e8edff);
+  color: var(--sf-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .82rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.user-name { font-size: .85rem; color: var(--sf-text); }
+
+.check-icon {
+  margin-right: auto;
+  font-size: 18px !important;
+  color: var(--sf-success);
+}
+
+/* status badge */
+.status-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: .75rem;
+  font-weight: 600;
+  background: #fecaca;
+  color: #dc2626;
+
+  &.active { background: #d1fae5; color: #065f46; }
+}
+
+/* empty state */
+.picker-empty {
+  text-align: center;
+  padding: 40px;
+  color: var(--sf-text-muted);
+  font-size: .9rem;
+}
+
+/* ── footer ────────────────────────────────────────────── */
+::ng-deep .k-dialog-actions { direction: rtl !important; }
+
+.picker-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  direction: rtl;
+  width: 100%;
+}
+
+.selected-hint {
+  font-size: .8rem;
+  color: var(--sf-text-secondary);
+  margin-right: auto;
+}
+
+/* buttons — inherit global btn-save / btn-cancel */
+.btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  background: #f97316;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: .85rem;
+  font-weight: 600;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  cursor: pointer;
+  transition: background .15s;
+
+  &:hover:not(:disabled) { background: #ea6c0a; }
+  &:disabled { opacity: .45; cursor: not-allowed; }
+}
+
+.btn-cancel {
+  padding: 8px 20px;
+  background: var(--sf-bg-card);
+  color: var(--sf-text-secondary);
+  border: 1px solid var(--sf-border);
+  border-radius: 8px;
+  font-size: .85rem;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  cursor: pointer;
+  transition: background .15s;
+
+  &:hover { background: var(--sf-bg-hover); }
+}

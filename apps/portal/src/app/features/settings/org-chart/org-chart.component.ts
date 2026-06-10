@@ -2,6 +2,8 @@ import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
+import { UserPickerDialogComponent, PickedUser } from '../../../shared/components/user-picker/user-picker-dialog.component';
+
 import { TreeListModule } from '@progress/kendo-angular-treelist';
 import { DialogModule } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -21,6 +23,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { HttpClient } from '@angular/common/http';
 import { RbacService, OrgUnit, JobTitle, OrgPosition, OrgPosition as Pos, PositionOccupant, RoleItem } from '../../../core/services/rbac.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 interface OrgUnitTree extends OrgUnit {
   children: OrgUnitTree[];
@@ -32,6 +35,7 @@ const UNIT_TYPES = [
   { value: 'COMPANY',    label: 'חברה',     icon: 'corporate_fare', color: '#7c3aed' },
   { value: 'DIVISION',   label: 'חטיבה',    icon: 'account_tree',   color: '#0D47FF' },
   { value: 'DEPARTMENT', label: 'מחלקה',    icon: 'business',       color: '#0891b2' },
+  { value: 'BRANCH',     label: 'סניף',     icon: 'store',          color: '#e11d48' },
   { value: 'TEAM',       label: 'צוות',     icon: 'groups',         color: '#059669' },
   { value: 'UNIT',       label: 'יחידה',    icon: 'people',         color: '#d97706' },
 ];
@@ -52,6 +56,7 @@ const TITLE_LEVELS = [
     InputsModule, DropDownListModule, TooltipModule,
     NotificationModule, SVGIconModule, BadgeModule,
     MatIconModule, MatProgressSpinnerModule,
+    UserPickerDialogComponent,
   ],
   providers: [NotificationService],
   templateUrl: './org-chart.component.html',
@@ -72,11 +77,13 @@ export class OrgChartComponent implements OnInit {
   unitPositions     = signal<OrgPosition[]>([]);
   positionsLoading  = signal(false);
 
-  unitDialogOpen     = signal(false);
-  titleDialogOpen    = signal(false);
-  positionDialogOpen = signal(false);
-  assignDialogOpen   = signal(false);
-  deleteConfirmOpen  = signal(false);
+  unitDialogOpen       = signal(false);
+  titleDialogOpen      = signal(false);
+  positionDialogOpen   = signal(false);
+  assignDialogOpen     = signal(false);   // legacy — now drives occupants-manage dialog
+  pickerOpen           = signal(false);   // user-picker modal
+  occupantsDialogOpen  = signal(false);   // manage occupants dialog
+  deleteConfirmOpen    = signal(false);
   unitToDelete       = signal<OrgUnit | null>(null);
   editingUnit       = signal<OrgUnit | null>(null);
   editingTitle      = signal<JobTitle | null>(null);
@@ -99,11 +106,14 @@ export class OrgChartComponent implements OnInit {
   readonly unitTypes   = UNIT_TYPES;
   readonly titleLevels = TITLE_LEVELS;
 
+  get orgName(): string { return this.auth.user()?.companyName ?? ''; }
+
   constructor(
     private svc: RbacService,
     private fb: FormBuilder,
     private notify: NotificationService,
     private http: HttpClient,
+    private auth: AuthService,
   ) {}
 
   ngOnInit() {
@@ -331,33 +341,41 @@ export class OrgChartComponent implements OnInit {
     });
   }
 
-  // ─── Assign User ───────────────────────────────────────────
+  // ─── Assign User (via UserPickerDialog) ────────────────────
 
   openAssignDialog(pos: OrgPosition) {
     this.selectedPosition.set(pos);
-    this.assignForm.reset({ userId: null, startDate: new Date().toISOString().slice(0, 10) });
     this.svc.getPositionUsers(pos.PositionID).subscribe({
       next: r => this.positionOccupants.set(r.data),
     });
-    this.assignDialogOpen.set(true);
+    this.pickerOpen.set(true);
   }
 
-  saveAssignment() {
-    if (this.assignForm.invalid) { this.assignForm.markAllAsTouched(); return; }
+  onUserPicked(user: PickedUser) {
     const pos = this.selectedPosition();
     if (!pos) return;
-    const v = this.assignForm.value;
+    this.pickerOpen.set(false);
     this.saving.set(true);
-    this.svc.assignUserToPosition(pos.PositionID, v.userId, v.startDate).subscribe({
+    const startDate = new Date().toISOString().slice(0, 10);
+    this.svc.assignUserToPosition(pos.PositionID, user.UserID, startDate).subscribe({
       next: () => {
         this.saving.set(false);
-        this.svc.getPositionUsers(pos.PositionID).subscribe({ next: r => this.positionOccupants.set(r.data) });
-        this.assignForm.reset({ userId: null, startDate: new Date().toISOString().slice(0, 10) });
         this.loadPositions(this.selectedUnit()!.OrgUnitID);
-        this.notify.show({ content: 'עובד שויך למשרה', type: { style: 'success', icon: true }, position: { horizontal: 'center', vertical: 'top' } });
+        this.notify.show({ content: `${user.FullName} שויך למשרה`, type: { style: 'success', icon: true }, position: { horizontal: 'center', vertical: 'top' } });
       },
-      error: err => { this.saving.set(false); this.notify.show({ content: err.error?.message ?? 'שגיאה', type: { style: 'error', icon: true }, position: { horizontal: 'center', vertical: 'top' } }); },
+      error: err => {
+        this.saving.set(false);
+        this.notify.show({ content: err.error?.message ?? 'שגיאה בשיוך', type: { style: 'error', icon: true }, position: { horizontal: 'center', vertical: 'top' } });
+      },
     });
+  }
+
+  openManageOccupants(pos: OrgPosition) {
+    this.selectedPosition.set(pos);
+    this.svc.getPositionUsers(pos.PositionID).subscribe({
+      next: r => this.positionOccupants.set(r.data),
+    });
+    this.occupantsDialogOpen.set(true);
   }
 
   removeOccupant(occupant: PositionOccupant) {
@@ -371,6 +389,13 @@ export class OrgChartComponent implements OnInit {
       },
     });
   }
+
+  get assignedUserIds(): number[] {
+    return this.positionOccupants().map(o => o.UserID);
+  }
+
+  // kept for backward compat (position form uses it)
+  saveAssignment() {}
 
   get usersForAssign() {
     const occupied = new Set(this.positionOccupants().map(o => o.UserID));

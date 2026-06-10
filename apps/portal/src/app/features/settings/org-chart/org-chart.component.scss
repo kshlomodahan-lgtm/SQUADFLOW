@@ -11,6 +11,19 @@
   font-size: 1.1rem; font-weight: 700; color: var(--sf-text); margin: 0 0 4px 0;
   kendo-svg-icon { color: var(--sf-primary); }
 }
+.mgr-org-context {
+  display: flex; align-items: center; gap: 6px;
+  margin: 2px 0 4px;
+
+  .org-context-label {
+    font-size: .78rem; color: var(--sf-text-muted);
+  }
+  .org-context-name {
+    font-size: .83rem; font-weight: 700; color: var(--sf-primary);
+    background: var(--sf-primary-light, #eff6ff);
+    padding: 2px 10px; border-radius: 20px;
+  }
+}
 .mgr-subtitle { font-size: .82rem; color: var(--sf-text-secondary); margin: 0; }
 .header-actions { display: flex; gap: 10px; }
 
@@ -243,8 +256,12 @@
 }
 .pos-vacant { font-size: .78rem; color: var(--sf-text-muted); font-style: italic; }
 
+.pos-actions-row {
+  display: flex; gap: 6px; margin-top: 8px;
+}
+
 .assign-btn {
-  margin-top: 8px; width: 100%;
+  flex: 1;
   display: flex; align-items: center; justify-content: center; gap: 5px;
   background: color-mix(in srgb, var(--sf-primary) 8%, transparent);
   color: var(--sf-primary);
@@ -255,6 +272,19 @@
   font-family: 'Noto Sans Hebrew', sans-serif;
   mat-icon { font-size: 14px !important; width: 14px !important; height: 14px !important; }
   &:hover { background: color-mix(in srgb, var(--sf-primary) 14%, transparent); border-style: solid; }
+}
+
+.manage-btn {
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  background: var(--sf-bg);
+  color: var(--sf-text-secondary);
+  border: 1px solid var(--sf-border);
+  border-radius: 7px; padding: 5px 8px;
+  font-size: .75rem; font-weight: 500; cursor: pointer;
+  transition: background .12s;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  mat-icon { font-size: 14px !important; width: 14px !important; height: 14px !important; }
+  &:hover { background: var(--sf-bg-hover); color: var(--sf-text); }
 }
 
 // ─── Assign Dialog ────────────────────────────────────────────
