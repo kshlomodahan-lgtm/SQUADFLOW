@@ -10,13 +10,12 @@
       <p class="mgr-subtitle">בנה את ההיררכיה הארגונית — יחידות, תארי תפקיד ומשרות</p>
     </div>
     <div class="header-actions">
-      <button class="btn-secondary" (click)="openAddTitle()">
+      <button class="btn-cancel" (click)="openAddTitle()">
         <kendo-svg-icon [icon]="icons.person" />
         תואר חדש
       </button>
       <button class="btn-save" (click)="openAddUnit(null)">
-        <kendo-svg-icon [icon]="icons.plus" />
-        יחידה חדשה
+        ✓ יחידה חדשה
       </button>
     </div>
   </div>
@@ -44,7 +43,7 @@
             <div class="tree-placeholder">
               <kendo-svg-icon [icon]="icons.buildings" class="placeholder-icon" />
               <p>אין יחידות — לחץ "יחידה חדשה" כדי להתחיל</p>
-              <button class="btn-save btn-save--sm" (click)="openAddUnit(null)">+ התחל בניית מבנה</button>
+              <button class="btn-save" (click)="openAddUnit(null)">✓ התחל בניית מבנה</button>
             </div>
           }
         </div>
@@ -60,40 +59,40 @@
         }
 
         @if (selectedUnit()) {
-          <!-- Unit header card -->
+          <!-- Unit detail card -->
           <div class="unit-detail-card">
-            <div class="unit-type-badge" [style.background]="getUnitTypeInfo(selectedUnit()!.UnitType).color + '22'"
-                 [style.color]="getUnitTypeInfo(selectedUnit()!.UnitType).color">
-              <mat-icon>{{ getUnitTypeInfo(selectedUnit()!.UnitType).icon }}</mat-icon>
-              {{ getUnitTypeInfo(selectedUnit()!.UnitType).label }}
-            </div>
-
-            <div class="unit-name-row">
-              <h3 class="unit-detail-name">{{ selectedUnit()!.UnitName }}</h3>
-              <span class="unit-code-badge">{{ selectedUnit()!.UnitCode }}</span>
-            </div>
-
-            @if (selectedUnit()!.Description) {
-              <p class="unit-desc">{{ selectedUnit()!.Description }}</p>
-            }
-
-            <div class="unit-stats">
-              <div class="stat-item">
-                <mat-icon>work</mat-icon>
-                <span>{{ selectedUnit()!.PositionCount }} משרות</span>
+            <div class="unit-card-header">
+              <div class="unit-type-badge" [style.background]="getUnitTypeInfo(selectedUnit()!.UnitType).color + '22'"
+                   [style.color]="getUnitTypeInfo(selectedUnit()!.UnitType).color">
+                <mat-icon>{{ getUnitTypeInfo(selectedUnit()!.UnitType).icon }}</mat-icon>
+                {{ getUnitTypeInfo(selectedUnit()!.UnitType).label }}
               </div>
+              <div class="unit-name-row">
+                <h3 class="unit-detail-name">{{ selectedUnit()!.UnitName }}</h3>
+                <span class="unit-code-badge">{{ selectedUnit()!.UnitCode }}</span>
+              </div>
+              @if (selectedUnit()!.Description) {
+                <p class="unit-desc">{{ selectedUnit()!.Description }}</p>
+              }
             </div>
-
-            <div class="unit-card-actions">
-              <button class="btn-secondary btn-sm" (click)="openEditUnit(selectedUnit()!)">
-                <kendo-svg-icon [icon]="icons.pencil" /> ערוך
-              </button>
-              <button class="btn-secondary btn-sm" (click)="openAddUnit(selectedUnit()!)">
-                <kendo-svg-icon [icon]="icons.plus" /> יחידת בת
-              </button>
-              <button class="btn-danger btn-sm" (click)="deleteUnit(selectedUnit()!)">
-                <kendo-svg-icon [icon]="icons.trash" /> מחק
-              </button>
+            <div class="unit-card-body">
+              <div class="unit-stats">
+                <div class="stat-item">
+                  <mat-icon>work</mat-icon>
+                  <span>{{ selectedUnit()!.PositionCount }} משרות</span>
+                </div>
+              </div>
+              <div class="unit-card-actions">
+                <button class="btn-cancel btn-sm" (click)="openEditUnit(selectedUnit()!)">
+                  <kendo-svg-icon [icon]="icons.pencil" /> ערוך
+                </button>
+                <button class="btn-cancel btn-sm" (click)="openAddUnit(selectedUnit()!)">
+                  <kendo-svg-icon [icon]="icons.plus" /> יחידת בת
+                </button>
+                <button class="btn-danger btn-sm" (click)="deleteUnit(selectedUnit()!)">
+                  <kendo-svg-icon [icon]="icons.trash" /> מחק
+                </button>
+              </div>
             </div>
           </div>
 
@@ -101,8 +100,8 @@
           <div class="positions-section">
             <div class="positions-header">
               <h4 class="positions-title">משרות ביחידה</h4>
-              <button class="btn-save btn-save--sm" (click)="openAddPosition()">
-                <kendo-svg-icon [icon]="icons.plus" /> משרה חדשה
+              <button class="btn-save btn-sm" (click)="openAddPosition()">
+                + משרה חדשה
               </button>
             </div>
 
@@ -152,8 +151,8 @@
           <div class="titles-section">
             <div class="positions-header">
               <h4 class="positions-title">תארי תפקיד במערכת</h4>
-              <button class="btn-secondary btn-sm" (click)="openAddTitle()">
-                <kendo-svg-icon [icon]="icons.plus" /> תואר חדש
+              <button class="btn-cancel btn-sm" (click)="openAddTitle()">
+                + תואר חדש
               </button>
             </div>
             <div class="titles-grid">

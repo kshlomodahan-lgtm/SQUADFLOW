@@ -5,7 +5,8 @@
       <h1>חבילות</h1>
       <p>{{ packages().length }} חבילות במערכת</p>
     </div>
-    <button kendoButton themeColor="primary" [svgIcon]="addIcon" (click)="openAdd()">
+    <button *appHasPerm="'CATALOG_PACKAGES:CREATE'"
+            kendoButton themeColor="primary" [svgIcon]="addIcon" (click)="openAdd()">
       חבילה חדשה
     </button>
   </div>
@@ -162,14 +163,16 @@
                     (click)="toggleDetail(row.PackageID, rowIndex)">
               <i class="pi" [class.pi-chevron-down]="!isExpanded(row.PackageID)" [class.pi-chevron-up]="isExpanded(row.PackageID)"></i>
             </button>
-            <button class="act-btn"
+            <button *appHasPerm="'CATALOG_PACKAGES:UPDATE'"
+                    class="act-btn"
                     [class.act-lock]="row.IsActive"
                     [class.act-unlock]="!row.IsActive"
                     [title]="row.IsActive ? 'השבת' : 'הפעל'"
                     (click)="toggleActive(row)">
               <i class="pi" [class.pi-lock]="row.IsActive" [class.pi-lock-open]="!row.IsActive"></i>
             </button>
-            <button class="act-btn act-edit" title="ערוך" (click)="openEdit(row)">
+            <button *appHasPerm="'CATALOG_PACKAGES:UPDATE'"
+                    class="act-btn act-edit" title="ערוך" (click)="openEdit(row)">
               <i class="pi pi-pencil"></i>
             </button>
           </div>

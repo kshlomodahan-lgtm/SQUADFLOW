@@ -6,7 +6,8 @@
       <h1>ארגונים</h1>
       <p>{{ orgs().length }} ארגונים רשומים במערכת</p>
     </div>
-    <button kendoButton themeColor="primary" [svgIcon]="addIcon" (click)="openAdd()">
+    <button *appHasPerm="'ORGANIZATIONS:CREATE'"
+            kendoButton themeColor="primary" [svgIcon]="addIcon" (click)="openAdd()">
       ארגון חדש
     </button>
   </div>
@@ -237,14 +238,16 @@
                     (click)="toggleDetail(o, rowIndex)">
               <i class="pi" [class.pi-chevron-down]="!isExpanded(o.TenantID)" [class.pi-chevron-up]="isExpanded(o.TenantID)"></i>
             </button>
-            <button class="act-btn"
+            <button *appHasPerm="'ORGANIZATIONS:UPDATE'"
+                    class="act-btn"
                     [class.act-lock]="o.IsActive"
                     [class.act-unlock]="!o.IsActive"
                     [title]="o.IsActive ? 'השבת' : 'הפעל'"
                     (click)="toggleActive(o)">
               <i class="pi" [class.pi-lock]="o.IsActive" [class.pi-lock-open]="!o.IsActive"></i>
             </button>
-            <button class="act-btn act-edit" title="ערוך" (click)="openEdit(o)">
+            <button *appHasPerm="'ORGANIZATIONS:UPDATE'"
+                    class="act-btn act-edit" title="ערוך" (click)="openEdit(o)">
               <i class="pi pi-pencil"></i>
             </button>
           </div>

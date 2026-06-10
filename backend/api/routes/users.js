@@ -2,14 +2,20 @@ const express     = require('express');
 const router      = express.Router();
 const { sql, getPool } = require('../db');
 const requireAuth = require('../middleware/auth');
+const { checkPermission } = require('../middleware/auth');
 const crypto      = require('crypto');
 const { logAction } = require('../helpers/auditLogger');
 
-// ── GET /api/users/roles — רשימת תפקידים
+// ── GET /api/users/roles — רשימת תפקידים (מ-tblRoles — RBAC)
 router.get('/roles', requireAuth, async (req, res) => {
   try {
     const result = await (await getPool()).request()
-      .query('SELECT RoleID, RoleName, RoleCode FROM dbo.tblUserRoles ORDER BY RoleID');
+      .input('TenantID', sql.Int, req.user.tenantId)
+      .query(`SELECT RoleID, RoleName, RoleCode
+              FROM dbo.tblRoles
+              WHERE (TenantID = @TenantID OR TenantID = 0)
+                AND IsActive = 1
+              ORDER BY SortOrder, RoleID`);
     return res.json({ success: true, roles: result.recordset });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'שגיאת שרת' });
@@ -29,10 +35,11 @@ router.get('/', requireAuth, async (req, res) => {
                u.FirstName, u.LastName,
                u.Email, u.IsActive, u.LastLoginAt, u.MustChangePass, u.RoleID,
                t.TenantCode, t.CompanyName AS OrgName, t.LogoUrl,
-               ur.RoleName
+               COALESCE(r.RoleName, ur.RoleName) AS RoleName
         FROM   dbo.tblUsers     u
-        JOIN   dbo.tblTenants   t  ON t.TenantID = u.TenantID
-        JOIN   dbo.tblUserRoles ur ON ur.RoleID   = u.RoleID
+        JOIN   dbo.tblTenants   t   ON t.TenantID  = u.TenantID
+        LEFT JOIN dbo.tblRoles  r   ON r.RoleID     = u.RoleID
+        LEFT JOIN dbo.tblUserRoles ur ON ur.RoleID  = u.RoleID
         WHERE  u.TenantID > 1 AND u.UserID > 0
         ORDER  BY t.CompanyName, u.Username`;
     } else {
@@ -42,9 +49,11 @@ router.get('/', requireAuth, async (req, res) => {
                u.FirstName+N' '+u.LastName AS FullName,
                u.FirstName, u.LastName,
                u.Email, u.IsActive, u.LastLoginAt, u.MustChangePass, u.RoleID,
-               ur.RoleName, ur.RoleCode
+               COALESCE(r.RoleName, ur.RoleName) AS RoleName,
+               COALESCE(r.RoleCode, ur.RoleCode) AS RoleCode
         FROM   dbo.tblUsers     u
-        JOIN   dbo.tblUserRoles ur ON ur.RoleID = u.RoleID
+        LEFT JOIN dbo.tblRoles     r   ON r.RoleID   = u.RoleID
+        LEFT JOIN dbo.tblUserRoles ur  ON ur.RoleID  = u.RoleID
         WHERE  u.TenantID = @TenantID AND u.UserID > 0
         ORDER  BY u.Username`;
     }
@@ -105,7 +114,7 @@ router.get('/:id', requireAuth, async (req, res) => {
 });
 
 // ── POST /api/users — יצירת משתמש (sp_UserCreate)
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, checkPermission('USERS', 'CREATE'), async (req, res) => {
   const { tenantId, firstName, lastName, username, email, password, roleId } = req.body;
 
   if (!firstName || !lastName || !username || !email || !password)
@@ -146,7 +155,7 @@ router.post('/', requireAuth, async (req, res) => {
 });
 
 // ── PUT /api/users/:id — עדכון משתמש (sp_UserUpdate)
-router.put('/:id', requireAuth, async (req, res) => {
+router.put('/:id', requireAuth, checkPermission('USERS', 'UPDATE'), async (req, res) => {
   const id = parseInt(req.params.id);
   if (!id || id <= 0) return res.status(400).json({ success: false, message: 'ID לא תקין' });
 

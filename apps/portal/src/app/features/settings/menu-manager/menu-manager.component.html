@@ -9,10 +9,19 @@
       </h2>
       <p class="mgr-subtitle">הגדרת מבנה הניווט + הפעולות המותרות בכל מסך</p>
     </div>
-    <button class="btn-save" (click)="openAddDialog(null)" [disabled]="loading()">
-      <kendo-svg-icon [icon]="icons.plus" />
-      פריט חדש
-    </button>
+    <div class="header-actions">
+      <button class="btn-preview" [class.active]="showPreview()"
+              (click)="showPreview.set(!showPreview())">
+        {{ showPreview() ? '✕ סגור תצוגה' : '◉ תצוגה מקדימה' }}
+      </button>
+      <button class="btn-sync" (click)="syncFromRoutes()" [disabled]="syncing() || loading()">
+        @if (syncing()) { <mat-spinner [diameter]="14" /> } @else { ↻ }
+        רענן מהאפליקציה
+      </button>
+      <button class="btn-save" (click)="openAddDialog(null)" [disabled]="loading()">
+        ✓ פריט חדש
+      </button>
+    </div>
   </div>
 
   @if (loading()) {
@@ -23,32 +32,71 @@
   }
 
   @if (!loading() && !error()) {
-    <div class="tree-card">
-      <!-- Legend -->
-      <div class="tree-legend">
-        <span class="legend-item"><span class="badge-screen">מסך</span></span>
-        <span class="legend-item"><span class="badge-folder">תיקייה</span></span>
-        <span class="legend-item"><span class="badge-divider">מפריד</span></span>
-        <span class="legend-sep"></span>
-        <span class="legend-item"><span class="chip chip-VIEW">R</span> צפייה</span>
-        <span class="legend-item"><span class="chip chip-CRUD">C/U/D</span> CRUD</span>
-        <span class="legend-item"><span class="chip chip-WORKFLOW">W</span> תהליך</span>
-        <span class="legend-item"><span class="chip chip-MANAGE">M</span> ניהול</span>
-        <span class="legend-sep"></span>
-        <span class="legend-item platform-legend"><kendo-svg-icon [icon]="icons.lock" /> פלטפורמה — לא ניתן לעריכה</span>
+    <div class="main-layout" [class.with-preview]="showPreview()">
+
+      <div class="tree-side">
+        <div class="tree-card">
+          <!-- Legend -->
+          <div class="tree-legend">
+            <span class="legend-item"><span class="badge-screen">מסך</span></span>
+            <span class="legend-item"><span class="badge-folder">תיקייה</span></span>
+            <span class="legend-item"><span class="badge-divider">מפריד</span></span>
+            <span class="legend-sep"></span>
+            <span class="legend-item"><span class="chip chip-VIEW">R</span> צפייה</span>
+            <span class="legend-item"><span class="chip chip-CRUD">C/U/D</span> CRUD</span>
+            <span class="legend-item"><span class="chip chip-WORKFLOW">W</span> תהליך</span>
+            <span class="legend-item"><span class="chip chip-MANAGE">M</span> ניהול</span>
+            <span class="legend-sep"></span>
+            <span class="legend-item platform-legend"><kendo-svg-icon [icon]="icons.lock" /> פלטפורמה — לא ניתן לעריכה</span>
+          </div>
+
+          <div class="tree-body">
+            @for (root of treeData(); track root.MenuItemID) {
+              <ng-container *ngTemplateOutlet="treeNode; context: { $implicit: root, depth: 0 }" />
+            }
+            @if (treeData().length === 0) {
+              <div class="tree-empty">
+                <kendo-svg-icon [icon]="icons.menu" class="tree-empty-icon" />
+                <p>אין פריטי תפריט — לחץ "פריט חדש" כדי להתחיל</p>
+              </div>
+            }
+          </div>
+        </div>
       </div>
 
-      <div class="tree-body">
-        @for (root of treeData(); track root.MenuItemID) {
-          <ng-container *ngTemplateOutlet="treeNode; context: { $implicit: root, depth: 0 }" />
-        }
-        @if (treeData().length === 0) {
-          <div class="tree-empty">
-            <kendo-svg-icon [icon]="icons.menu" class="tree-empty-icon" />
-            <p>אין פריטי תפריט — לחץ "פריט חדש" כדי להתחיל</p>
+
+      @if (showPreview()) {
+        <div class="preview-side">
+          <div class="preview-header">◉ תצוגת ניווט — כך ייראה התפריט</div>
+          <div class="preview-body">
+            @for (root of treeData(); track root.MenuItemID) {
+              @if (root.MenuItemType === 'DIVIDER') {
+                <div class="preview-divider"></div>
+              } @else if (root.MenuItemType === 'FOLDER') {
+                <div class="preview-section">
+                  <div class="preview-section-label">{{ getItemLabel(root) }}</div>
+                  @for (child of root.children; track child.MenuItemID) {
+                    @if (child.MenuItemType === 'SCREEN') {
+                      <div class="preview-nav-item" [class.preview-hidden]="!child.IsVisible">
+                        <mat-icon class="preview-nav-icon">{{ child.Icon || 'circle' }}</mat-icon>
+                        <span>{{ getItemLabel(child) }}</span>
+                        @if (!child.IsVisible) { <span class="preview-hidden-badge">מוסתר</span> }
+                      </div>
+                    }
+                  }
+                </div>
+              } @else if (root.MenuItemType === 'SCREEN') {
+                <div class="preview-nav-item" [class.preview-hidden]="!root.IsVisible">
+                  <mat-icon class="preview-nav-icon">{{ root.Icon || 'circle' }}</mat-icon>
+                  <span>{{ getItemLabel(root) }}</span>
+                  @if (!root.IsVisible) { <span class="preview-hidden-badge">מוסתר</span> }
+                </div>
+              }
+            }
           </div>
-        }
-      </div>
+        </div>
+      }
+
     </div>
   }
 
@@ -59,7 +107,9 @@
   <div class="tree-node"
        [class.selected]="selectedNodeId() === item.MenuItemID"
        [class.platform-item]="isPlatformItem(item)"
-       [style.padding-right.px]="16 + depth * 24"
+       [class.folder-node]="item.MenuItemType === 'FOLDER'"
+       [class.divider-node]="item.MenuItemType === 'DIVIDER'"
+       [style.padding-inline-start.px]="16 + depth * 24"
        (click)="selectNode(item.MenuItemID)">
 
     <!-- Expand toggle -->
@@ -89,7 +139,7 @@
     <mat-icon class="node-icon">{{ item.Icon || 'circle' }}</mat-icon>
 
     <!-- Name -->
-    <span class="node-name">{{ item.MenuItemName }}</span>
+    <span class="node-name">{{ getItemLabel(item) }}</span>
 
     <!-- Code (mono) -->
     <span class="node-code">{{ item.MenuItemCode }}</span>
@@ -113,15 +163,17 @@
     <!-- Spacer -->
     <span class="node-spacer"></span>
 
-    <!-- Visibility indicator -->
-    <span class="node-visibility" [title]="item.IsVisible ? 'גלוי' : 'מוסתר'">
-      <kendo-svg-icon [icon]="item.IsVisible ? icons.eye : icons.eyeSlash"
-                      [class.muted]="!item.IsVisible" />
-    </span>
-
     <!-- Action buttons — hidden on platform items -->
     @if (!isPlatformItem(item)) {
       <div class="node-btns">
+        @if (!isRootFolder(item)) {
+          <button class="move-btn" kendoTooltip title="הזז למעלה"
+                  [disabled]="isFirstSibling(item)"
+                  (click)="moveUp(item, $event)">↑</button>
+          <button class="move-btn" kendoTooltip title="הזז למטה"
+                  [disabled]="isLastSibling(item)"
+                  (click)="moveDown(item, $event)">↓</button>
+        }
         @if (item.MenuItemType === 'FOLDER') {
           <button class="act-btn act-add" kendoTooltip title="הוסף תת-פריט"
                   (click)="$event.stopPropagation(); openAddDialog(item)">
@@ -132,10 +184,12 @@
                 (click)="$event.stopPropagation(); openEditDialog(item)">
           <kendo-svg-icon [icon]="icons.pencil" />
         </button>
-        <button class="act-btn act-del" kendoTooltip title="מחיקה"
-                (click)="$event.stopPropagation(); deleteItem(item)">
-          <kendo-svg-icon [icon]="icons.trash" />
-        </button>
+        @if (!isRootFolder(item)) {
+          <button class="act-btn act-del" kendoTooltip title="מחיקה"
+                  (click)="$event.stopPropagation(); deleteItem(item)">
+            <kendo-svg-icon [icon]="icons.trash" />
+          </button>
+        }
       </div>
     }
   </div>
@@ -147,6 +201,212 @@
     }
   }
 </ng-template>
+
+<!-- ═══ Edit Modal (large sidebar-nav) ═══ -->
+@if (editModalOpen() && detailItem()) {
+  <kendo-dialog
+    [title]="'עריכה — ' + getItemLabel(detailItem()!)"
+    [width]="860" [minWidth]="600" [height]="680"
+    (close)="closeEditModal()">
+
+    <div class="edit-dialog-body">
+
+      <!-- Sidebar Nav -->
+      <nav class="edit-nav">
+        @for (g of editNavGroups; track g.id) {
+          <button class="nav-item" [class.active]="editModalGroup() === g.id"
+                  (click)="editModalGroup.set(g.id)">
+            <mat-icon class="nav-icon">{{ g.matIcon }}</mat-icon>
+            <span class="nav-text">{{ g.text }}</span>
+          </button>
+        }
+      </nav>
+
+      <!-- Content Area -->
+      <div class="edit-content">
+
+        @if (detailItem()!.TenantID === 0) {
+          <div class="platform-banner">
+            <mat-icon>lock</mat-icon>
+            פריט פלטפורמה — ניתן לצפייה בלבד
+          </div>
+        }
+
+        <!-- ── General ── -->
+        @if (editModalGroup() === 'general') {
+          <form [formGroup]="detailForm" class="ef-form">
+
+            <div class="ef-field">
+              <label class="ef-label">שם הפריט <span class="req">*</span></label>
+              <kendo-textbox formControlName="menuItemName" />
+            </div>
+
+            <div class="ef-row">
+              <div class="ef-field">
+                <label class="ef-label">קוד מזהה <span class="req">*</span></label>
+                <kendo-textbox formControlName="menuItemCode" />
+              </div>
+              <div class="ef-field ef-field--xs">
+                <label class="ef-label">סדר</label>
+                <kendo-numerictextbox formControlName="sortOrder" [min]="0" [decimals]="0" [format]="'n0'" />
+              </div>
+            </div>
+
+            @if (detailItem()!.MenuItemType === 'SCREEN') {
+              <div class="ef-field">
+                <label class="ef-label">מסלול (Route)</label>
+                <kendo-textbox formControlName="route" placeholder="/app/..." />
+              </div>
+            }
+
+            <div class="ef-row">
+              <div class="ef-field">
+                <label class="ef-label">איקון</label>
+                <kendo-dropdownlist formControlName="icon"
+                  [data]="iconOptions" textField="label" valueField="value" [valuePrimitive]="true" />
+              </div>
+              <div class="ef-field">
+                <label class="ef-label">תיקייה אב</label>
+                <kendo-dropdownlist formControlName="parentId"
+                  [data]="parentFolderOptions" textField="label" valueField="value" [valuePrimitive]="true" />
+              </div>
+            </div>
+
+            <div class="ef-row ef-toggles-row">
+              <div class="ef-toggle-group">
+                <label class="ef-label">גלוי בתפריט</label>
+                <div class="seg-ctrl">
+                  <button type="button" class="seg-btn" [class.seg-on]="!!detailForm.get('isVisible')?.value"
+                          (click)="detailForm.get('isVisible')?.setValue(true)">✓ גלוי</button>
+                  <button type="button" class="seg-btn" [class.seg-off]="!detailForm.get('isVisible')?.value"
+                          (click)="detailForm.get('isVisible')?.setValue(false)">✗ מוסתר</button>
+                </div>
+              </div>
+              <div class="ef-toggle-group">
+                <label class="ef-label">סטטוס</label>
+                <div class="seg-ctrl">
+                  <button type="button" class="seg-btn" [class.seg-on]="!!detailForm.get('isActive')?.value"
+                          (click)="detailForm.get('isActive')?.setValue(true)">✓ פעיל</button>
+                  <button type="button" class="seg-btn" [class.seg-off]="!detailForm.get('isActive')?.value"
+                          (click)="detailForm.get('isActive')?.setValue(false)">✗ מושהה</button>
+                </div>
+              </div>
+            </div>
+
+          </form>
+        }
+
+        <!-- ── Permissions ── -->
+        @if (editModalGroup() === 'permissions') {
+          <div class="form-section">
+            <div class="section-title">פעולות מורשות במסך</div>
+            <div class="action-grid">
+              @for (ac of actionCodeOptions; track ac.code) {
+                <label class="action-check" [class.checked]="hasDetailAction(ac.code)">
+                  <input type="checkbox" [checked]="hasDetailAction(ac.code)"
+                         (change)="toggleDetailAction(ac.code)"
+                         [disabled]="detailItem()!.TenantID === 0" />
+                  <span class="action-check-label">
+                    <span class="action-group-tag" [attr.data-group]="ac.group">{{ ac.group }}</span>
+                    {{ ac.name }}
+                  </span>
+                </label>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- ── Fields ── -->
+        @if (editModalGroup() === 'fields') {
+          <div class="ef-fields-header">
+            <span class="ef-section-title">שדות המסך</span>
+            <button class="btn-scan" (click)="scanFields()" [disabled]="fieldScanning()">
+              @if (fieldScanning()) { <mat-spinner [diameter]="12" /> } @else { ↻ }
+              סרוק שדות מה-HTML
+            </button>
+          </div>
+
+          @if (fieldConfigs().length === 0) {
+            <div class="fields-empty">
+              <mat-icon>search</mat-icon>
+              <span>לחץ "סרוק שדות" כדי לחלץ שדות מה-HTML של המסך</span>
+            </div>
+          } @else {
+            <div class="fields-subnav-layout">
+
+              <!-- Group sub-sidebar -->
+              <nav class="fields-subnav">
+                @for (grp of fieldGroups(); track grp) {
+                  <button class="fields-nav-item" [class.active]="activeFieldGroup() === grp"
+                          (click)="activeFieldGroup.set(grp)">
+                    <span class="fields-nav-label">{{ grp }}</span>
+                    <span class="fields-nav-count">{{ getFieldsInGroup(grp).length }}</span>
+                  </button>
+                }
+              </nav>
+
+              <!-- Fields for active group -->
+              <div class="fields-group-content">
+                <div class="fields-table">
+                  <div class="fields-table-head">
+                    <span class="fth-label">שדה</span>
+                    <span class="fth-visible">גלוי</span>
+                    <span class="fth-audit" kendoTooltip title="תיעוד גישה לשדה ביומן פעילות">
+                      <span class="fth-audit-he">תיעוד</span>
+                      <span class="fth-audit-en">AUDIT</span>
+                    </span>
+                    <span class="fth-perm">הרשאה נדרשת</span>
+                  </div>
+                  @for (f of getFieldsInGroup(activeFieldGroup()); track f.FieldCode) {
+                    <div class="field-row" [class.field-hidden]="!f.IsVisible">
+                      <mat-icon class="frow-icon">{{ fieldTypeIcon[f.FieldType] || 'text_fields' }}</mat-icon>
+                      <span class="frow-label">{{ f.FieldLabel }}</span>
+                      <span class="frow-code">{{ f.FieldCode }}</span>
+                      <div class="frow-visible">
+                        <input type="checkbox" class="field-chk" [checked]="f.IsVisible"
+                               (change)="updateFieldPerm(f.FieldCode, 'IsVisible', $any($event.target).checked)" />
+                      </div>
+                      <div class="frow-audit">
+                        <input type="checkbox" class="field-chk field-chk--audit" [checked]="f.IsAudited"
+                               (change)="updateFieldPerm(f.FieldCode, 'IsAudited', $any($event.target).checked)" />
+                      </div>
+                      <div class="frow-perm">
+                        <select class="field-perm-select" [value]="f.RequiredAction"
+                                (change)="updateFieldPerm(f.FieldCode, 'RequiredAction', $any($event.target).value)">
+                          @for (opt of fieldPermOptions; track opt.value) {
+                            <option [value]="opt.value" [selected]="f.RequiredAction === opt.value">{{ opt.label }}</option>
+                          }
+                        </select>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <button class="btn-save-fields" (click)="saveFieldConfigs()" [disabled]="fieldSaving()" style="margin-top: 10px">
+              @if (fieldSaving()) { <mat-spinner [diameter]="13" /> } @else { ✓ }
+              שמור הרשאות שדות
+            </button>
+          }
+        }
+
+      </div>
+    </div>
+
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        @if (detailItem()!.TenantID !== 0) {
+          <button class="btn-save" (click)="saveEditModal()" [disabled]="detailSaving() || detailForm.invalid">
+            @if (detailSaving()) { <mat-spinner [diameter]="16" /> } @else { ✓ }
+            שמור שינויים
+          </button>
+        }
+        <button class="btn-cancel" (click)="closeEditModal()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}
 
 <!-- ═══ Add / Edit Dialog ═══ -->
 @if (dialogOpen()) {
@@ -200,6 +460,16 @@
           </div>
         </div>
       }
+
+      <div class="form-row">
+        <div class="form-field form-field--full">
+          <label class="field-label">תיקייה אב</label>
+          <kendo-dropdownlist formControlName="parentId"
+            [data]="parentFolderOptions"
+            textField="label" valueField="value"
+            [valuePrimitive]="true" />
+        </div>
+      </div>
 
       <div class="form-row form-row--toggles">
         <label class="field-label">גלוי בתפריט</label>
@@ -255,7 +525,7 @@
     <div class="confirm-body">
       <mat-icon class="confirm-icon">warning_amber</mat-icon>
       <p class="confirm-text">
-        למחוק את הפריט <strong>{{ itemToDelete()?.MenuItemName }}</strong>?<br>
+        למחוק את הפריט <strong>{{ itemToDelete() ? getItemLabel(itemToDelete()!) : '' }}</strong>?<br>
         <span class="confirm-sub">פעולה זו אינה הפיכה.</span>
       </p>
     </div>

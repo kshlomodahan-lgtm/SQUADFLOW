@@ -8,16 +8,40 @@ router.use(verifyToken);
 // GET /api/permissions/resolve — effective permissions for current user
 router.get('/resolve', async (req, res) => {
   try {
-    await poolConnect;
-    const pool = await getPool();
-    const result = await pool.request()
-      .input('UserID',        sql.Int, req.user.userId)
-      .input('TenantID',      sql.Int, req.user.tenantId)
-      .output('ResultCode',    sql.Int)
-      .output('ResultMessage', sql.NVarChar(200))
-      .execute('sp_UserPermissionResolve');
+    const pool   = await getPool();
+    const roleId = req.user.roleId;
 
-    res.json({ success: true, data: result.recordset });
+    // Super Admin (roleId=1) — all permissions
+    if (roleId === 1) {
+      const r = await pool.request().query(`
+        SELECT mi.MenuItemCode, mi.MenuItemName, mi.MenuItemType,
+               at2.ActionCode, at2.ActionName, at2.ActionGroup,
+               1 AS IsAllowed
+        FROM   dbo.tblMenuItems  mi
+        CROSS JOIN dbo.tblActionTypes at2
+        WHERE  mi.IsActive = 1
+        ORDER  BY mi.SortOrder, at2.ActionCode
+      `);
+      return res.json({ success: true, data: r.recordset });
+    }
+
+    // Regular user — pull allowed rows from permission matrix
+    const r = await pool.request()
+      .input('RoleID', sql.Int, roleId)
+      .query(`
+        SELECT mi.MenuItemCode, mi.MenuItemName, mi.MenuItemType,
+               rp.ActionCode, at2.ActionName, at2.ActionGroup,
+               rp.IsAllowed
+        FROM   dbo.tblRolePermissions rp
+        JOIN   dbo.tblMenuItems  mi   ON mi.MenuItemID  = rp.MenuItemID
+        JOIN   dbo.tblActionTypes at2 ON at2.ActionCode = rp.ActionCode
+        WHERE  rp.RoleID    = @RoleID
+          AND  mi.IsActive  = 1
+          AND  rp.IsAllowed = 1
+        ORDER  BY mi.SortOrder, rp.ActionCode
+      `);
+
+    res.json({ success: true, data: r.recordset });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
   }

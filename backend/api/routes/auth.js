@@ -86,10 +86,13 @@ router.post('/login', async (req, res) => {
     const userInfo = await (await getPool()).request()
       .input('UserID',   sql.Int, UserID)
       .input('TenantID', sql.Int, TenantID)
-      .query(`SELECT u.FirstName, u.LastName, ur.RoleName, t.CompanyName
+      .query(`SELECT u.FirstName, u.LastName,
+                     COALESCE(r.RoleName, ur.RoleName) AS RoleName,
+                     t.CompanyName
               FROM dbo.tblUsers u
-              JOIN dbo.tblUserRoles ur ON ur.RoleID   = u.RoleID
-              JOIN dbo.tblTenants   t  ON t.TenantID  = @TenantID
+              LEFT JOIN dbo.tblRoles     r  ON r.RoleID    = u.RoleID
+              LEFT JOIN dbo.tblUserRoles ur ON ur.RoleID   = u.RoleID
+              JOIN dbo.tblTenants        t  ON t.TenantID  = @TenantID
               WHERE u.UserID = @UserID`);
 
     const { FirstName, LastName, RoleName, CompanyName } = userInfo.recordset[0];

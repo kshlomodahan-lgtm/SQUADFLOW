@@ -199,9 +199,15 @@ export class OrgChartComponent implements OnInit {
     const editing = this.editingUnit();
     const v = this.unitForm.value;
     const payload: Partial<OrgUnit> = {
-      OrgUnitID: editing?.OrgUnitID || 0,
-      ...v,
+      OrgUnitID:       editing?.OrgUnitID || 0,
+      UnitName:        v.unitName,
+      UnitCode:        v.unitCode,
+      UnitType:        v.unitType,
+      Description:     v.description,
       ParentOrgUnitID: v.parentOrgUnitId || null,
+      BudgetCode:      v.budgetCode,
+      SortOrder:       v.sortOrder,
+      IsActive:        v.isActive,
     };
     this.svc.saveOrgUnit(payload).subscribe({
       next: () => {
@@ -256,7 +262,15 @@ export class OrgChartComponent implements OnInit {
     if (this.titleForm.invalid) { this.titleForm.markAllAsTouched(); return; }
     this.saving.set(true);
     const editing = this.editingTitle();
-    this.svc.saveJobTitle({ JobTitleID: editing?.JobTitleID || 0, ...this.titleForm.value }).subscribe({
+    const v = this.titleForm.value;
+    this.svc.saveJobTitle({
+      JobTitleID:    editing?.JobTitleID || 0,
+      JobTitleName:  v.jobTitleName,
+      JobTitleCode:  v.jobTitleCode,
+      TitleLevel:    v.titleLevel,
+      DefaultRoleID: v.defaultRoleId,
+      IsActive:      v.isActive,
+    }).subscribe({
       next: () => {
         this.titleDialogOpen.set(false);
         this.saving.set(false);

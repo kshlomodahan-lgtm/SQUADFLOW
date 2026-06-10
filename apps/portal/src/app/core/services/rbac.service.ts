@@ -91,9 +91,34 @@ export interface OrgPosition {
   FilledCount: number;
 }
 
+export interface ScreenFieldConfig {
+  FieldCode:       string;
+  FieldLabel:      string;
+  FieldGroup:      string;
+  FieldType:       'text' | 'email' | 'number' | 'dropdown' | 'textarea' | 'file' | 'boolean' | 'password';
+  IsVisible:       boolean;
+  RequiredAction:  string;
+  IsAudited:       boolean;
+  ParentFieldCode: string | null;
+  SortOrder:       number;
+}
+
+export interface RoleFieldPermission {
+  FieldCode:       string;
+  FieldLabel:      string;
+  FieldGroup:      string;
+  FieldType:       string;
+  RequiredAction:  string;
+  IsVisible:       boolean;
+  IsAudited:       boolean;
+  IsAllowed:       boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class RbacService {
-  private resolvedPermissions = signal<PermissionCell[]>([]);
+  private resolvedPermissions  = signal<PermissionCell[]>([]);
+  private _permissionsLoaded   = signal(false);
+  readonly permissionsLoaded   = this._permissionsLoaded.asReadonly();
 
   constructor(private http: HttpClient) {}
 
@@ -125,8 +150,33 @@ export class RbacService {
     return this.http.delete(`/api/menu-items/${id}`);
   }
 
+  syncMenuFromRoutes(): Observable<{ success: boolean; data: MenuItem[]; message: string }> {
+    return this.http.post<any>('/api/menu-items/sync-from-routes', {});
+  }
+
   getActionTypes(): Observable<any> {
     return this.http.get('/api/menu-items/action-types');
+  }
+
+  // ── Screen Fields ─────────────────────────────────────────
+  getScreenFields(menuItemCode: string): Observable<{ success: boolean; data: ScreenFieldConfig[] }> {
+    return this.http.get<any>(`/api/screen-fields/${menuItemCode}`);
+  }
+
+  scanScreenFields(menuItemCode: string): Observable<{ success: boolean; data: ScreenFieldConfig[]; message: string }> {
+    return this.http.post<any>(`/api/screen-fields/${menuItemCode}/scan`, {});
+  }
+
+  saveScreenFields(menuItemCode: string, fields: { fieldCode: string; isVisible: boolean; requiredAction: string; isAudited: boolean }[]): Observable<any> {
+    return this.http.put(`/api/screen-fields/${menuItemCode}`, { fields });
+  }
+
+  getRoleFieldPermissions(roleId: number, menuItemCode: string): Observable<{ success: boolean; data: RoleFieldPermission[] }> {
+    return this.http.get<any>(`/api/roles/${roleId}/field-permissions/${menuItemCode}`);
+  }
+
+  saveRoleFieldPermissions(roleId: number, menuItemCode: string, permissions: { fieldCode: string; isAllowed: boolean }[]): Observable<any> {
+    return this.http.put(`/api/roles/${roleId}/field-permissions/${menuItemCode}`, { permissions });
   }
 
   // ── Roles ────────────────────────────────────────────────
@@ -224,13 +274,17 @@ export class RbacService {
   // ── Client-side permission resolver ──────────────────────
   resolvePermissions(): Observable<any> {
     return this.http.get<any>('/api/permissions/resolve').pipe(
-      tap(r => this.resolvedPermissions.set(r.data || []))
+      tap(r => {
+        this.resolvedPermissions.set(r.data || []);
+        this._permissionsLoaded.set(true);
+      })
     );
   }
 
   can(screen: string, action: string): boolean {
-    const perms = this.resolvedPermissions();
-    if (!perms.length) return true; // not loaded yet → optimistic allow
-    return perms.some(p => p.MenuItemCode === screen && p.ActionCode === action && p.IsAllowed);
+    if (!this._permissionsLoaded()) return true; // optimistic — not yet loaded
+    return this.resolvedPermissions().some(
+      p => p.MenuItemCode === screen && p.ActionCode === action && p.IsAllowed
+    );
   }
 }

@@ -8,9 +8,14 @@ import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { IndicatorsModule } from '@progress/kendo-angular-indicators';
+import { IconsModule } from '@progress/kendo-angular-icons';
+import { SVGIcon, userIcon, lockIcon, gearIcon } from '@progress/kendo-svg-icons';
+
 import { UserService, UserRole } from '../../../core/services/user.service';
 import { OrganizationService } from '../../../core/services/organization.service';
 import { User } from '../../../core/models/user.model';
+
+interface NavGroup { id: string; text: string; icon: SVGIcon; }
 
 @Component({
   selector: 'app-user-dialog',
@@ -18,7 +23,7 @@ import { User } from '../../../core/models/user.model';
   imports: [
     CommonModule, ReactiveFormsModule,
     DialogsModule, InputsModule, DropDownsModule,
-    ButtonsModule, IndicatorsModule,
+    ButtonsModule, IndicatorsModule, IconsModule,
   ],
   templateUrl: './user-dialog.component.html',
   styleUrl:    './user-dialog.component.scss',
@@ -29,13 +34,27 @@ export class UserDialogComponent implements OnInit {
   @Output() closed = new EventEmitter<void>();
   @Output() saved  = new EventEmitter<void>();
 
-  saving  = false;
-  loading = signal(true);
+  saving   = false;
+  loading  = signal(true);
   errorMsg = '';
   form!: FormGroup;
 
   roles: UserRole[] = [];
   orgs:  { TenantID: number; CompanyName: string }[] = [];
+
+  activeGroup = signal('details');
+
+  readonly groups: NavGroup[] = [
+    { id: 'details',  text: 'פרטים אישיים', icon: userIcon  },
+    { id: 'role',     text: 'תפקיד ואבטחה', icon: lockIcon  },
+    { id: 'settings', text: 'הגדרות',        icon: gearIcon  },
+  ];
+
+  private readonly groupFields: Record<string, string[]> = {
+    details:  ['firstName', 'lastName', 'username', 'email', 'password', 'tenantId'],
+    role:     ['roleId'],
+    settings: [],
+  };
 
   get isEdit() { return !!this.user; }
   get title()  { return this.isEdit ? `עריכת משתמש — ${this.user!.FullName}` : 'משתמש חדש'; }
@@ -101,10 +120,23 @@ export class UserDialogComponent implements OnInit {
     if (rolesReady && orgsReady) this.loading.set(false);
   }
 
+  private navigateToFirstError() {
+    for (const [group, fields] of Object.entries(this.groupFields)) {
+      if (fields.some(f => this.form.get(f)?.invalid)) {
+        this.activeGroup.set(group); return;
+      }
+    }
+  }
+
   close() { this.closed.emit(); }
 
   save() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.navigateToFirstError();
+      this.errorMsg = 'יש שדות חובה שלא מולאו';
+      return;
+    }
     this.saving   = true;
     this.errorMsg = '';
 

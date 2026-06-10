@@ -2,6 +2,7 @@ const express = require('express');
 const router  = express.Router();
 const { sql, getPool } = require('../db');
 const requireAuth = require('../middleware/auth');
+const { checkPermission } = require('../middleware/auth');
 const { logAction } = require('../helpers/auditLogger');
 
 router.use(requireAuth);
@@ -23,7 +24,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/categories
-router.post('/', async (req, res) => {
+router.post('/', checkPermission('CATALOG_CATEGORIES', 'CREATE'), async (req, res) => {
   try {
     const { CategoryCode, CategoryName, ColorHex = '#0D47FF', IconName = '', SortOrder = 0, IsActive = true } = req.body;
     const targetTenantId = (req.user.roleId === 1) ? 0 : req.user.tenantId;
@@ -54,7 +55,7 @@ router.post('/', async (req, res) => {
 });
 
 // PUT /api/categories/:id
-router.put('/:id', async (req, res) => {
+router.put('/:id', checkPermission('CATALOG_CATEGORIES', 'UPDATE'), async (req, res) => {
   try {
     const { CategoryCode, CategoryName, ColorHex, IconName, SortOrder, IsActive, TenantID } = req.body;
     const catId = parseInt(req.params.id);

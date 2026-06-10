@@ -15,6 +15,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { OrganizationService } from '../../core/services/organization.service';
 import { Organization } from '../../core/models/organization.model';
 import { OrgDialogComponent } from './org-dialog/org-dialog.component';
+import { HasPermDirective } from '../../core/directives/has-perm.directive';
 
 @Component({
   selector: 'app-organizations',
@@ -24,6 +25,7 @@ import { OrgDialogComponent } from './org-dialog/org-dialog.component';
     GridModule, ExcelModule, PDFModule, ButtonsModule,
     MatIconModule, MatProgressSpinnerModule,
     OrgDialogComponent,
+    HasPermDirective,
   ],
   templateUrl: './organizations.component.html',
   styleUrl:    './organizations.component.scss',

@@ -5,7 +5,8 @@
       <h1>מוצרים</h1>
       <p>{{ products().length }} מוצרים במערכת</p>
     </div>
-    <button kendoButton themeColor="primary" [svgIcon]="addIcon" (click)="openAdd()">
+    <button *appHasPerm="'CATALOG_PRODUCTS:CREATE'"
+            kendoButton themeColor="primary" [svgIcon]="addIcon" (click)="openAdd()">
       מוצר חדש
     </button>
   </div>
@@ -149,14 +150,16 @@
               <i class="pi" [class.pi-chevron-down]="!isExpanded(row.ProductID)"
                             [class.pi-chevron-up]="isExpanded(row.ProductID)"></i>
             </button>
-            <button class="act-btn"
+            <button *appHasPerm="'CATALOG_PRODUCTS:UPDATE'"
+                    class="act-btn"
                     [class.act-lock]="row.IsActive"
                     [class.act-unlock]="!row.IsActive"
                     [title]="row.IsActive ? 'השבת' : 'הפעל'"
                     (click)="toggleActive(row)">
               <i class="pi" [class.pi-lock]="row.IsActive" [class.pi-lock-open]="!row.IsActive"></i>
             </button>
-            <button class="act-btn act-edit" title="ערוך" (click)="openEdit(row)">
+            <button *appHasPerm="'CATALOG_PRODUCTS:UPDATE'"
+                    class="act-btn act-edit" title="ערוך" (click)="openEdit(row)">
               <i class="pi pi-pencil"></i>
             </button>
           </div>

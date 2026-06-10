@@ -1,4 +1,4 @@
-<kendo-dialog [title]="title" [width]="560" (close)="close()">
+<kendo-dialog [title]="title" [width]="720" [minWidth]="560" (close)="close()">
 
   @if (loading()) {
     <div class="dialog-loading">
@@ -6,118 +6,164 @@
     </div>
   } @else {
 
-    <form [formGroup]="form" novalidate class="user-form">
+    @if (errorMsg) {
+      <div class="error-banner">{{ errorMsg }}</div>
+    }
 
-      @if (errorMsg) {
-        <div class="error-banner">{{ errorMsg }}</div>
-      }
+    <div class="user-dialog-body">
 
-      <!-- ארגון — platform בלבד ביצירה -->
-      @if (isPlatform && !isEdit) {
-        <div class="form-row">
-          <label class="field-label">ארגון <span class="req">*</span></label>
-          <div class="field-wrap">
-            <kendo-dropdownlist
-              formControlName="tenantId"
-              [data]="orgs"
-              textField="CompanyName"
-              valueField="TenantID"
-              [valuePrimitive]="true"
-              [defaultItem]="{ TenantID: null, CompanyName: 'בחר ארגון...' }" />
-            @if (orgErr) { <small class="err-msg">שדה חובה</small> }
-          </div>
-        </div>
-      }
+      <!-- ── Sidebar Nav ── -->
+      <nav class="user-nav">
+        @for (g of groups; track g.id) {
+          <button class="nav-item" [class.active]="activeGroup() === g.id"
+                  type="button" (click)="activeGroup.set(g.id)">
+            <kendo-svg-icon [icon]="g.icon" />
+            {{ g.text }}
+          </button>
+        }
+      </nav>
 
-      <!-- שם פרטי + שם משפחה -->
-      <div class="form-row-2">
-        <div class="form-row">
-          <label class="field-label">שם פרטי <span class="req">*</span></label>
-          <div class="field-wrap">
-            <kendo-textbox formControlName="firstName" placeholder="שם פרטי" />
-            @if (firstNameErr) { <small class="err-msg">שדה חובה</small> }
-          </div>
-        </div>
+      <!-- ── Content ── -->
+      <div class="user-content">
 
-        <div class="form-row">
-          <label class="field-label">שם משפחה <span class="req">*</span></label>
-          <div class="field-wrap">
-            <kendo-textbox formControlName="lastName" placeholder="שם משפחה" />
-            @if (lastNameErr) { <small class="err-msg">שדה חובה</small> }
-          </div>
-        </div>
-      </div>
+        <form [formGroup]="form" novalidate>
 
-      <!-- שם משתמש — רק בהוספה -->
-      @if (!isEdit) {
-        <div class="form-row">
-          <label class="field-label">שם משתמש <span class="req">*</span></label>
-          <div class="field-wrap">
-            <kendo-textbox formControlName="username" placeholder="אותיות לטיניות, ספרות, נקודה, מקף" />
-            @if (usernameErr) {
-              <small class="err-msg">שדה חובה — אותיות לטיניות/ספרות/נקודה/מקף בלבד</small>
-            }
-          </div>
-        </div>
-      }
+          <!-- ── Group: פרטים ── -->
+          @if (activeGroup() === 'details') {
+            <div class="form-section">
+              <h3 class="section-title">פרטים אישיים</h3>
 
-      <!-- אימייל -->
-      <div class="form-row">
-        <label class="field-label">דוא"ל <span class="req">*</span></label>
-        <div class="field-wrap">
-          <kendo-textbox formControlName="email" placeholder="user@domain.com" />
-          @if (emailErr) { <small class="err-msg">כתובת מייל לא תקינה</small> }
-        </div>
-      </div>
+              <!-- ארגון — platform + יצירה בלבד -->
+              @if (isPlatform && !isEdit) {
+                <div class="form-row">
+                  <label class="field-label">ארגון <span class="req">*</span></label>
+                  <div class="field-wrap">
+                    <kendo-dropdownlist
+                      formControlName="tenantId"
+                      [data]="orgs"
+                      textField="CompanyName"
+                      valueField="TenantID"
+                      [valuePrimitive]="true"
+                      [defaultItem]="{ TenantID: null, CompanyName: 'בחר ארגון...' }" />
+                    @if (orgErr) { <small class="err-msg">שדה חובה</small> }
+                  </div>
+                </div>
+              }
 
-      <!-- סיסמה — רק בהוספה -->
-      @if (!isEdit) {
-        <div class="form-row">
-          <label class="field-label">סיסמה <span class="req">*</span></label>
-          <div class="field-wrap">
-            <kendo-textbox formControlName="password" placeholder="לפחות 6 תווים" [type]="'password'" />
-            @if (passwordErr) { <small class="err-msg">סיסמה חייבת להיות לפחות 6 תווים</small> }
-          </div>
-        </div>
-      }
+              <!-- שם פרטי + שם משפחה -->
+              <div class="form-row-2">
+                <div class="form-row">
+                  <label class="field-label">שם פרטי <span class="req">*</span></label>
+                  <div class="field-wrap">
+                    <kendo-textbox formControlName="firstName" placeholder="שם פרטי" />
+                    @if (firstNameErr) { <small class="err-msg">שדה חובה</small> }
+                  </div>
+                </div>
+                <div class="form-row">
+                  <label class="field-label">שם משפחה <span class="req">*</span></label>
+                  <div class="field-wrap">
+                    <kendo-textbox formControlName="lastName" placeholder="שם משפחה" />
+                    @if (lastNameErr) { <small class="err-msg">שדה חובה</small> }
+                  </div>
+                </div>
+              </div>
 
-      <!-- תפקיד -->
-      <div class="form-row">
-        <label class="field-label">תפקיד <span class="req">*</span></label>
-        <div class="field-wrap">
-          <kendo-dropdownlist
-            formControlName="roleId"
-            [data]="roles"
-            textField="RoleName"
-            valueField="RoleID"
-            [valuePrimitive]="true" />
-          @if (roleErr) { <small class="err-msg">שדה חובה</small> }
-        </div>
-      </div>
+              <!-- שם משתמש — יצירה בלבד -->
+              @if (!isEdit) {
+                <div class="form-row">
+                  <label class="field-label">שם משתמש <span class="req">*</span></label>
+                  <div class="field-wrap">
+                    <kendo-textbox formControlName="username" placeholder="אותיות לטיניות, ספרות, נקודה, מקף" />
+                    @if (usernameErr) {
+                      <small class="err-msg">אותיות לטיניות / ספרות / נקודה / מקף בלבד</small>
+                    }
+                  </div>
+                </div>
+              }
 
-      <!-- סטטוס — רק בעריכה -->
-      @if (isEdit) {
-        <div class="form-row">
-          <label class="field-label">סטטוס</label>
-          <div class="field-wrap">
-            <div class="seg-ctrl">
-              <button type="button" class="seg-btn"
-                      [class.seg-on]="!!form.get('isActive')?.value"
-                      (click)="form.get('isActive')?.setValue(true)">
-                ✓ פעיל
-              </button>
-              <button type="button" class="seg-btn"
-                      [class.seg-off]="!form.get('isActive')?.value"
-                      (click)="form.get('isActive')?.setValue(false)">
-                ✗ מושהה
-              </button>
+              <!-- אימייל -->
+              <div class="form-row">
+                <label class="field-label">דוא"ל <span class="req">*</span></label>
+                <div class="field-wrap">
+                  <kendo-textbox formControlName="email" placeholder="user@domain.com" />
+                  @if (emailErr) { <small class="err-msg">כתובת מייל לא תקינה</small> }
+                </div>
+              </div>
+
+              <!-- סיסמה — יצירה בלבד -->
+              @if (!isEdit) {
+                <div class="form-row">
+                  <label class="field-label">סיסמה <span class="req">*</span></label>
+                  <div class="field-wrap">
+                    <kendo-textbox formControlName="password" placeholder="לפחות 6 תווים" [type]="'password'" />
+                    @if (passwordErr) { <small class="err-msg">לפחות 6 תווים</small> }
+                  </div>
+                </div>
+              }
             </div>
-          </div>
-        </div>
-      }
+          }
 
-    </form>
+          <!-- ── Group: תפקיד ואבטחה ── -->
+          @if (activeGroup() === 'role') {
+            <div class="form-section">
+              <h3 class="section-title">תפקיד ואבטחה</h3>
 
+              <div class="form-row">
+                <label class="field-label">תפקיד מערכת <span class="req">*</span></label>
+                <div class="field-wrap">
+                  <kendo-dropdownlist
+                    formControlName="roleId"
+                    [data]="roles"
+                    textField="RoleName"
+                    valueField="RoleID"
+                    [valuePrimitive]="true" />
+                  @if (roleErr) { <small class="err-msg">יש לבחור תפקיד</small> }
+                </div>
+              </div>
+
+              @if (roles.length > 0) {
+                <div class="role-info">
+                  <div class="role-info-icon">i</div>
+                  <span>התפקיד קובע את ההרשאות של המשתמש בכל מסכי המערכת</span>
+                </div>
+              }
+
+              <!-- סטטוס — עריכה בלבד -->
+              @if (isEdit) {
+                <div class="form-row">
+                  <label class="field-label">סטטוס חשבון</label>
+                  <div class="field-wrap">
+                    <div class="seg-ctrl">
+                      <button type="button" class="seg-btn"
+                              [class.seg-on]="!!form.get('isActive')?.value"
+                              (click)="form.get('isActive')?.setValue(true)">
+                        ✓ פעיל
+                      </button>
+                      <button type="button" class="seg-btn"
+                              [class.seg-off]="!form.get('isActive')?.value"
+                              (click)="form.get('isActive')?.setValue(false)">
+                        ✗ מושהה
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- ── Group: הגדרות ── -->
+          @if (activeGroup() === 'settings') {
+            <div class="form-section settings-placeholder">
+              <div class="placeholder-icon">⚙️</div>
+              <h3>הגדרות מתקדמות</h3>
+              <p>שעות כניסה, IP Whitelist, כללי סיסמה ועוד — יתווספו בשלב הבא</p>
+            </div>
+          }
+
+        </form>
+      </div>
+
+    </div>
   }
 
   <kendo-dialog-actions>

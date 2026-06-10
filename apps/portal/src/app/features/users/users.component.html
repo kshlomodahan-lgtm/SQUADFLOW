@@ -5,7 +5,8 @@
       <h1>משתמשים</h1>
       <p>{{ users().length }} משתמשים במערכת</p>
     </div>
-    <button kendoButton themeColor="primary" [svgIcon]="addIcon" (click)="openAdd()">משתמש חדש</button>
+    <button *appHasPerm="'USERS:CREATE'"
+            kendoButton themeColor="primary" [svgIcon]="addIcon" (click)="openAdd()">משתמש חדש</button>
   </div>
 
   <div class="toolbar">
@@ -137,7 +138,7 @@
 
       <kendo-grid-column field="RoleName" title="תפקיד" [width]="140">
         <ng-template kendoGridCellTemplate let-u>
-          <span class="badge" [class]="roleClass(u.RoleName)">{{ u.RoleName }}</span>
+          <span class="badge" [class]="roleClass(u.RoleCode)">{{ u.RoleName }}</span>
         </ng-template>
       </kendo-grid-column>
 
@@ -165,11 +166,13 @@
                     (click)="toggleDetail(u, rowIndex)">
               <i class="pi" [class.pi-chevron-down]="!isExpanded(u.UserID)" [class.pi-chevron-up]="isExpanded(u.UserID)"></i>
             </button>
-            <button class="act-btn" [class.act-lock]="u.IsActive" [class.act-unlock]="!u.IsActive"
+            <button *appHasPerm="'USERS:UPDATE'"
+                    class="act-btn" [class.act-lock]="u.IsActive" [class.act-unlock]="!u.IsActive"
                     [title]="u.IsActive ? 'השבת' : 'הפעל'" (click)="toggleActive(u)">
               <i class="pi" [class.pi-lock]="u.IsActive" [class.pi-lock-open]="!u.IsActive"></i>
             </button>
-            <button class="act-btn act-edit" title="ערוך" (click)="openEdit(u)">
+            <button *appHasPerm="'USERS:UPDATE'"
+                    class="act-btn act-edit" title="ערוך" (click)="openEdit(u)">
               <i class="pi pi-pencil"></i>
             </button>
           </div>

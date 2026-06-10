@@ -12,6 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { UserService } from '../../core/services/user.service';
 import { User } from '../../core/models/user.model';
 import { UserDialogComponent } from './user-dialog/user-dialog.component';
+import { HasPermDirective } from '../../core/directives/has-perm.directive';
 
 @Component({
   selector: 'app-users',
@@ -21,6 +22,7 @@ import { UserDialogComponent } from './user-dialog/user-dialog.component';
     GridModule, ExcelModule, PDFModule, ButtonsModule, IndicatorsModule,
     MatIconModule,
     UserDialogComponent,
+    HasPermDirective,
   ],
   templateUrl: './users.component.html',
   styleUrl:    './users.component.scss',
@@ -129,12 +131,11 @@ export class UsersComponent implements OnInit {
     return new Date(dt).getFullYear() >= 2000;
   }
 
-  roleClass(role: string): string {
-    const map: Record<string, string> = {
-      'מנהל מערכת': 'badge-platform',
-      'מנהל לקוח':  'badge-blue',
-      'משתמש לקוח': 'badge-gray',
-    };
-    return map[role] ?? 'badge-gray';
+  roleClass(roleCode: string): string {
+    if (!roleCode) return 'badge-gray';
+    const c = roleCode.toUpperCase();
+    if (c.includes('SUPER') || c.includes('ADMIN') || c === 'SYSTEM_ADMIN') return 'badge-platform';
+    if (c.includes('MANAGER') || c.includes('PLATFORM'))                     return 'badge-blue';
+    return 'badge-gray';
   }
 }

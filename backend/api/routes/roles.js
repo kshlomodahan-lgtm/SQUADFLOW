@@ -1,7 +1,7 @@
 const express = require('express');
 const router  = express.Router();
 const { sql, getPool, poolConnect } = require('../db');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, clearPermCache } = require('../middleware/auth');
 
 router.use(verifyToken);
 
@@ -164,8 +164,83 @@ router.post('/:id/matrix', async (req, res) => {
     if (result.output.ResultCode < 0)
       return res.status(400).json({ success: false, message: result.output.ResultMessage });
 
+    clearPermCache(id); // invalidate cache for this role
     res.json({ success: true, message: 'הרשאות נשמרו בהצלחה' });
   } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+// ── GET /api/roles/:id/field-permissions/:menuItemCode ────────
+router.get('/:id/field-permissions/:menuItemCode', async (req, res) => {
+  const roleId       = parseInt(req.params.id);
+  const menuItemCode = req.params.menuItemCode;
+  const tenantId     = req.user.tenantId;
+  try {
+    await poolConnect;
+    const pool = await getPool();
+    const r = await pool.request()
+      .input('RoleID',       sql.Int,         roleId)
+      .input('TenantID',     sql.Int,         tenantId)
+      .input('MenuItemCode', sql.NVarChar(50), menuItemCode)
+      .query(`
+        SELECT
+          sc.FieldCode, sc.FieldLabel, sc.FieldGroup, sc.FieldType,
+          sc.RequiredAction, sc.IsVisible, sc.IsAudited, sc.ParentFieldCode,
+          ISNULL(rfp.IsAllowed, 0) AS IsAllowed
+        FROM tblScreenFieldConfig sc
+        LEFT JOIN tblRoleFieldPermissions rfp
+          ON  rfp.RoleID       = @RoleID
+          AND rfp.TenantID     = @TenantID
+          AND rfp.MenuItemCode = @MenuItemCode
+          AND rfp.FieldCode    = sc.FieldCode
+        WHERE sc.TenantID     = @TenantID
+          AND sc.MenuItemCode = @MenuItemCode
+          AND sc.RequiredAction <> ''
+        ORDER BY sc.SortOrder, sc.FieldCode
+      `);
+    res.json({ success: true, data: r.recordset });
+  } catch(e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+// ── PUT /api/roles/:id/field-permissions/:menuItemCode ────────
+router.put('/:id/field-permissions/:menuItemCode', async (req, res) => {
+  const roleId       = parseInt(req.params.id);
+  const menuItemCode = req.params.menuItemCode;
+  const tenantId     = req.user.tenantId;
+  const { permissions } = req.body; // [{ fieldCode, isAllowed }]
+
+  if (!Array.isArray(permissions))
+    return res.status(400).json({ success: false, message: 'permissions חסר' });
+
+  try {
+    await poolConnect;
+    const pool = await getPool();
+    for (const p of permissions) {
+      await pool.request()
+        .input('RoleID',       sql.Int,          roleId)
+        .input('TenantID',     sql.Int,          tenantId)
+        .input('MenuItemCode', sql.NVarChar(50),  menuItemCode)
+        .input('FieldCode',    sql.NVarChar(100), p.fieldCode)
+        .input('IsAllowed',    sql.Bit,           p.isAllowed ? 1 : 0)
+        .query(`
+          IF EXISTS (SELECT 1 FROM tblRoleFieldPermissions
+                     WHERE RoleID=@RoleID AND TenantID=@TenantID
+                       AND MenuItemCode=@MenuItemCode AND FieldCode=@FieldCode)
+            UPDATE tblRoleFieldPermissions
+            SET IsAllowed=@IsAllowed, UpdatedAt=GETDATE()
+            WHERE RoleID=@RoleID AND TenantID=@TenantID
+              AND MenuItemCode=@MenuItemCode AND FieldCode=@FieldCode
+          ELSE
+            INSERT INTO tblRoleFieldPermissions
+              (RoleID, TenantID, MenuItemCode, FieldCode, IsAllowed)
+            VALUES (@RoleID, @TenantID, @MenuItemCode, @FieldCode, @IsAllowed)
+        `);
+    }
+    res.json({ success: true, message: 'הרשאות שדות נשמרו' });
+  } catch(e) {
     res.status(500).json({ success: false, message: e.message });
   }
 });

@@ -9,10 +9,7 @@
       </h2>
       <p class="mgr-subtitle">הגדרת תפקידים + מטריצת הרשאות פר-מסך ופר-פעולה</p>
     </div>
-    <button class="btn-save" (click)="openAddRole()">
-      <kendo-svg-icon [icon]="icons.plus" />
-      תפקיד חדש
-    </button>
+    <button class="btn-save" (click)="openAddRole()">✓ תפקיד חדש</button>
   </div>
 
   @if (loading()) {
@@ -103,14 +100,23 @@
                 <span class="dirty-badge">שינויים שלא נשמרו</span>
               }
             </div>
-            <button class="btn-save btn-save--sm" (click)="saveMatrix()" [disabled]="saving() || !matrixDirty()">
-              @if (saving()) { <mat-spinner [diameter]="14" /> } @else { ✓ }
-              שמור הרשאות
-            </button>
+            @if (!isSuperAdmin()) {
+              <button class="btn-save btn-save--sm" (click)="saveMatrix()" [disabled]="saving() || !matrixDirty()">
+                @if (saving()) { <mat-spinner [diameter]="14" /> } @else { ✓ }
+                שמור הרשאות
+              </button>
+            }
           </div>
 
           @if (matrixLoading()) {
             <div class="center-spinner"><mat-spinner [diameter]="30" /></div>
+          }
+
+          @if (isSuperAdmin()) {
+            <div class="sa-banner">
+              <mat-icon>lock</mat-icon>
+              משתמש Super Admin מקבל גישה מלאה לכל המסכים בהגדרה — לא ניתן לשנות
+            </div>
           }
 
           @if (!matrixLoading() && matrixData().length > 0) {
@@ -121,10 +127,11 @@
                     <th class="col-screen">מסך</th>
                     @for (action of allActions(); track action) {
                       <th class="col-action"
-                          kendoTooltip [title]="action"
-                          (click)="toggleAllForAction(action)">
+                          kendoTooltip [title]="getActionLabel(action)"
+                          (click)="!isSuperAdmin() && toggleAllForAction(action)">
                         <div class="action-header">
-                          <div class="action-name-short">{{ action.replace('VIEW_','') }}</div>
+                          <span class="action-abbr">{{ getActionShortLabel(action) }}</span>
+                          <div class="action-label-full">{{ getActionLabel(action) }}</div>
                           <div class="col-indicator"
                                [class.all-on]="actionIsAllowedForAll(action)"
                                [class.all-off]="actionIsAllowedForNone(action)">
@@ -132,43 +139,101 @@
                         </div>
                       </th>
                     }
-                    <th class="col-all" title="הכל">✦</th>
+                    <th class="col-row-actions">פעולות</th>
                   </tr>
                 </thead>
                 <tbody>
-                  @for (row of matrixData(); track row.MenuItemID) {
-                    <tr [class.folder-row]="row.MenuItemType === 'FOLDER'"
-                        [class.child-row]="row.ParentID !== null">
-                      <td class="cell-screen">
-                        <div class="screen-name" [class.indented]="row.ParentID !== null">
-                          @if (row.MenuItemType === 'FOLDER') {
-                            <mat-icon class="folder-icon">folder</mat-icon>
-                          }
-                          {{ row.MenuItemName }}
-                          <span class="screen-code">{{ row.MenuItemCode }}</span>
-                        </div>
-                      </td>
-                      @for (action of allActions(); track action) {
-                        <td class="cell-perm"
-                            [class.cell-na]="!row.actions[action]"
-                            [class.cell-on]="row.actions[action]?.allowed"
-                            [class.cell-off]="row.actions[action] && !row.actions[action].allowed"
-                            (click)="toggleCell(row, action)">
-                          @if (row.actions[action]) {
-                            <span class="perm-toggle">
-                              {{ row.actions[action].allowed ? '✓' : '✗' }}
-                            </span>
-                          } @else {
-                            <span class="perm-na">—</span>
+                  @for (group of matrixGroups(); track group.label) {
+                    <tr class="group-row-header">
+                      <td [attr.colspan]="allActions().length + 2" class="group-label">{{ group.label }}</td>
+                    </tr>
+                    @for (row of group.rows; track row.MenuItemID) {
+                      <tr [class.folder-row]="row.MenuItemType === 'FOLDER'"
+                          [class.child-row]="row.ParentID !== null"
+                          [class.sa-row]="isSuperAdmin()"
+                          [class.row-expanded]="isScreenExpanded(row.MenuItemID)">
+                        <td class="cell-screen">
+                          <div class="screen-name" [class.indented]="row.ParentID !== null">
+                            @if (row.MenuItemType === 'FOLDER') {
+                              <mat-icon class="folder-icon">folder</mat-icon>
+                            }
+                            {{ getScreenLabel(row.MenuItemCode) }}
+                          </div>
+                        </td>
+                        @for (action of allActions(); track action) {
+                          <td class="cell-perm"
+                              [class.cell-na]="!row.actions[action]"
+                              [class.cell-on]="row.actions[action]?.allowed"
+                              [class.cell-off]="row.actions[action] && !row.actions[action].allowed"
+                              [class.cell-locked]="isSuperAdmin()"
+                              (click)="!isSuperAdmin() && toggleCell(row, action)">
+                            @if (row.actions[action]) {
+                              <span class="perm-toggle">{{ row.actions[action].allowed ? '✓' : '✗' }}</span>
+                            } @else {
+                              <span class="perm-na">—</span>
+                            }
+                          </td>
+                        }
+                        <!-- Actions column -->
+                        <td class="cell-row-actions">
+                          @if (!isSuperAdmin()) {
+                            <button class="row-act-btn row-act-all"
+                                    kendoTooltip [title]="screenAllAllowed(row) ? 'בטל הכל' : 'אשר הכל'"
+                                    (click)="toggleAllForScreen(row)">
+                              {{ screenAllAllowed(row) ? '✗' : '✓' }}
+                            </button>
+                            @if (row.MenuItemType === 'SCREEN') {
+                              <button class="row-act-btn row-act-fields"
+                                      kendoTooltip title="הרשאות שדות"
+                                      [class.expanded]="isScreenExpanded(row.MenuItemID)"
+                                      (click)="$event.stopPropagation(); toggleScreenExpand(row)">
+                                <mat-icon>{{ isScreenExpanded(row.MenuItemID) ? 'expand_less' : 'list_alt' }}</mat-icon>
+                              </button>
+                            }
                           }
                         </td>
+                      </tr>
+
+                      <!-- ── Field accordion sub-rows ── -->
+                      @if (isScreenExpanded(row.MenuItemID) && row.MenuItemType === 'SCREEN') {
+                        @if (isScreenFieldPermsLoading(row.MenuItemCode)) {
+                          <tr class="field-sub-row">
+                            <td [attr.colspan]="allActions().length + 2" class="field-sub-loading">
+                              <mat-spinner [diameter]="16" />
+                            </td>
+                          </tr>
+                        } @else if (getInlineFieldPerms(row.MenuItemCode).length === 0) {
+                          <tr class="field-sub-row field-sub-empty-row">
+                            <td [attr.colspan]="allActions().length + 2" class="field-sub-empty-cell">
+                              <mat-icon>info_outline</mat-icon>
+                              אין שדות מוגדרים עם הגבלת הרשאה — הגדר בעץ התפריטים ← שדות המסך
+                            </td>
+                          </tr>
+                        } @else {
+                          @for (f of getInlineFieldPerms(row.MenuItemCode); track f.FieldCode) {
+                            <tr class="field-sub-row" [class.field-sub-allowed]="f.IsAllowed" [class.field-sub-denied]="!f.IsAllowed">
+                              <td [attr.colspan]="allActions().length + 2" class="field-sub-cell">
+                                <div class="field-sub-content">
+                                  <span class="field-sub-tree">└</span>
+                                  <span class="field-sub-label">{{ f.FieldLabel }}</span>
+                                  <span class="field-sub-code">{{ f.FieldCode }}</span>
+                                  <span class="req-tag" [ngClass]="getRequiredActionClass(f.RequiredAction)">
+                                    {{ getRequiredActionLabel(f.RequiredAction) }}
+                                  </span>
+                                  <div class="seg-ctrl seg-ctrl--xs">
+                                    <button type="button" class="seg-btn" [class.seg-on]="f.IsAllowed"
+                                            (click)="!f.IsAllowed && toggleInlineFieldPerm(row.MenuItemCode, f.FieldCode)">✓ מורשה</button>
+                                    <button type="button" class="seg-btn" [class.seg-off]="!f.IsAllowed"
+                                            (click)="f.IsAllowed && toggleInlineFieldPerm(row.MenuItemCode, f.FieldCode)">✗ חסום</button>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          }
+                        }
                       }
-                      <td class="cell-all" (click)="toggleAllForScreen(row)"
-                          [class.all-screen-on]="screenAllAllowed(row)"
-                          kendoTooltip title="הפעל/כבה הכל לשורה זו">
-                        <span>{{ screenAllAllowed(row) ? '●' : '○' }}</span>
-                      </td>
-                    </tr>
+
+                    }
                   }
                 </tbody>
               </table>
@@ -177,7 +242,7 @@
               <span class="legend-on">✓ מורשה</span>
               <span class="legend-off">✗ לא מורשה</span>
               <span class="legend-na">— לא רלוונטי</span>
-              <span class="legend-tip">💡 לחץ על כותרת עמודה כדי להפעיל/לכבות לכולם</span>
+              <span class="legend-tip">💡 לחץ על כותרת עמודה להפעלה/כיבוי לכולם | כפתור שדות = הרשאות שדה</span>
             </div>
           }
         }
@@ -286,3 +351,4 @@
     </kendo-dialog-actions>
   </kendo-dialog>
 }
+

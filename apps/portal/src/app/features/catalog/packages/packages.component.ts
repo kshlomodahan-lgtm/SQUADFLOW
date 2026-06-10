@@ -10,6 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { Package } from '../../../core/models/catalog.model';
 import { PackageDialogComponent } from './package-dialog/package-dialog.component';
+import { HasPermDirective } from '../../../core/directives/has-perm.directive';
 
 @Component({
   selector: 'app-packages',
@@ -19,6 +20,7 @@ import { PackageDialogComponent } from './package-dialog/package-dialog.componen
     GridModule, ExcelModule, PDFModule, ButtonsModule,
     MatIconModule, MatProgressSpinnerModule,
     PackageDialogComponent,
+    HasPermDirective,
   ],
   templateUrl: './packages.component.html',
   styleUrl:    './packages.component.scss',

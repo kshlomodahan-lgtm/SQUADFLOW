@@ -4,6 +4,110 @@
   padding: 40px;
 }
 
+// ── Sidebar Nav Layout ────────────────────────────────
+.user-dialog-body {
+  display: flex;
+  direction: rtl;
+  gap: 0;
+  min-height: 340px;
+}
+
+.user-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 8px;
+  width: 160px;
+  flex-shrink: 0;
+  border-inline-end: 1px solid var(--sf-border);
+  background: var(--sf-bg-card);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sf-text-secondary);
+  font-size: .83rem;
+  font-weight: 500;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  cursor: pointer;
+  text-align: right;
+  direction: rtl;
+  transition: background .15s, color .15s;
+
+  kendo-svg-icon { font-size: 1rem; flex-shrink: 0; }
+
+  &:hover { background: var(--sf-bg-hover); color: var(--sf-text); }
+
+  &.active {
+    background: var(--sf-primary-light, #eff6ff);
+    color: var(--sf-primary);
+    font-weight: 600;
+  }
+}
+
+.user-content {
+  flex: 1;
+  padding: 20px 24px;
+  direction: rtl;
+  overflow-y: auto;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-title {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--sf-text);
+  margin: 0 0 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--sf-border);
+}
+
+// ── Settings placeholder ──────────────────────────────
+.settings-placeholder {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--sf-text-muted);
+
+  .placeholder-icon { font-size: 2.5rem; margin-bottom: 12px; }
+  h3 { font-size: .95rem; font-weight: 700; color: var(--sf-text-secondary); margin: 0 0 8px; }
+  p  { font-size: .82rem; line-height: 1.5; margin: 0; }
+}
+
+// ── Role Info ─────────────────────────────────────────
+.role-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #eff6ff;
+  border-radius: 8px;
+  font-size: .8rem;
+  color: #1e40af;
+  direction: rtl;
+
+  .role-info-icon {
+    width: 18px; height: 18px;
+    background: #3b82f6; color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .7rem; font-weight: 700;
+    flex-shrink: 0; margin-top: 1px;
+  }
+}
+
 .user-form {
   display: flex;
   flex-direction: column;
@@ -132,9 +236,14 @@
   }
 
   .k-dialog-content {
-    padding: 24px 28px !important;
+    padding: 0 !important;
     background: var(--sf-bg) !important;
     direction: rtl;
+    overflow: hidden;
+  }
+
+  .error-banner {
+    margin: 16px 20px 0;
   }
 
   .k-dialog-actions {

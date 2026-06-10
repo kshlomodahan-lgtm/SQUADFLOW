@@ -2,6 +2,7 @@ const express = require('express');
 const router  = express.Router();
 const { sql, getPool } = require('../db');
 const requireAuth = require('../middleware/auth');
+const { checkPermission } = require('../middleware/auth');
 const { logAction } = require('../helpers/auditLogger');
 
 router.use(requireAuth);
@@ -40,7 +41,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/products
-router.post('/', async (req, res) => {
+router.post('/', checkPermission('CATALOG_PRODUCTS', 'CREATE'), async (req, res) => {
   try {
     const r = await _saveProduct(0, req.user.tenantId, req.body);
     if (r.output.ResultCode !== 0)
@@ -54,7 +55,7 @@ router.post('/', async (req, res) => {
 });
 
 // PUT /api/products/:id
-router.put('/:id', async (req, res) => {
+router.put('/:id', checkPermission('CATALOG_PRODUCTS', 'UPDATE'), async (req, res) => {
   try {
     const r = await _saveProduct(parseInt(req.params.id), req.user.tenantId, req.body);
     if (r.output.ResultCode !== 0)

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../core/services/auth.service';
 import { ThemeService } from '../core/services/theme.service';
+import { RbacService } from '../core/services/rbac.service';
 
 interface NavItem  { icon: string; label: string; route: string; }
 interface NavGroup { label: string; items: NavItem[]; }
@@ -21,7 +22,7 @@ interface NavGroup { label: string; items: NavItem[]; }
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
 })
-export class ShellComponent {
+export class ShellComponent implements OnInit {
   sidebarOpen = true;
 
   navGroups: NavGroup[] = [
@@ -55,7 +56,15 @@ export class ShellComponent {
     },
   ];
 
-  constructor(public auth: AuthService, public theme: ThemeService) {}
+  constructor(
+    public auth:  AuthService,
+    public theme: ThemeService,
+    private rbac: RbacService,
+  ) {}
+
+  ngOnInit() {
+    this.rbac.resolvePermissions().subscribe();
+  }
 
   logout() { this.auth.logout(); }
 }

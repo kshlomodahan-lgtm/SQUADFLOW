@@ -5,7 +5,8 @@
       <h1>קטגוריות מוצרים</h1>
       <p>{{ cats().length }} קטגוריות במערכת</p>
     </div>
-    <button kendoButton themeColor="primary" [svgIcon]="addIcon" (click)="openAdd()">
+    <button *appHasPerm="'CATALOG_CATEGORIES:CREATE'"
+            kendoButton themeColor="primary" [svgIcon]="addIcon" (click)="openAdd()">
       קטגוריה חדשה
     </button>
   </div>
@@ -137,14 +138,16 @@
                     (click)="toggleDetail(row.CategoryID, rowIndex)">
               <i class="pi" [class.pi-chevron-down]="!isExpanded(row.CategoryID)" [class.pi-chevron-up]="isExpanded(row.CategoryID)"></i>
             </button>
-            <button class="act-btn"
+            <button *appHasPerm="'CATALOG_CATEGORIES:UPDATE'"
+                    class="act-btn"
                     [class.act-lock]="row.IsActive"
                     [class.act-unlock]="!row.IsActive"
                     [title]="row.IsActive ? 'השבת' : 'הפעל'"
                     (click)="toggleActive(row)">
               <i class="pi" [class.pi-lock]="row.IsActive" [class.pi-lock-open]="!row.IsActive"></i>
             </button>
-            <button class="act-btn act-edit" title="ערוך" (click)="openEdit(row)">
+            <button *appHasPerm="'CATALOG_CATEGORIES:UPDATE'"
+                    class="act-btn act-edit" title="ערוך" (click)="openEdit(row)">
               <i class="pi pi-pencil"></i>
             </button>
           </div>

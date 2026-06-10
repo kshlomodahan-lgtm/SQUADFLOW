@@ -14,4 +14,5 @@ export interface User {
   OrgName:        string;
   LogoUrl:        string;
   RoleName:       string;
+  RoleCode:       string;
 }

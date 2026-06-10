@@ -10,6 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { Product, PRICING_MODEL_LABELS, PRODUCT_STATUS_LABELS } from '../../../core/models/catalog.model';
 import { ProductDialogComponent } from './product-dialog/product-dialog.component';
+import { HasPermDirective } from '../../../core/directives/has-perm.directive';
 
 @Component({
   selector: 'app-products',
@@ -19,6 +20,7 @@ import { ProductDialogComponent } from './product-dialog/product-dialog.componen
     GridModule, ExcelModule, PDFModule, ButtonsModule,
     MatIconModule, MatProgressSpinnerModule,
     ProductDialogComponent,
+    HasPermDirective,
   ],
   templateUrl: './products.component.html',
   styleUrl:    './products.component.scss',
