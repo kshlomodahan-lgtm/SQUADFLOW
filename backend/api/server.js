@@ -5,6 +5,7 @@ const helmet   = require('helmet');
 const path     = require('path');
 const cron     = require('node-cron');
 const { refreshRates, isUpToDate } = require('./services/exchangeRateService');
+const { runSeed } = require('./helpers/dbSeeder');
 
 const app = express();
 app.set('trust proxy', true);
@@ -61,6 +62,9 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
   console.log(`\n✅  Profits CRM Server running on http://localhost:${PORT}`);
   console.log(`📦  DB: ${process.env.DB_SERVER} / ${process.env.DB_NAME}\n`);
+
+  // DB seed — action types, missing tables, default permissions
+  runSeed().catch(e => console.warn('[seeder] startup error:', e.message));
 
   // Auto-fetch exchange rates on startup if not yet updated today
   try {

@@ -12,18 +12,31 @@ async function initGroupTables() {
   await pool.request().query(`
     IF NOT EXISTS (SELECT 1 FROM sysobjects WHERE name='tblGroups' AND xtype='U')
     CREATE TABLE dbo.tblGroups (
-      GroupID    INT IDENTITY(1,1) PRIMARY KEY,
-      TenantID   INT NOT NULL,
-      GroupName  NVARCHAR(100) NOT NULL,
-      GroupCode  VARCHAR(50)   NOT NULL,
+      GroupID     INT IDENTITY(1,1) PRIMARY KEY,
+      TenantID    INT NOT NULL,
+      GroupName   NVARCHAR(100) NOT NULL,
+      GroupCode   VARCHAR(50)   NOT NULL,
       Description NVARCHAR(300) DEFAULT '',
-      ColorHex   VARCHAR(7)    DEFAULT '#64748b',
-      SortOrder  INT           DEFAULT 0,
-      IsActive   BIT           DEFAULT 1,
-      CreatedAt  DATETIME      DEFAULT GETDATE(),
-      UpdatedAt  DATETIME      DEFAULT GETDATE(),
+      ColorHex    VARCHAR(7)    DEFAULT '#64748b',
+      SortOrder   INT           DEFAULT 0,
+      IsActive    BIT           DEFAULT 1,
+      CreatedAt   DATETIME      DEFAULT GETDATE(),
+      UpdatedAt   DATETIME      DEFAULT GETDATE(),
       CONSTRAINT UQ_Groups_Code UNIQUE (TenantID, GroupCode)
     );
+
+    -- Add missing columns to existing tblGroups
+    IF EXISTS (SELECT 1 FROM sysobjects WHERE name='tblGroups' AND xtype='U')
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.tblGroups') AND name='SortOrder')
+        ALTER TABLE dbo.tblGroups ADD SortOrder INT DEFAULT 0;
+      IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.tblGroups') AND name='Description')
+        ALTER TABLE dbo.tblGroups ADD Description NVARCHAR(300) DEFAULT '';
+      IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.tblGroups') AND name='ColorHex')
+        ALTER TABLE dbo.tblGroups ADD ColorHex VARCHAR(7) DEFAULT '#64748b';
+      IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.tblGroups') AND name='UpdatedAt')
+        ALTER TABLE dbo.tblGroups ADD UpdatedAt DATETIME DEFAULT GETDATE();
+    END
 
     IF NOT EXISTS (SELECT 1 FROM sysobjects WHERE name='tblGroupRoles' AND xtype='U')
     CREATE TABLE dbo.tblGroupRoles (
@@ -36,8 +49,8 @@ async function initGroupTables() {
 
     IF NOT EXISTS (SELECT 1 FROM sysobjects WHERE name='tblUserGroups' AND xtype='U')
     CREATE TABLE dbo.tblUserGroups (
-      UserID    INT NOT NULL,
-      GroupID   INT NOT NULL,
+      UserID     INT NOT NULL,
+      GroupID    INT NOT NULL,
       AssignedAt DATETIME DEFAULT GETDATE(),
       PRIMARY KEY (UserID, GroupID),
       FOREIGN KEY (GroupID) REFERENCES dbo.tblGroups(GroupID) ON DELETE CASCADE
