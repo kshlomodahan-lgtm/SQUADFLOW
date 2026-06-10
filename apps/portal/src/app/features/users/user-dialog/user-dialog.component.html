@@ -128,6 +128,17 @@
                 </div>
               }
 
+              <!-- איפוס סיסמה — עריכה בלבד -->
+              @if (isEdit) {
+                <div class="form-row">
+                  <label class="field-label">סיסמה חדשה <span class="field-hint">(אופציונלי)</span></label>
+                  <div class="field-wrap">
+                    <kendo-textbox formControlName="newPassword" placeholder="השאר ריק לשמירת הסיסמה הקיימת" [type]="'password'" />
+                    @if (newPasswordErr) { <small class="err-msg">לפחות 6 תווים</small> }
+                  </div>
+                </div>
+              }
+
               <!-- סטטוס — עריכה בלבד -->
               @if (isEdit) {
                 <div class="form-row">

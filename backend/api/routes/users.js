@@ -15,6 +15,7 @@ router.get('/roles', requireAuth, async (req, res) => {
               FROM dbo.tblRoles
               WHERE (TenantID = @TenantID OR TenantID = 0)
                 AND IsActive = 1
+                AND RoleID > 1
               ORDER BY SortOrder, RoleID`);
     return res.json({ success: true, roles: result.recordset });
   } catch (err) {
@@ -199,6 +200,51 @@ router.put('/:id', requireAuth, checkPermission('USERS', 'UPDATE'), async (req, 
     return res.json({ success: true, message: ResultMessage });
   } catch (err) {
     console.error('PUT /users/:id error:', err);
+    return res.status(500).json({ success: false, message: 'שגיאת שרת' });
+  }
+});
+
+// ── PUT /api/users/:id/password — איפוס סיסמה (PLATFORM_ADMIN + SUPER_ADMIN בלבד)
+router.put('/:id/password', requireAuth, checkPermission('USERS', 'UPDATE'), async (req, res) => {
+  const id = parseInt(req.params.id);
+  const { newPassword } = req.body;
+
+  if (!newPassword || newPassword.length < 6)
+    return res.status(400).json({ success: false, message: 'סיסמה חייבת להכיל לפחות 6 תווים' });
+
+  // רק PLATFORM_ADMIN(1) ו-SUPER_ADMIN(2) מורשים
+  if (req.user.roleId > 2)
+    return res.status(403).json({ success: false, message: 'אין הרשאה לשנות סיסמת משתמש אחר' });
+
+  try {
+    const pool = await getPool();
+
+    // וידוא שהמשתמש שייך ל-tenant (מלבד PLATFORM_ADMIN שרואה הכל)
+    const check = await pool.request()
+      .input('UserID', sql.Int, id)
+      .query('SELECT TenantID, FirstName, LastName FROM dbo.tblUsers WHERE UserID=@UserID AND IsActive=1');
+
+    if (!check.recordset.length)
+      return res.status(404).json({ success: false, message: 'משתמש לא נמצא' });
+
+    const target = check.recordset[0];
+    if (req.user.roleId !== 1 && target.TenantID !== req.user.tenantId)
+      return res.status(403).json({ success: false, message: 'אין הרשאה' });
+
+    const salt = crypto.randomBytes(32).toString('base64');
+    const hash = crypto.createHash('sha256').update(newPassword + salt, 'utf8').digest('base64');
+
+    await pool.request()
+      .input('UserID',       sql.Int,         id)
+      .input('PasswordHash', sql.VarChar(255), hash)
+      .input('PasswordSalt', sql.VarChar(100), salt)
+      .query('UPDATE dbo.tblUsers SET PasswordHash=@PasswordHash, PasswordSalt=@PasswordSalt WHERE UserID=@UserID');
+
+    await logAction(req, { actionType: 'UPDATE', entityType: 'USER', entityId: id,
+      entityName: `${target.FirstName} ${target.LastName}`, newValue: { password: '***changed***' } });
+
+    return res.json({ success: true, message: 'הסיסמה עודכנה בהצלחה' });
+  } catch (err) {
     return res.status(500).json({ success: false, message: 'שגיאת שרת' });
   }
 });

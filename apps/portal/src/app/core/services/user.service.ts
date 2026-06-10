@@ -31,6 +31,10 @@ export class UserService {
     return this.http.put(`${this.base}/${id}`, data);
   }
 
+  changePassword(id: number, newPassword: string): Observable<{ success: boolean; message: string }> {
+    return this.http.put<{ success: boolean; message: string }>(`${this.base}/${id}/password`, { newPassword });
+  }
+
   toggleActive(id: number): Observable<{ success: boolean; isActive: boolean }> {
     return this.http.put<{ success: boolean; isActive: boolean }>(`${this.base}/${id}/toggle`, {});
   }
