@@ -243,6 +243,58 @@
 }
 .pos-vacant { font-size: .78rem; color: var(--sf-text-muted); font-style: italic; }
 
+.assign-btn {
+  margin-top: 8px; width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  background: color-mix(in srgb, var(--sf-primary) 8%, transparent);
+  color: var(--sf-primary);
+  border: 1px dashed color-mix(in srgb, var(--sf-primary) 40%, transparent);
+  border-radius: 7px; padding: 5px 10px;
+  font-size: .78rem; font-weight: 600; cursor: pointer;
+  transition: background .12s, border-color .12s;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  mat-icon { font-size: 14px !important; width: 14px !important; height: 14px !important; }
+  &:hover { background: color-mix(in srgb, var(--sf-primary) 14%, transparent); border-style: solid; }
+}
+
+// ─── Assign Dialog ────────────────────────────────────────────
+.assign-dialog-body { padding: 4px 0; direction: rtl; }
+
+.occupants-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
+
+.occupants-label {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--sf-text-muted); margin-bottom: 4px;
+}
+
+.occupant-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: 8px;
+  background: var(--sf-bg); border: 1px solid var(--sf-border);
+}
+
+.occ-icon {
+  font-size: 18px !important; width: 18px !important; height: 18px !important;
+  color: var(--sf-primary); flex-shrink: 0;
+}
+.occ-name { font-size: .85rem; font-weight: 600; color: var(--sf-text); flex: 1; }
+.occ-username { font-size: .75rem; color: var(--sf-text-muted); }
+.occ-remove {
+  background: none; border: none; cursor: pointer; padding: 2px;
+  color: var(--sf-text-muted); border-radius: 4px; display: flex; align-items: center;
+  mat-icon { font-size: 16px !important; width: 16px !important; height: 16px !important; }
+  &:hover { background: #ef444415; color: #ef4444; }
+}
+
+.assign-divider { height: 1px; background: var(--sf-border); margin: 14px 0; }
+
+.assign-all-filled {
+  display: flex; align-items: center; gap: 8px; padding: 14px;
+  border-radius: 8px; background: #10b98112; color: #059669;
+  font-size: .85rem; font-weight: 600;
+  mat-icon { font-size: 20px !important; width: 20px !important; height: 20px !important; }
+}
+
 .positions-empty {
   grid-column: 1/-1; display: flex; flex-direction: column; align-items: center;
   padding: 28px; color: var(--sf-text-muted);

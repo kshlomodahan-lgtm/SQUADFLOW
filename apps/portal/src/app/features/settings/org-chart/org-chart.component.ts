@@ -19,7 +19,8 @@ import {
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { RbacService, OrgUnit, JobTitle, OrgPosition, RoleItem } from '../../../core/services/rbac.service';
+import { HttpClient } from '@angular/common/http';
+import { RbacService, OrgUnit, JobTitle, OrgPosition, OrgPosition as Pos, PositionOccupant, RoleItem } from '../../../core/services/rbac.service';
 
 interface OrgUnitTree extends OrgUnit {
   children: OrgUnitTree[];
@@ -74,10 +75,16 @@ export class OrgChartComponent implements OnInit {
   unitDialogOpen     = signal(false);
   titleDialogOpen    = signal(false);
   positionDialogOpen = signal(false);
+  assignDialogOpen   = signal(false);
   deleteConfirmOpen  = signal(false);
   unitToDelete       = signal<OrgUnit | null>(null);
   editingUnit       = signal<OrgUnit | null>(null);
   editingTitle      = signal<JobTitle | null>(null);
+
+  selectedPosition  = signal<OrgPosition | null>(null);
+  positionOccupants = signal<PositionOccupant[]>([]);
+  tenantUsers       = signal<{ UserID: number; FullName: string }[]>([]);
+  assignForm!: FormGroup;
 
   unitForm!:     FormGroup;
   titleForm!:    FormGroup;
@@ -96,11 +103,18 @@ export class OrgChartComponent implements OnInit {
     private svc: RbacService,
     private fb: FormBuilder,
     private notify: NotificationService,
+    private http: HttpClient,
   ) {}
 
   ngOnInit() {
     this.buildForms();
     this.loadAll();
+  }
+
+  private loadTenantUsers() {
+    this.http.get<any>('/api/users').subscribe({
+      next: r => this.tenantUsers.set((r.users || []).map((u: any) => ({ UserID: u.UserID, FullName: u.FullName }))),
+    });
   }
 
   private buildForms() {
@@ -127,10 +141,15 @@ export class OrgChartComponent implements OnInit {
       reportsToPositionId:  [0],
       headCount:            [1],
     });
+    this.assignForm = this.fb.group({
+      userId:    [null, Validators.required],
+      startDate: [new Date().toISOString().slice(0, 10)],
+    });
   }
 
   loadAll() {
     this.loading.set(true);
+    this.loadTenantUsers();
     Promise.all([
       this.svc.getOrgUnits().toPromise(),
       this.svc.getJobTitles().toPromise(),
@@ -310,6 +329,52 @@ export class OrgChartComponent implements OnInit {
       },
       error: () => { this.saving.set(false); },
     });
+  }
+
+  // ─── Assign User ───────────────────────────────────────────
+
+  openAssignDialog(pos: OrgPosition) {
+    this.selectedPosition.set(pos);
+    this.assignForm.reset({ userId: null, startDate: new Date().toISOString().slice(0, 10) });
+    this.svc.getPositionUsers(pos.PositionID).subscribe({
+      next: r => this.positionOccupants.set(r.data),
+    });
+    this.assignDialogOpen.set(true);
+  }
+
+  saveAssignment() {
+    if (this.assignForm.invalid) { this.assignForm.markAllAsTouched(); return; }
+    const pos = this.selectedPosition();
+    if (!pos) return;
+    const v = this.assignForm.value;
+    this.saving.set(true);
+    this.svc.assignUserToPosition(pos.PositionID, v.userId, v.startDate).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.svc.getPositionUsers(pos.PositionID).subscribe({ next: r => this.positionOccupants.set(r.data) });
+        this.assignForm.reset({ userId: null, startDate: new Date().toISOString().slice(0, 10) });
+        this.loadPositions(this.selectedUnit()!.OrgUnitID);
+        this.notify.show({ content: 'עובד שויך למשרה', type: { style: 'success', icon: true }, position: { horizontal: 'center', vertical: 'top' } });
+      },
+      error: err => { this.saving.set(false); this.notify.show({ content: err.error?.message ?? 'שגיאה', type: { style: 'error', icon: true }, position: { horizontal: 'center', vertical: 'top' } }); },
+    });
+  }
+
+  removeOccupant(occupant: PositionOccupant) {
+    const pos = this.selectedPosition();
+    if (!pos) return;
+    this.svc.removeUserFromPosition(pos.PositionID, occupant.UserID).subscribe({
+      next: () => {
+        this.positionOccupants.update(list => list.filter(o => o.UserID !== occupant.UserID));
+        this.loadPositions(this.selectedUnit()!.OrgUnitID);
+        this.notify.show({ content: 'עובד הוסר מהמשרה', type: { style: 'warning', icon: true }, position: { horizontal: 'center', vertical: 'top' } });
+      },
+    });
+  }
+
+  get usersForAssign() {
+    const occupied = new Set(this.positionOccupants().map(o => o.UserID));
+    return this.tenantUsers().filter(u => !occupied.has(u.UserID));
   }
 
   // ─── Helpers ───────────────────────────────────────────────

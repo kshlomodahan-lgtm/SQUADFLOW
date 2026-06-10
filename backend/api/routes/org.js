@@ -223,6 +223,45 @@ router.post('/positions', async (req, res) => {
   }
 });
 
+// GET /api/org/positions/:id/users — list occupants
+router.get('/positions/:id/users', async (req, res) => {
+  const positionId = parseInt(req.params.id);
+  try {
+    await poolConnect;
+    const pool = await getPool();
+    const result = await pool.request()
+      .input('PositionID', sql.Int, positionId)
+      .query(`
+        SELECT up.UserPositionID, up.UserID, up.StartDate, up.EndDate, up.IsPrimary,
+               u.FirstName + N' ' + u.LastName AS FullName, u.Username, u.Email
+        FROM dbo.tblUserPositions up
+        JOIN dbo.tblUsers u ON u.UserID = up.UserID
+        WHERE up.PositionID = @PositionID AND up.IsActive = 1
+        ORDER BY up.IsPrimary DESC, u.FirstName
+      `);
+    res.json({ success: true, data: result.recordset });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+// DELETE /api/org/positions/:id/users/:userId — remove occupant
+router.delete('/positions/:id/users/:userId', async (req, res) => {
+  const positionId = parseInt(req.params.id);
+  const userId     = parseInt(req.params.userId);
+  try {
+    await poolConnect;
+    const pool = await getPool();
+    await pool.request()
+      .input('PositionID', sql.Int, positionId)
+      .input('UserID',     sql.Int, userId)
+      .query('UPDATE dbo.tblUserPositions SET IsActive=0 WHERE PositionID=@PositionID AND UserID=@UserID');
+    res.json({ success: true, message: 'עובד הוסר מהמשרה' });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
 // POST /api/org/positions/:id/assign — assign user to position
 router.post('/positions/:id/assign', async (req, res) => {
   const positionId = parseInt(req.params.id);

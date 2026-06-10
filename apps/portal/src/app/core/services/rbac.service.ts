@@ -77,6 +77,17 @@ export interface JobTitle {
   IsActive: boolean;
 }
 
+export interface PositionOccupant {
+  UserPositionID: number;
+  UserID: number;
+  FullName: string;
+  Username: string;
+  Email: string;
+  StartDate: string | null;
+  EndDate: string | null;
+  IsPrimary: boolean;
+}
+
 export interface OrgPosition {
   PositionID: number;
   OrgUnitID: number;
@@ -269,6 +280,14 @@ export class RbacService {
 
   assignUserToPosition(positionId: number, userId: number, startDate: string): Observable<any> {
     return this.http.post(`/api/org/positions/${positionId}/assign`, { userId, startDate, isPrimary: true, autoAssignRole: true });
+  }
+
+  getPositionUsers(positionId: number): Observable<{ success: boolean; data: PositionOccupant[] }> {
+    return this.http.get<any>(`/api/org/positions/${positionId}/users`);
+  }
+
+  removeUserFromPosition(positionId: number, userId: number): Observable<any> {
+    return this.http.delete(`/api/org/positions/${positionId}/users/${userId}`);
   }
 
   // ── Client-side permission resolver ──────────────────────

@@ -134,6 +134,10 @@
                       } @else {
                         <div class="pos-vacant">⬡ משרה פנויה</div>
                       }
+                      <button class="assign-btn" type="button" (click)="openAssignDialog(pos)">
+                        <mat-icon>person_add</mat-icon>
+                        שייך עובד
+                      </button>
                     </div>
                   </div>
                 }
@@ -328,6 +332,66 @@
       <div class="dialog-footer">
         <button class="btn-danger-solid" (click)="confirmDeleteUnit()">מחק</button>
         <button class="btn-cancel" (click)="cancelDeleteUnit()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}
+
+<!-- ═══ Assign User Dialog ═══ -->
+@if (assignDialogOpen()) {
+  <kendo-dialog [title]="'שיוך עובד — ' + selectedPosition()?.DisplayName" [width]="480" (close)="assignDialogOpen.set(false)">
+    <div class="assign-dialog-body">
+
+      <!-- רשימת מאיישים קיימים -->
+      @if (positionOccupants().length > 0) {
+        <div class="occupants-list">
+          <div class="occupants-label">מאיישים נוכחיים</div>
+          @for (occ of positionOccupants(); track occ.UserID) {
+            <div class="occupant-row">
+              <mat-icon class="occ-icon">person</mat-icon>
+              <span class="occ-name">{{ occ.FullName }}</span>
+              <span class="occ-username">{{ occ.Username }}</span>
+              <button class="occ-remove" type="button" (click)="removeOccupant(occ)" kendoTooltip title="הסר">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+        <div class="assign-divider"></div>
+      }
+
+      <!-- טופס שיוך חדש -->
+      @if (usersForAssign.length > 0) {
+        <form [formGroup]="assignForm" class="org-form">
+          <div class="form-field">
+            <label class="field-label">עובד לשיוך <span class="req">*</span></label>
+            <kendo-dropdownlist
+              formControlName="userId"
+              [data]="usersForAssign"
+              textField="FullName"
+              valueField="UserID"
+              [valuePrimitive]="true"
+              [defaultItem]="{ UserID: null, FullName: 'בחר עובד...' }" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">תאריך תחילת תפקיד</label>
+            <kendo-textbox formControlName="startDate" placeholder="YYYY-MM-DD" />
+          </div>
+        </form>
+      } @else {
+        <div class="assign-all-filled">
+          <mat-icon>check_circle</mat-icon>
+          כל המשתמשים כבר משויכים למשרה זו
+        </div>
+      }
+
+    </div>
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        @if (usersForAssign.length > 0) {
+          <button class="btn-save" (click)="saveAssignment()" [disabled]="saving()">✓ שייך</button>
+        }
+        <button class="btn-cancel" (click)="assignDialogOpen.set(false)">סגור</button>
       </div>
     </kendo-dialog-actions>
   </kendo-dialog>
