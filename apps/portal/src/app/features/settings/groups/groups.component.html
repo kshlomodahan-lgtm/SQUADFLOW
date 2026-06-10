@@ -1,0 +1,138 @@
+<div class="groups-wrap">
+
+  <div class="page-header">
+    <h2>קבוצות משתמשים</h2>
+    <button class="btn-save" (click)="openNew()">✓ קבוצה חדשה</button>
+  </div>
+
+  @if (loading()) {
+    <div class="center-spin"><mat-spinner diameter="40"/></div>
+  } @else if (error()) {
+    <div class="error-box">{{ error() }}</div>
+  } @else {
+    <kendo-grid class="groups-grid"
+      [data]="{ data: pagedData, total: groups().length }"
+      [skip]="skip" [pageSize]="pageSize"
+      [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [10, 25, 50] }"
+      [sortable]="{ mode: 'single', allowUnsort: false }"
+      [sort]="sort"
+      [reorderable]="true" [resizable]="true"
+      scrollable="none"
+      (pageChange)="onPageChange($event)"
+      (sortChange)="onSortChange($event)">
+
+      <kendo-grid-column field="GroupName" title="שם קבוצה">
+        <ng-template kendoGridCellTemplate let-row>
+          <span class="group-dot" [style.background]="row.ColorHex"></span>
+          {{ row.GroupName }}
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-column field="GroupCode" title="קוד" [width]="130">
+        <ng-template kendoGridCellTemplate let-row>
+          <span class="badge-code">{{ row.GroupCode }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-column field="RoleNames" title="תפקידים">
+        <ng-template kendoGridCellTemplate let-row>
+          <span class="text-muted">{{ row.RoleNames || '—' }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-column field="UserCount" title="משתמשים" [width]="110">
+        <ng-template kendoGridCellTemplate let-row>
+          <span class="badge-count">{{ row.UserCount }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-column field="IsActive" title="סטטוס" [width]="100">
+        <ng-template kendoGridCellTemplate let-row>
+          <span class="badge" [class.badge-active]="row.IsActive" [class.badge-inactive]="!row.IsActive">
+            {{ row.IsActive ? 'פעיל' : 'מושהה' }}
+          </span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-column title="" [width]="80" [sortable]="false" [resizable]="false" [columnMenu]="false">
+        <ng-template kendoGridCellTemplate let-row>
+          <button class="icon-btn" title="עריכה" (click)="openEdit(row)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button class="icon-btn danger" title="מחיקה" (click)="delete(row)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-messages
+        pagerItemsPerPage="שורות בעמוד" pagerOf="מתוך" pagerItems="רשומות"
+        columnMenuFilter="סנן" columnMenuSort="מיון" columnMenuColumns="עמודות"
+        columnMenuSortAscending="עולה" columnMenuSortDescending="יורד"
+        noRecords="לא נמצאו קבוצות" loading="טוען..." />
+    </kendo-grid>
+  }
+</div>
+
+<!-- Dialog -->
+@if (dialogOpen()) {
+  <kendo-dialog [title]="editingGroup ? 'עריכת קבוצה' : 'קבוצה חדשה'"
+                [width]="520" [minWidth]="380" (close)="closeDialog()">
+
+    <form [formGroup]="form" class="group-form">
+
+      <div class="form-row">
+        <label>שם קבוצה <span class="req">*</span></label>
+        <kendo-textbox formControlName="groupName" placeholder="לדוגמה: מנהלי פרויקטים" />
+        @if (form.get('groupName')?.invalid && form.get('groupName')?.touched) {
+          <span class="field-err">שדה חובה</span>
+        }
+      </div>
+
+      <div class="form-row">
+        <label>קוד קבוצה <span class="req">*</span></label>
+        <kendo-textbox formControlName="groupCode" placeholder="PROJECT_MANAGERS" [disabled]="!!editingGroup" />
+        @if (form.get('groupCode')?.invalid && form.get('groupCode')?.touched) {
+          <span class="field-err">קוד חייב להיות A-Z / 0-9 / _</span>
+        }
+      </div>
+
+      <div class="form-row">
+        <label>תיאור</label>
+        <kendo-textbox formControlName="description" placeholder="תיאור קצר של הקבוצה" />
+      </div>
+
+      <div class="form-row color-row">
+        <label>צבע</label>
+        <input type="color" formControlName="colorHex" class="color-picker" />
+        <span class="color-preview" [style.background]="form.get('colorHex')?.value"></span>
+      </div>
+
+      <div class="form-row">
+        <label>תפקידים משוייכים</label>
+        <div class="roles-checks">
+          @for (r of roles(); track r.RoleID) {
+            <label class="role-check">
+              <input type="checkbox"
+                     [checked]="isRoleSelected(r.RoleID)"
+                     (change)="toggleRole(r.RoleID)" />
+              {{ r.RoleName }}
+              <span class="role-code">{{ r.RoleCode }}</span>
+            </label>
+          }
+        </div>
+      </div>
+
+    </form>
+
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-save" [disabled]="saving()" (click)="save()">
+          @if (saving()) { <kendo-loader size="small" themeColor="primary" /> }
+          @else { ✓ שמור }
+        </button>
+        <button class="btn-cancel" (click)="closeDialog()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}

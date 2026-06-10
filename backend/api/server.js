@@ -39,10 +39,12 @@ app.use('/api/categories', require('./routes/categories'));
 app.use('/api/products',   require('./routes/products'));
 app.use('/api/packages',   require('./routes/packages'));
 app.use('/api/audit',        require('./routes/audit'));
-app.use('/api/menu-items',   require('./routes/menu-items'));
+app.use('/api/menu-items',    require('./routes/menu-items'));
+app.use('/api/screen-fields', require('./routes/screen-fields'));
 app.use('/api/roles',        require('./routes/roles'));
 app.use('/api/permissions',  require('./routes/permissions'));
 app.use('/api/org',          require('./routes/org'));
+app.use('/api/groups',       require('./routes/groups'));
 app.use('/api/reference',       require('./routes/reference'));
 app.use('/api/exchange-rates',  require('./routes/exchange-rates'));
 

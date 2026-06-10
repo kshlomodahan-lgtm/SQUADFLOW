@@ -22,6 +22,7 @@ import { AuditEntityTypesComponent } from '../audit/entity-types/audit-entity-ty
 import { MenuManagerComponent } from './menu-manager/menu-manager.component';
 import { RolesManagerComponent } from './roles-manager/roles-manager.component';
 import { OrgChartComponent } from './org-chart/org-chart.component';
+import { GroupsComponent } from './groups/groups.component';
 
 interface SettingGroup  { id: string; text: string; icon: SVGIcon; }
 interface EditNavGroup  { id: string; text: string; icon: SVGIcon; }
@@ -34,7 +35,7 @@ interface EditNavGroup  { id: string; text: string; icon: SVGIcon; }
             ButtonModule, IndicatorsModule, NotificationModule, IconsModule,
             GridModule, MatProgressSpinnerModule, DialogModule,
             AuditActionTypesComponent, AuditEntityTypesComponent,
-            MenuManagerComponent, RolesManagerComponent, OrgChartComponent],
+            MenuManagerComponent, RolesManagerComponent, OrgChartComponent, GroupsComponent],
   providers: [NotificationService],
   templateUrl: './settings.component.html',
   styleUrl:    './settings.component.scss',
@@ -61,6 +62,7 @@ export class SettingsComponent {
     { id: 'menu-tree',     text: 'עץ תפריטים',  icon: menuIcon           },
     { id: 'roles',         text: 'תפקידים והרשאות', icon: lockIcon        },
     { id: 'org-chart',     text: 'מבנה ארגוני', icon: buildingsIcon      },
+    { id: 'groups',        text: 'קבוצות',       icon: filterIcon         },
   ];
 
   // ── Counters — רשימה ──────────────────────────────────────
