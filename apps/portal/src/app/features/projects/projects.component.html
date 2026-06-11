@@ -1,0 +1,124 @@
+<div class="page-header">
+  <div class="page-header-start">
+    <h1 class="page-title">פרויקטים</h1>
+    <span class="page-subtitle">ניהול פרויקטי פיתוח</span>
+  </div>
+  <button class="btn-save" (click)="openNew()">
+    <mat-icon>add</mat-icon> פרויקט חדש
+  </button>
+</div>
+
+<div class="toolbar">
+  <div class="search-wrap">
+    <mat-icon class="search-icon">search</mat-icon>
+    <input class="search-input" type="text" placeholder="חיפוש לפי שם, קוד, לקוח..."
+           (input)="onSearch($any($event.target).value)" />
+  </div>
+</div>
+
+@if (loading()) {
+  <div class="spinner-wrap">
+    <kendo-loader type="converging-spinner" themeColor="primary" size="medium" />
+  </div>
+} @else if (error()) {
+  <div class="error-box">{{ error() }}</div>
+} @else {
+
+<kendo-grid class="projects-grid"
+  [data]="{ data: pagedData(), total: filtered().length }"
+  [skip]="skip" [pageSize]="pageSize"
+  [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [10, 25, 50] }"
+  [sortable]="{ mode: 'single', allowUnsort: false }"
+  [sort]="sort"
+  [reorderable]="true" [resizable]="true"
+  [selectable]="{ mode: 'multiple', checkboxOnly: true }"
+  [columnMenu]="true"
+  scrollable="none"
+  (pageChange)="onPageChange($event)"
+  (sortChange)="onSortChange($event)">
+
+  <kendo-grid-checkbox-column [width]="44" [showSelectAll]="true" />
+
+  <kendo-grid-column field="ProjectCode" title="קוד" [width]="120">
+    <ng-template kendoGridCellTemplate let-row>
+      <span class="code-badge">{{ row.ProjectCode }}</span>
+    </ng-template>
+  </kendo-grid-column>
+
+  <kendo-grid-column field="ProjectName" title="שם פרויקט">
+    <ng-template kendoGridCellTemplate let-row>
+      <div class="project-name">{{ row.ProjectName }}</div>
+      @if (row.Description) {
+        <div class="project-desc">{{ row.Description | slice:0:60 }}{{ row.Description.length > 60 ? '...' : '' }}</div>
+      }
+    </ng-template>
+  </kendo-grid-column>
+
+  <kendo-grid-column field="ClientOrgName" title="לקוח" [width]="180">
+    <ng-template kendoGridCellTemplate let-row>
+      @if (row.ClientOrgName) {
+        <span class="client-name">{{ row.ClientOrgName }}</span>
+      } @else {
+        <span class="text-muted">—</span>
+      }
+    </ng-template>
+  </kendo-grid-column>
+
+  <kendo-grid-column field="Status" title="סטטוס" [width]="120">
+    <ng-template kendoGridCellTemplate let-row>
+      <span class="status-badge" [ngClass]="statusClass(row.Status)">
+        {{ statusLabel(row.Status) }}
+      </span>
+    </ng-template>
+  </kendo-grid-column>
+
+  <kendo-grid-column field="ProductCount" title="מוצרים" [width]="90">
+    <ng-template kendoGridCellTemplate let-row>
+      @if (row.ProductCount > 0) {
+        <span class="count-badge">{{ row.ProductCount }}</span>
+      } @else {
+        <span class="text-muted">—</span>
+      }
+    </ng-template>
+  </kendo-grid-column>
+
+  <kendo-grid-column field="TargetDate" title="יעד" [width]="110">
+    <ng-template kendoGridCellTemplate let-row>
+      @if (row.TargetDate) {
+        <span class="date-text">{{ row.TargetDate | date:'dd/MM/yy' }}</span>
+      } @else {
+        <span class="text-muted">—</span>
+      }
+    </ng-template>
+  </kendo-grid-column>
+
+  <kendo-grid-column title="" [width]="80" [sortable]="false"
+    [resizable]="false" [columnMenu]="false">
+    <ng-template kendoGridCellTemplate let-row>
+      <div class="row-actions">
+        <button class="action-btn" (click)="openEdit(row)" matTooltip="עריכה">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button class="action-btn danger" (click)="deleteProject(row)" matTooltip="מחיקה">
+          <mat-icon>delete_outline</mat-icon>
+        </button>
+      </div>
+    </ng-template>
+  </kendo-grid-column>
+
+  <kendo-grid-messages
+    pagerItemsPerPage="שורות בעמוד" pagerOf="מתוך" pagerItems="רשומות"
+    columnMenuFilter="סנן" columnMenuSort="מיון" columnMenuColumns="עמודות"
+    columnMenuSortAscending="עולה" columnMenuSortDescending="יורד"
+    selectionCheckboxLabel="בחר שורה" selectAllCheckboxLabel="בחר הכל"
+    noRecords="לא נמצאו פרויקטים" loading="טוען..." />
+</kendo-grid>
+
+}
+
+@if (showDialog()) {
+  <app-project-dialog
+    [project]="editProject()"
+    (closed)="closeDialog()"
+    (saved)="onSaved()" />
+}

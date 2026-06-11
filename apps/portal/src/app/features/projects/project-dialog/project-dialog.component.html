@@ -1,0 +1,83 @@
+<kendo-dialog [title]="title" [width]="580" [minWidth]="400" (close)="close()">
+
+  <form [formGroup]="form" novalidate class="dialog-body">
+
+    @if (errorMsg()) {
+      <div class="form-error">{{ errorMsg() }}</div>
+    }
+
+    <div class="form-row">
+      <label>קוד פרויקט <span class="req">*</span></label>
+      <div class="field-col">
+        <input kendoTextBox formControlName="projectCode"
+               placeholder="לדוגמה: PROJ-001" class="dir-ltr" />
+        @if (form.get('projectCode')?.invalid && form.get('projectCode')?.touched) {
+          <small class="err">שדה חובה (עד 50 תווים)</small>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>שם פרויקט <span class="req">*</span></label>
+      <div class="field-col">
+        <input kendoTextBox formControlName="projectName" placeholder="שם הפרויקט" />
+        @if (form.get('projectName')?.invalid && form.get('projectName')?.touched) {
+          <small class="err">שדה חובה</small>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>לקוח</label>
+      <kendo-dropdownlist
+        formControlName="clientOrgId"
+        [data]="clientOrgs()"
+        textField="CompanyName"
+        valueField="CustomerID"
+        [valuePrimitive]="true"
+        [defaultItem]="{ OrgID: null, CompanyName: 'ללא לקוח ספציפי' }" />
+    </div>
+
+    <div class="form-row">
+      <label>סטטוס</label>
+      <kendo-dropdownlist
+        formControlName="status"
+        [data]="statusOptions"
+        textField="label"
+        valueField="value"
+        [valuePrimitive]="true" />
+    </div>
+
+    <div class="form-row two-cols">
+      <div class="col">
+        <label>תאריך התחלה</label>
+        <kendo-datepicker formControlName="startDate"
+          [format]="'dd/MM/yyyy'" placeholder="dd/mm/yyyy" />
+      </div>
+      <div class="col">
+        <label>תאריך יעד</label>
+        <kendo-datepicker formControlName="targetDate"
+          [format]="'dd/MM/yyyy'" placeholder="dd/mm/yyyy" />
+      </div>
+    </div>
+
+    <div class="form-row align-top">
+      <label>תיאור</label>
+      <kendo-textarea formControlName="description"
+        [rows]="4" resizable="vertical"
+        placeholder="תיאור קצר של הפרויקט..." />
+    </div>
+
+  </form>
+
+  <kendo-dialog-actions>
+    <div class="dialog-footer">
+      <button class="btn-save" [disabled]="saving()" (click)="save()">
+        @if (saving()) { <kendo-loader size="small" themeColor="tertiary" /> }
+        @else { ✓ שמור }
+      </button>
+      <button class="btn-cancel" (click)="close()">ביטול</button>
+    </div>
+  </kendo-dialog-actions>
+
+</kendo-dialog>

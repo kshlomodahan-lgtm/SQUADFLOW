@@ -52,6 +52,11 @@ export const routes: Routes = [
         canActivate: [permissionGuard('CATALOG_PACKAGES', 'READ')],
       },
       {
+        path: 'projects',
+        loadComponent: () =>
+          import('./features/projects/projects.component').then(m => m.ProjectsComponent),
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('./features/settings/settings.component').then(m => m.SettingsComponent),

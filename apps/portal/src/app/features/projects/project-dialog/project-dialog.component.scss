@@ -1,0 +1,80 @@
+::ng-deep .k-dialog-actions { direction: rtl !important; }
+
+.dialog-body {
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 4px 0; direction: rtl;
+}
+
+.form-error {
+  background: #fef2f2; border: 1px solid #fca5a5;
+  color: #dc2626; padding: 10px 14px; border-radius: 8px; font-size: .83rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  align-items: center;
+  gap: 12px;
+
+  &.align-top { align-items: start; label { padding-top: 8px; } }
+
+  &.two-cols {
+    grid-template-columns: 130px 1fr;
+    .col { display: flex; flex-direction: column; gap: 6px; }
+    display: grid;
+    grid-template-columns: 130px 1fr 1fr;
+
+    > label { display: none; }
+  }
+
+  label {
+    font-size: .82rem; font-weight: 600;
+    color: var(--sf-text-secondary); text-align: right;
+  }
+}
+
+.field-col { display: flex; flex-direction: column; gap: 4px; }
+
+.req { color: var(--sf-danger); }
+.err { font-size: .75rem; color: var(--sf-danger); }
+
+.dir-ltr ::ng-deep .k-input-inner { direction: ltr !important; text-align: left !important; }
+
+// Kendo overrides
+:host ::ng-deep .k-input {
+  font-family: 'Noto Sans Hebrew', sans-serif !important;
+  font-size: .88rem !important; direction: rtl !important;
+  border-color: var(--sf-border) !important; border-radius: 8px !important;
+  background: var(--sf-bg-card) !important; color: var(--sf-text) !important;
+  width: 100% !important;
+  &:focus, &.k-focus { border-color: var(--sf-primary) !important; box-shadow: 0 0 0 2px rgba(13,71,255,.1) !important; }
+}
+:host ::ng-deep .k-input-inner { direction: rtl !important; text-align: right !important; }
+:host ::ng-deep .k-dropdownlist  { width: 100% !important; }
+:host ::ng-deep .k-datepicker    { width: 100% !important; }
+:host ::ng-deep .k-textarea      { width: 100% !important; font-family: 'Noto Sans Hebrew', sans-serif !important; }
+:host ::ng-deep .k-list-item     { font-family: 'Noto Sans Hebrew', sans-serif !important; direction: rtl; text-align: right; }
+
+// Footer
+.dialog-footer {
+  display: flex; gap: 10px; direction: rtl; width: 100%;
+}
+
+.btn-save {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #f97316; color: #fff; border: none; border-radius: 8px;
+  padding: 9px 22px; font-size: .875rem; font-weight: 600;
+  font-family: 'Noto Sans Hebrew', sans-serif; cursor: pointer;
+  transition: background .15s; box-shadow: 0 2px 8px rgba(249,115,22,.3);
+  &:hover:not(:disabled) { background: #ea6c0a; }
+  &:disabled { opacity: .6; cursor: not-allowed; box-shadow: none; }
+}
+
+.btn-cancel {
+  background: var(--sf-bg-card); color: var(--sf-text-secondary);
+  border: 1px solid var(--sf-border); border-radius: 8px;
+  padding: 9px 20px; font-size: .875rem; font-weight: 500;
+  font-family: 'Noto Sans Hebrew', sans-serif; cursor: pointer;
+  transition: background .13s;
+  &:hover { background: var(--sf-bg-hover); color: var(--sf-text); }
+}

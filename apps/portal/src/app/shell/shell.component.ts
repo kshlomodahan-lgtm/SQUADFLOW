@@ -37,6 +37,12 @@ export class ShellComponent implements OnInit {
       ],
     },
     {
+      label: 'FLOWSPACE',
+      items: [
+        { icon: 'rocket_launch', label: 'פרויקטים', route: '/app/projects' },
+      ],
+    },
+    {
       label: 'קטלוג מוצרים',
       items: [
         { icon: 'category',   label: 'קטגוריות', route: '/app/categories' },
