@@ -38,8 +38,11 @@ export class OrgDialogComponent implements OnInit {
 
   saving     = false;
   uploading  = false;
-  enriching  = signal(false);
-  enrichMsg  = signal('');
+  enriching      = signal(false);
+  enrichMsg      = signal('');
+  enrichResult   = signal<any>(null);
+  enrichSources  = signal<any[]>([]);
+  showEnrichDlg  = signal(false);
   errorMsg   = '';
   form!: FormGroup;
   logoPreview: string | null = null;
@@ -243,25 +246,41 @@ export class OrgDialogComponent implements OnInit {
     if (!name) return;
     this.enriching.set(true);
     this.enrichMsg.set('');
-    this.http.get<{ success: boolean; data: any }>(`/api/ai/company-lookup?name=${encodeURIComponent(name)}`).subscribe({
+    this.http.get<{ success: boolean; data: any; sources?: any[] }>(`/api/ai/company-lookup?name=${encodeURIComponent(name)}`).subscribe({
       next: r => {
         this.enriching.set(false);
         if (!r.success || !r.data) { this.enrichMsg.set('לא נמצאו פרטים'); return; }
-        const d = r.data;
-        if (d.businessNumber) this.form.get('businessNumber')?.setValue(d.businessNumber);
-        if (d.phone)          this.form.get('phone')?.setValue(d.phone);
-        if (d.address)        this.form.get('address')?.setValue(d.address);
-        if (d.city)           this.form.get('city')?.setValue(d.city);
-        if (d.website)        this.form.get('website')?.setValue(d.website);
-        if (d.contactName)    this.form.get('contactName')?.setValue(d.contactName);
-        this.enrichMsg.set('✓ פרטים מולאו אוטומטית');
-        setTimeout(() => this.enrichMsg.set(''), 4000);
+        this.enrichResult.set(r.data);
+        this.enrichSources.set(r.sources || []);
+        this.showEnrichDlg.set(true);
       },
       error: err => {
         this.enriching.set(false);
         this.enrichMsg.set(err.error?.message ?? 'שגיאה בחיפוש');
       },
     });
+  }
+
+  applyEnrichment() {
+    const d = this.enrichResult();
+    if (!d) return;
+    if (d.businessNumber) this.form.get('businessNumber')?.setValue(d.businessNumber);
+    if (d.phone)          this.form.get('phone')?.setValue(d.phone);
+    if (d.address)        this.form.get('address')?.setValue(d.address);
+    if (d.city)           this.form.get('city')?.setValue(d.city);
+    if (d.website)        this.form.get('website')?.setValue(d.website);
+    if (d.contactName)    this.form.get('contactName')?.setValue(d.contactName);
+    if (d.logoUrl)        { this.form.get('logoUrl')?.setValue(d.logoUrl); this.logoPreview = d.logoUrl; }
+    this.showEnrichDlg.set(false);
+    this.enrichResult.set(null);
+    this.enrichMsg.set('✓ פרטים מולאו אוטומטית');
+    setTimeout(() => this.enrichMsg.set(''), 4000);
+  }
+
+  closeEnrichDlg() {
+    this.showEnrichDlg.set(false);
+    this.enrichResult.set(null);
+    this.enrichSources.set([]);
   }
 
   showMap() {

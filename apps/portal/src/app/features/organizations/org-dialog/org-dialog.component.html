@@ -60,27 +60,27 @@
                 <div class="form-row">
                   <label>שם חברה <span class="req">*</span></label>
                   <div class="input-col">
-                    <div class="company-name-row">
-                      <input kendoTextBox formControlName="companyName" class="company-name-input" />
+                    <input kendoTextBox formControlName="companyName" class="company-name-input" />
+                    <div class="company-name-sub">
                       <button type="button" class="btn-ai-enrich"
                               [disabled]="enriching() || !form.get('companyName')?.value"
                               (click)="enrichFromAI()"
                               title="חפש פרטים ברשת באמצעות AI">
                         @if (enriching()) {
                           <kendo-loader type="pulsing" size="small" themeColor="primary" />
+                          מחפש...
                         } @else {
-                          🤖
+                          🤖 מלא אוטומטית לפי שם
                         }
-                        מלא אוטומטית
                       </button>
+                      @if (enrichMsg()) {
+                        <small [class.enrich-ok]="enrichMsg().startsWith('✓')"
+                               [class.enrich-err]="!enrichMsg().startsWith('✓')"
+                               class="enrich-msg">{{ enrichMsg() }}</small>
+                      }
                     </div>
                     @if (form.get('companyName')?.invalid && form.get('companyName')?.touched) {
                       <small class="err">שדה חובה</small>
-                    }
-                    @if (enrichMsg()) {
-                      <small [class.enrich-ok]="enrichMsg().startsWith('✓')"
-                             [class.enrich-err]="!enrichMsg().startsWith('✓')"
-                             class="enrich-msg">{{ enrichMsg() }}</small>
                     }
                   </div>
                 </div>
@@ -463,3 +463,97 @@
   </kendo-dialog-actions>
 
 </kendo-dialog>
+
+<!-- ── AI Enrichment Result Dialog ── -->
+@if (showEnrichDlg()) {
+  <kendo-dialog title="תוצאות חיפוש AI" (close)="closeEnrichDlg()" [width]="480">
+
+    <div class="enrich-dlg-body">
+      <div class="enrich-dlg-intro">
+        <span class="enrich-dlg-icon">🤖</span>
+        <div>
+          <strong>נמצאו הפרטים הבאים עבור:</strong>
+          <div class="enrich-dlg-name">{{ form.get('companyName')?.value }}</div>
+        </div>
+      </div>
+
+      <div class="enrich-rows">
+        @if (enrichResult()?.logoUrl) {
+          <div class="enrich-row">
+            <span class="enrich-lbl">לוגו</span>
+            <img [src]="enrichResult().logoUrl" class="enrich-logo" alt="לוגו" />
+          </div>
+        }
+        @if (enrichResult()?.businessNumber) {
+          <div class="enrich-row">
+            <span class="enrich-lbl">ח.פ. / עוסק מורשה</span>
+            <span class="enrich-val">{{ enrichResult().businessNumber }}</span>
+          </div>
+        }
+        @if (enrichResult()?.phone) {
+          <div class="enrich-row">
+            <span class="enrich-lbl">טלפון</span>
+            <span class="enrich-val">{{ enrichResult().phone }}</span>
+          </div>
+        }
+        @if (enrichResult()?.address) {
+          <div class="enrich-row">
+            <span class="enrich-lbl">כתובת</span>
+            <span class="enrich-val">{{ enrichResult().address }}</span>
+          </div>
+        }
+        @if (enrichResult()?.city) {
+          <div class="enrich-row">
+            <span class="enrich-lbl">עיר</span>
+            <span class="enrich-val">{{ enrichResult().city }}</span>
+          </div>
+        }
+        @if (enrichResult()?.website) {
+          <div class="enrich-row">
+            <span class="enrich-lbl">אתר</span>
+            <span class="enrich-val ltr">{{ enrichResult().website }}</span>
+          </div>
+        }
+        @if (enrichResult()?.contactName) {
+          <div class="enrich-row">
+            <span class="enrich-lbl">איש קשר</span>
+            <span class="enrich-val">{{ enrichResult().contactName }}</span>
+          </div>
+        }
+      </div>
+
+      @if (enrichSources().length) {
+        <div class="enrich-sources">
+          <div class="enrich-sources-title">מקורות שנסרקו:</div>
+          @for (src of enrichSources(); track src.id) {
+            <div class="enrich-source-row">
+              <span class="src-icon"
+                [class.src-found]="src.status === 'found'"
+                [class.src-miss]="src.status === 'not_found'"
+                [class.src-skip]="src.status === 'skipped'"
+                [class.src-err]="src.status === 'error'">
+                {{ src.status === 'found' ? '✓' : src.status === 'skipped' ? '—' : src.status === 'error' ? '⚠' : '✗' }}
+              </span>
+              <span class="src-name">{{ src.name }}</span>
+              <span class="src-badge src-badge-{{ src.status }}">
+                {{ src.status === 'found' ? 'נמצא' : src.status === 'not_found' ? 'לא נמצא' : src.status === 'skipped' ? 'דולג' : 'שגיאה' }}
+              </span>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="enrich-dlg-note">
+        הנתונים נאספו מהרשת — בדוק ואשר לפני שמירה.
+      </div>
+    </div>
+
+    <kendo-dialog-actions>
+      <div class="enrich-dlg-footer">
+        <button type="button" class="btn-save" (click)="applyEnrichment()">✓ החל פרטים</button>
+        <button type="button" class="btn-cancel" (click)="closeEnrichDlg()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+
+  </kendo-dialog>
+}
