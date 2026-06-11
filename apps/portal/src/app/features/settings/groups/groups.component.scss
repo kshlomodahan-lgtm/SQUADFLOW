@@ -135,21 +135,24 @@
 .badge-active   { background: #d1fae5; color: #059669; }
 .badge-inactive { background: #fee2e2; color: #dc2626; }
 
-.icon-btn {
-  display: inline-flex;
-  align-items: center;
-  border: none;
-  background: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  color: var(--sf-text-secondary);
-  transition: background .15s, color .15s;
+.row-actions { display: flex; align-items: center; gap: 4px; justify-content: center; }
 
-  mat-icon { font-size: 18px; width: 18px; height: 18px; }
-  &:hover   { background: var(--sf-bg-hover); color: var(--sf-text); }
-  &.danger:hover { color: var(--sf-danger); }
+.act-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, color .15s;
+  i { font-size: .9rem; }
 }
+
+.act-edit   { color: #3b82f6; &:hover { background: #eff6ff; } }
+.act-delete { color: #ef4444; &:hover { background: #fef2f2; } }
 
 // Form
 .group-form {
@@ -266,7 +269,9 @@
   &.seg-off { background: #ef4444; color: #fff; font-weight: 600; }
 }
 
-// Dialog footer
+// Dialog RTL
+::ng-deep .k-dialog-titlebar { direction: rtl; }
+::ng-deep .k-dialog-title { direction: rtl; text-align: right; }
 ::ng-deep .k-dialog-actions { direction: rtl !important; }
 
 .dialog-footer {

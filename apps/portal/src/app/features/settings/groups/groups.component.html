@@ -57,12 +57,14 @@
 
       <kendo-grid-column title="" [width]="80" [sortable]="false" [resizable]="false" [columnMenu]="false">
         <ng-template kendoGridCellTemplate let-row>
-          <button class="icon-btn" title="עריכה" (click)="openEdit(row)">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button class="icon-btn danger" title="מחיקה" (click)="delete(row)">
-            <mat-icon>delete</mat-icon>
-          </button>
+          <div class="row-actions">
+            <button class="act-btn act-edit" title="ערוך" (click)="openEdit(row)">
+              <i class="pi pi-pencil"></i>
+            </button>
+            <button class="act-btn act-delete" title="מחיקה" (click)="delete(row)">
+              <i class="pi pi-trash"></i>
+            </button>
+          </div>
         </ng-template>
       </kendo-grid-column>
 
