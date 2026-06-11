@@ -1,0 +1,149 @@
+@if (loading()) {
+  <div class="os-spin"><mat-spinner diameter="36" /></div>
+} @else if (error()) {
+  <div class="os-error">{{ error() }}</div>
+} @else {
+<div class="os-body">
+
+  <!-- ── Sidebar ─────────────────────────────────── -->
+  <nav class="os-nav">
+    @for (s of sections; track s.id) {
+      <button class="os-nav-item" [class.active]="activeSection() === s.id" (click)="activeSection.set(s.id)">
+        <span class="os-nav-icon"><kendo-svg-icon [icon]="s.icon" /></span>
+        <span>{{ s.text }}</span>
+        @if (activeSection() === s.id) { <span class="os-indicator"></span> }
+      </button>
+    }
+  </nav>
+
+  <!-- ── Content ─────────────────────────────────── -->
+  <div class="os-content">
+    <form [formGroup]="form" novalidate>
+
+      <!-- פרטי ארגון -->
+      @if (activeSection() === 'general') {
+        <div class="os-section-title">פרטי ארגון</div>
+        <div class="os-fields">
+          <div class="os-row">
+            <label>שם חברה <span class="req">*</span></label>
+            <div class="os-col">
+              <input kendoTextBox formControlName="companyName" />
+              @if (form.get('companyName')?.invalid && form.get('companyName')?.touched) {
+                <small class="err">שדה חובה</small>
+              }
+            </div>
+          </div>
+          <div class="os-row">
+            <label>ח.פ / ע.מ</label>
+            <input kendoTextBox formControlName="businessNumber" />
+          </div>
+          <div class="os-row">
+            <label>אתר אינטרנט</label>
+            <input kendoTextBox formControlName="website" placeholder="https://..." />
+          </div>
+        </div>
+      }
+
+      <!-- פרטי קשר -->
+      @if (activeSection() === 'contact') {
+        <div class="os-section-title">פרטי קשר</div>
+        <div class="os-fields">
+          <div class="os-row">
+            <label>איש קשר</label>
+            <input kendoTextBox formControlName="contactName" />
+          </div>
+          <div class="os-row">
+            <label>אימייל <span class="req">*</span></label>
+            <div class="os-col">
+              <input kendoTextBox formControlName="email" type="email" />
+              @if (form.get('email')?.invalid && form.get('email')?.touched) {
+                <small class="err">כתובת אימייל לא תקינה</small>
+              }
+            </div>
+          </div>
+          <div class="os-row">
+            <label>טלפון</label>
+            <input kendoTextBox formControlName="phone" />
+          </div>
+          <div class="os-row">
+            <label>טלפון 2</label>
+            <input kendoTextBox formControlName="phone2" />
+          </div>
+          <div class="os-row">
+            <label>פקס</label>
+            <input kendoTextBox formControlName="fax" />
+          </div>
+        </div>
+      }
+
+      <!-- כתובת -->
+      @if (activeSection() === 'address') {
+        <div class="os-section-title">כתובת</div>
+        <div class="os-fields">
+          <div class="os-row">
+            <label>מדינה</label>
+            <kendo-dropdownlist
+              formControlName="countryCode"
+              [data]="countries()"
+              textField="ShortName"
+              valueField="CountryCode"
+              [valuePrimitive]="true"
+              [filterable]="true" />
+          </div>
+          <div class="os-row">
+            <label>עיר</label>
+            <input kendoTextBox formControlName="city" />
+          </div>
+          <div class="os-row">
+            <label>רחוב</label>
+            <input kendoTextBox formControlName="address" />
+          </div>
+        </div>
+      }
+
+      <!-- שפה ומטבע -->
+      @if (activeSection() === 'locale') {
+        <div class="os-section-title">שפה ומטבע</div>
+        <div class="os-fields">
+          <div class="os-row">
+            <label>שפת ברירת מחדל</label>
+            <kendo-dropdownlist
+              formControlName="defaultLanguageCode"
+              [data]="languages()"
+              textField="LanguageName"
+              valueField="LanguageCode"
+              [valuePrimitive]="true" />
+          </div>
+          <div class="os-row">
+            <label>מטבע ברירת מחדל</label>
+            <kendo-dropdownlist
+              formControlName="defaultCurrencyCode"
+              [data]="currencies()"
+              textField="CurrencyName"
+              valueField="CurrencyCode"
+              [valuePrimitive]="true" />
+          </div>
+        </div>
+      }
+
+      <!-- הערות -->
+      @if (activeSection() === 'notes') {
+        <div class="os-section-title">הערות</div>
+        <div class="os-fields">
+          <kendo-textarea formControlName="notes" [rows]="6" resizable="vertical" />
+        </div>
+      }
+
+    </form>
+
+    <!-- Footer -->
+    <div class="os-footer">
+      <button class="btn-save" [disabled]="saving()" (click)="save()">
+        @if (saving()) { <kendo-loader size="small" themeColor="primary" /> }
+        @else { ✓ שמור שינויים }
+      </button>
+    </div>
+
+  </div>
+</div>
+}

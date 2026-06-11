@@ -16,6 +16,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { ThemeService, COLOR_SCHEMES, ColorScheme } from '../../core/services/theme.service';
 import { AuthService } from '../../core/services/auth.service';
 import { CounterService } from '../../core/services/counter.service';
+import { HttpClient } from '@angular/common/http';
 import { Counter } from '../../core/models/counter.model';
 import { AuditActionTypesComponent } from '../audit/action-types/audit-action-types.component';
 import { AuditEntityTypesComponent } from '../audit/entity-types/audit-entity-types.component';
@@ -24,6 +25,7 @@ import { RolesManagerComponent } from './roles-manager/roles-manager.component';
 import { OrgChartComponent } from './org-chart/org-chart.component';
 import { GroupsComponent } from './groups/groups.component';
 import { ConnectorsComponent } from './connectors/connectors.component';
+import { OrgSettingsComponent } from './org-settings/org-settings.component';
 
 interface SettingGroup  { id: string; text: string; icon: SVGIcon; }
 interface EditNavGroup  { id: string; text: string; icon: SVGIcon; }
@@ -37,7 +39,7 @@ interface EditNavGroup  { id: string; text: string; icon: SVGIcon; }
             GridModule, MatProgressSpinnerModule, DialogModule,
             AuditActionTypesComponent, AuditEntityTypesComponent,
             MenuManagerComponent, RolesManagerComponent, OrgChartComponent, GroupsComponent,
-            ConnectorsComponent],
+            ConnectorsComponent, OrgSettingsComponent],
   providers: [NotificationService],
   templateUrl: './settings.component.html',
   styleUrl:    './settings.component.scss',
@@ -160,23 +162,130 @@ export class SettingsComponent {
   editingCounter: Counter | null = null;
   editForm!: FormGroup;
 
+  // ── General (profile) ────────────────────────────────────
+  profileSaving = signal(false);
+  profileForm!: FormGroup;
+
+  // ── Security (password) ──────────────────────────────────
+  pwSaving  = signal(false);
+  pwError   = signal('');
+  pwSuccess = signal(false);
+  pwForm!: FormGroup;
+
+  // ── Notifications ────────────────────────────────────────
+  notifSaving = signal(false);
+  notifications = signal([
+    { key: 'new_user',      label: 'משתמש חדש הצטרף',      email: true,  system: true  },
+    { key: 'org_updated',   label: 'ארגון עדכן פרטים',      email: false, system: true  },
+    { key: 'renewal',       label: 'חידוש מנוי מתקרב',      email: true,  system: true  },
+    { key: 'audit_alert',   label: 'התראת יומן פעילות',     email: false, system: false },
+    { key: 'system_error',  label: 'שגיאת מערכת',           email: true,  system: true  },
+    { key: 'ai_complete',   label: 'סיום פעולת AI',          email: false, system: true  },
+  ]);
+
+  // ── Billing ──────────────────────────────────────────────
+  billingLoading = signal(false);
+  billingData    = signal<any>(null);
+
   constructor(
     public  theme:      ThemeService,
     public  auth:       AuthService,
     private notif:      NotificationService,
     private counterSvc: CounterService,
     private fb:         FormBuilder,
+    private http:       HttpClient,
   ) {
     const roleId = this.auth.user()?.roleId ?? 3;
     this.isAdmin.set(roleId <= 2);
     this.isPlatformAdmin.set(roleId === 1);
     this.initNewForm();
+    this.initProfileForm();
+    this.initPwForm();
+  }
+
+  // ── Profile ──────────────────────────────────────────────
+  private initProfileForm() {
+    const u = this.auth.user();
+    this.profileForm = this.fb.group({ fullName: [u?.fullName ?? '', Validators.required] });
+  }
+
+  saveProfile() {
+    if (this.profileForm.invalid) return;
+    this.profileSaving.set(true);
+    const id = this.auth.user()?.userId;
+    this.http.put<any>(`/api/users/${id}/profile`, this.profileForm.value).subscribe({
+      next: () => { this.profileSaving.set(false); this.notify('הפרופיל עודכן', 'success'); },
+      error: () => { this.profileSaving.set(false); this.notify('שגיאה בשמירה', 'error'); },
+    });
+  }
+
+  // ── Password ──────────────────────────────────────────────
+  private initPwForm() {
+    this.pwForm = this.fb.group({
+      currentPassword: ['', Validators.required],
+      newPassword:     ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', Validators.required],
+    });
+  }
+
+  changePassword() {
+    this.pwError.set('');
+    if (this.pwForm.invalid) { this.pwForm.markAllAsTouched(); return; }
+    const { currentPassword, newPassword, confirmPassword } = this.pwForm.value;
+    if (newPassword !== confirmPassword) { this.pwError.set('הסיסמאות אינן תואמות'); return; }
+    this.pwSaving.set(true);
+    this.http.post<any>('/api/auth/change-password', { currentPassword, newPassword }).subscribe({
+      next: () => {
+        this.pwSaving.set(false);
+        this.pwSuccess.set(true);
+        this.pwForm.reset();
+        setTimeout(() => this.pwSuccess.set(false), 4000);
+        this.notify('הסיסמה שונתה בהצלחה', 'success');
+      },
+      error: err => {
+        this.pwSaving.set(false);
+        this.pwError.set(err.error?.message ?? 'שגיאה בשינוי סיסמה');
+      },
+    });
+  }
+
+  // ── Notifications ─────────────────────────────────────────
+  toggleNotif(key: string, channel: 'email' | 'system') {
+    this.notifications.update(list =>
+      list.map(n => n.key === key ? { ...n, [channel]: !n[channel] } : n)
+    );
+  }
+
+  saveNotifications() {
+    this.notifSaving.set(true);
+    setTimeout(() => { this.notifSaving.set(false); this.notify('העדפות התראות נשמרו', 'success'); }, 600);
+  }
+
+  // ── Billing ───────────────────────────────────────────────
+  loadBilling() {
+    if (this.billingData()) return;
+    this.billingLoading.set(true);
+    const id = this.auth.user()?.tenantId;
+    this.http.get<any>(`/api/tenants/${id}`).subscribe({
+      next: r => { this.billingData.set(r.tenant ?? r.data ?? r); this.billingLoading.set(false); },
+      error: () => this.billingLoading.set(false),
+    });
+  }
+
+  planLabel(p: string) {
+    return ({ basic: 'בסיסי', pro: 'מקצועי', enterprise: 'ארגוני' } as any)[p] ?? p;
+  }
+
+  daysLeft(expiry: string): number {
+    if (!expiry) return 0;
+    return Math.max(0, Math.ceil((new Date(expiry).getTime() - Date.now()) / 86400000));
   }
 
   // ── Nav ──────────────────────────────────────────────────
   selectGroup(id: string) {
     this.activeGroup.set(id);
     if (id === 'counters') this.loadCounters();
+    if (id === 'billing')  this.loadBilling();
   }
 
   selectScheme(id: ColorScheme) { this.theme.setScheme(id); }

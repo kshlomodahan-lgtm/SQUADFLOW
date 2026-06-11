@@ -1,0 +1,156 @@
+:host { display: block; width: 100%; }
+
+.os-spin  { display: flex; justify-content: center; padding: 48px; }
+.os-error { background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; padding: 12px 16px; border-radius: 8px; font-size: .85rem; }
+
+.os-body {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--sf-border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--sf-bg-card);
+  box-shadow: 0 4px 16px rgba(0,0,0,.06);
+  direction: rtl;
+  min-height: 400px;
+}
+
+// ── Nav ────────────────────────────────────────────────────
+.os-nav {
+  width: 180px;
+  flex-shrink: 0;
+  border-inline-end: 1px solid var(--sf-border);
+  background: var(--sf-bg-card);
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.os-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: right;
+  font-size: .84rem;
+  font-weight: 500;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  color: var(--sf-text-secondary);
+  position: relative;
+  transition: background .13s, color .13s;
+
+  &:hover  { background: var(--sf-bg-hover); color: var(--sf-text); }
+  &.active { background: var(--sf-primary-light); color: var(--sf-primary); font-weight: 600; }
+}
+
+.os-nav-icon {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: var(--sf-bg); display: flex; align-items: center; justify-content: center;
+  color: var(--sf-text-muted); flex-shrink: 0;
+
+  .active & { background: var(--sf-primary-light); color: var(--sf-primary); }
+}
+
+.os-indicator {
+  position: absolute; inset-inline-end: 0; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 18px; border-radius: 2px 0 0 2px; background: var(--sf-primary);
+}
+
+// ── Content ────────────────────────────────────────────────
+.os-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 28px;
+  background: var(--sf-bg);
+  direction: rtl;
+  gap: 0;
+}
+
+.os-section-title {
+  font-size: .78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--sf-text-muted);
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.os-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+}
+
+.os-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  align-items: start;
+  gap: 12px;
+
+  label {
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--sf-text-secondary);
+    padding-top: 9px;
+    text-align: right;
+  }
+}
+
+.os-col { display: flex; flex-direction: column; gap: 4px; }
+
+.req { color: var(--sf-danger); }
+.err { font-size: .75rem; color: var(--sf-danger); }
+
+// Kendo overrides
+:host ::ng-deep .k-input {
+  font-family: 'Noto Sans Hebrew', sans-serif !important;
+  direction: rtl !important;
+  font-size: .88rem !important;
+  border-color: var(--sf-border) !important;
+  border-radius: 8px !important;
+  background: var(--sf-bg-card) !important;
+  color: var(--sf-text) !important;
+  width: 100%;
+  &:focus, &.k-focus { border-color: var(--sf-primary) !important; box-shadow: 0 0 0 2px rgba(13,71,255,.1) !important; }
+}
+:host ::ng-deep .k-input-inner { direction: rtl !important; text-align: right !important; }
+:host ::ng-deep .k-dropdownlist { width: 100% !important; border-radius: 8px !important; border-color: var(--sf-border) !important; background: var(--sf-bg-card) !important; }
+:host ::ng-deep .k-textarea { width: 100% !important; font-family: 'Noto Sans Hebrew', sans-serif !important; direction: rtl !important; border-radius: 8px !important; border-color: var(--sf-border) !important; }
+:host ::ng-deep .k-list-item { font-family: 'Noto Sans Hebrew', sans-serif !important; direction: rtl; text-align: right; }
+
+// ── Footer ─────────────────────────────────────────────────
+.os-footer {
+  padding-top: 20px;
+  border-top: 1px solid var(--sf-border);
+  margin-top: 24px;
+}
+
+.btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f97316;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 22px;
+  font-size: .875rem;
+  font-weight: 600;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  cursor: pointer;
+  transition: background .15s;
+  box-shadow: 0 2px 8px rgba(249,115,22,.3);
+
+  &:hover:not(:disabled) { background: #ea6c0a; }
+  &:disabled { opacity: .6; cursor: not-allowed; box-shadow: none; }
+}

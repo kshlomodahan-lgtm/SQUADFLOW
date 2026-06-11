@@ -92,73 +92,193 @@
         </div>
       }
 
-      <!-- כללי -->
+      <!-- ══ כללי — פרופיל משתמש ══ -->
       @if (activeGroup() === 'general') {
         <div class="content-section">
           <div class="section-header">
-            <h2>הגדרות כלליות</h2>
-            <p>שפה, אזור זמן והגדרות בסיסיות</p>
+            <h2>פרופיל משתמש</h2>
+            <p>הפרטים האישיים שלך במערכת</p>
           </div>
-          <div class="setting-card coming-soon-card">
-            <span class="coming-soon-badge">בקרוב</span>
-            <p>הגדרות כלליות יתווספו בקרוב</p>
+          <div class="setting-card">
+            <div class="profile-row">
+              <div class="profile-avatar">{{ auth.user()?.fullName?.charAt(0) }}</div>
+              <div class="profile-meta">
+                <div class="profile-name">{{ auth.user()?.fullName }}</div>
+                <div class="profile-role">{{ auth.user()?.roleName }} · {{ auth.user()?.companyName }}</div>
+              </div>
+            </div>
+            <div class="profile-fields" [formGroup]="profileForm">
+              <div class="pf-row">
+                <label>שם מלא</label>
+                <input kendoTextBox formControlName="fullName" class="pf-input" />
+              </div>
+              <div class="pf-row">
+                <label>תפקיד</label>
+                <span class="pf-readonly">{{ auth.user()?.roleName }}</span>
+              </div>
+              <div class="pf-row">
+                <label>ארגון</label>
+                <span class="pf-readonly">{{ auth.user()?.companyName }}</span>
+              </div>
+            </div>
+            <div class="setting-actions">
+              <button class="btn-save" (click)="saveProfile()" [disabled]="profileSaving()">
+                @if (profileSaving()) { <kendo-loader size="small" themeColor="primary" /> } @else { ✓ }
+                שמור שינויים
+              </button>
+            </div>
           </div>
         </div>
       }
 
-      <!-- אבטחה -->
+      <!-- ══ אבטחה — שינוי סיסמה ══ -->
       @if (activeGroup() === 'security') {
         <div class="content-section">
           <div class="section-header">
             <h2>אבטחה</h2>
-            <p>מדיניות סיסמאות וחסימת כניסות</p>
+            <p>שינוי סיסמה וניהול גישה</p>
           </div>
-          <div class="setting-card coming-soon-card">
-            <span class="coming-soon-badge">בקרוב</span>
-            <p>הגדרות אבטחה יתווספו בקרוב</p>
+          <div class="setting-card">
+            <div class="setting-card-title">שינוי סיסמה</div>
+            @if (pwSuccess()) {
+              <div class="pw-success">✓ הסיסמה שונתה בהצלחה</div>
+            }
+            @if (pwError()) {
+              <div class="pw-error">⚠ {{ pwError() }}</div>
+            }
+            <div class="pw-fields" [formGroup]="pwForm">
+              <div class="pf-row">
+                <label>סיסמה נוכחית</label>
+                <input kendoTextBox formControlName="currentPassword" type="password" class="pf-input" />
+              </div>
+              <div class="pf-row">
+                <label>סיסמה חדשה</label>
+                <input kendoTextBox formControlName="newPassword" type="password" class="pf-input" />
+                @if (pwForm.get('newPassword')?.hasError('minlength') && pwForm.get('newPassword')?.touched) {
+                  <small class="pw-hint">לפחות 6 תווים</small>
+                }
+              </div>
+              <div class="pf-row">
+                <label>אימות סיסמה</label>
+                <input kendoTextBox formControlName="confirmPassword" type="password" class="pf-input" />
+              </div>
+            </div>
+            <div class="setting-actions">
+              <button class="btn-save" (click)="changePassword()" [disabled]="pwSaving()">
+                @if (pwSaving()) { <kendo-loader size="small" themeColor="primary" /> } @else { ✓ }
+                שנה סיסמה
+              </button>
+            </div>
+          </div>
+
+          <div class="setting-card" style="margin-top:16px">
+            <div class="setting-card-title">מידע על הגישה</div>
+            <div class="session-info">
+              <div class="si-row"><span class="si-label">משתמש</span><span class="si-val">{{ auth.user()?.fullName }}</span></div>
+              <div class="si-row"><span class="si-label">תפקיד</span><span class="si-val">{{ auth.user()?.roleName }}</span></div>
+              <div class="si-row"><span class="si-label">מזהה משתמש</span><span class="si-val mono">#{{ auth.user()?.userId }}</span></div>
+            </div>
           </div>
         </div>
       }
 
-      <!-- התראות -->
+      <!-- ══ התראות ══ -->
       @if (activeGroup() === 'notifications') {
         <div class="content-section">
           <div class="section-header">
             <h2>התראות</h2>
-            <p>ניהול העדפות התראות</p>
+            <p>בחר אילו אירועים שולחים התראה ובאיזה ערוץ</p>
           </div>
-          <div class="setting-card coming-soon-card">
-            <span class="coming-soon-badge">בקרוב</span>
-            <p>הגדרות התראות יתווספו בקרוב</p>
+          <div class="setting-card">
+            <div class="notif-header-row">
+              <span class="notif-col-title">אירוע</span>
+              <span class="notif-ch-title">אימייל</span>
+              <span class="notif-ch-title">מערכת</span>
+            </div>
+            @for (n of notifications(); track n.key) {
+              <div class="notif-row">
+                <span class="notif-label">{{ n.label }}</span>
+                <button class="notif-toggle" [class.on]="n.email"   (click)="toggleNotif(n.key, 'email')">
+                  {{ n.email   ? '✓' : '—' }}
+                </button>
+                <button class="notif-toggle" [class.on]="n.system"  (click)="toggleNotif(n.key, 'system')">
+                  {{ n.system  ? '✓' : '—' }}
+                </button>
+              </div>
+            }
+            <div class="setting-actions" style="margin-top:16px">
+              <button class="btn-save" (click)="saveNotifications()" [disabled]="notifSaving()">
+                @if (notifSaving()) { <kendo-loader size="small" themeColor="primary" /> } @else { ✓ }
+                שמור העדפות
+              </button>
+            </div>
           </div>
         </div>
       }
 
-      <!-- ארגון -->
+      <!-- ══ ארגון ══ -->
       @if (activeGroup() === 'organization') {
         <div class="content-section">
           <div class="section-header">
-            <h2>הגדרות ארגון</h2>
-            <p>פרטי הארגון וחברי הצוות</p>
+            <h2>פרטי הארגון</h2>
+            <p>עדכן את פרטי הארגון שלך</p>
           </div>
-          <div class="setting-card coming-soon-card">
-            <span class="coming-soon-badge">בקרוב</span>
-            <p>הגדרות ארגון יתווספו בקרוב</p>
-          </div>
+          <app-org-settings />
         </div>
       }
 
-      <!-- חיוב -->
+      <!-- ══ חיוב ומנוי ══ -->
       @if (activeGroup() === 'billing') {
         <div class="content-section">
           <div class="section-header">
             <h2>חיוב ומנוי</h2>
-            <p>תוכנית, תשלומים וחשבוניות</p>
+            <p>פרטי המנוי הנוכחי שלך</p>
           </div>
-          <div class="setting-card coming-soon-card">
-            <span class="coming-soon-badge">בקרוב</span>
-            <p>הגדרות חיוב יתווספו בקרוב</p>
-          </div>
+          @if (billingLoading()) {
+            <div class="center-spin"><mat-spinner diameter="32" /></div>
+          } @else if (billingData()) {
+            <div class="billing-grid">
+
+              <div class="billing-card billing-card--plan">
+                <div class="bc-label">תוכנית נוכחית</div>
+                <div class="bc-plan-name">{{ planLabel(billingData().PlanType) }}</div>
+                <span class="bc-badge" [class]="'bc-badge--' + billingData().PlanType">
+                  {{ planLabel(billingData().PlanType) }}
+                </span>
+              </div>
+
+              <div class="billing-card">
+                <div class="bc-label">משתמשים</div>
+                <div class="bc-big">{{ billingData().UserCount }} <span class="bc-of">/ {{ billingData().MaxUsers }}</span></div>
+                <div class="bc-bar-outer">
+                  <div class="bc-bar-inner" [style.width.%]="(billingData().UserCount / billingData().MaxUsers) * 100"></div>
+                </div>
+              </div>
+
+              <div class="billing-card">
+                <div class="bc-label">תפוגת מנוי</div>
+                <div class="bc-big">{{ daysLeft(billingData().ExpiresAt) }}</div>
+                <div class="bc-sub">ימים נותרו</div>
+                @if (daysLeft(billingData().ExpiresAt) < 30) {
+                  <span class="bc-warn">⚠ המנוי מסתיים בקרוב</span>
+                }
+              </div>
+
+              <div class="billing-card">
+                <div class="bc-label">סטטוס</div>
+                <div class="bc-status" [class.bc-status--active]="billingData().IsActive">
+                  {{ billingData().IsActive ? '● פעיל' : '○ מושהה' }}
+                </div>
+                <div class="bc-sub">{{ billingData().CompanyName }}</div>
+              </div>
+
+            </div>
+            <div class="billing-upgrade">
+              <button class="btn-upgrade" disabled>שדרג תוכנית — בקרוב</button>
+            </div>
+          } @else {
+            <div class="setting-card"><p class="text-muted">לא נטענו נתוני מנוי</p></div>
+          }
         </div>
       }
 
