@@ -79,6 +79,7 @@
   transition: background .15s;
   i { font-size: .9rem; }
 }
+.act-open   { color: var(--sf-primary); background: var(--sf-primary-light); &:hover { background: var(--sf-primary); color: #fff; } }
 .act-expand { color: var(--sf-text-secondary); &:hover { background: var(--sf-bg-hover); color: var(--sf-primary); } &.expanded { color: var(--sf-primary); } }
 .act-edit   { color: #3b82f6; &:hover { background: #eff6ff; } }
 .act-delete { color: #ef4444; &:hover { background: #fef2f2; } }

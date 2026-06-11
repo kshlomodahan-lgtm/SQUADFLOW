@@ -57,6 +57,11 @@ export const routes: Routes = [
           import('./features/projects/projects.component').then(m => m.ProjectsComponent),
       },
       {
+        path: 'projects/:id',
+        loadComponent: () =>
+          import('./features/projects/workspace/workspace.component').then(m => m.WorkspaceComponent),
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('./features/settings/settings.component').then(m => m.SettingsComponent),
@@ -75,6 +80,11 @@ export const routes: Routes = [
         path: 'audit/entity-types',
         loadComponent: () =>
           import('./features/audit/entity-types/audit-entity-types.component').then(m => m.AuditEntityTypesComponent),
+      },
+      {
+        path: 'arachim/orders',
+        loadComponent: () =>
+          import('./features/arachim/orders/orders.component').then(m => m.OrdersComponent),
       },
     ],
   },

@@ -57,6 +57,12 @@ export class ShellComponent implements OnInit {
       ],
     },
     {
+      label: 'ארכים — עמלות',
+      items: [
+        { icon: 'receipt_long', label: 'הזמנות', route: '/app/arachim/orders' },
+      ],
+    },
+    {
       label: 'מערכת',
       items: [
         { icon: 'settings', label: 'הגדרות', route: '/app/settings' },

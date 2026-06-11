@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Arachim Commissions — ERD v2</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8fafc; margin: 0; padding: 1rem; }
+  h1 { font-size: 1.1rem; color: #0f172a; margin-bottom: .25rem; }
+  .meta { font-size: .8rem; color: #64748b; margin-bottom: 1rem; }
+  .legend { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1rem; font-size: .78rem; color: #475569; }
+  .legend span { display: flex; align-items: center; gap: .4rem; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  #erd { padding: 1rem 0; overflow-x: auto; }
+  #erd svg { max-width: 100%; }
+</style>
+</head>
+<body>
+<h1>Arachim — מודול עמלות | ERD v2</h1>
+<div class="meta">עדכון: 2026-06-11 | שינויים: הסרת ORDER_AUDIT_LOG + ITEM_NUANCE, הוספת CATALOG_TASK + ITEM_ATTRIBUTE_DEF + ITEM_LINK_ATTRIBUTE + SUPPLIER_ITEM + ORDER_FINANCIALS + EXCHANGE_RATE</div>
+<div class="legend">
+  <span><span class="dot" style="background:#3b82f6"></span> ישות מרכזית</span>
+  <span><span class="dot" style="background:#10b981"></span> ישות חדשה (לא הייתה ב-ERD v1)</span>
+  <span><span class="dot" style="background:#f59e0b"></span> lookup / reference</span>
+  <span>ORDER_AUDIT_LOG — הוסר (← SQUADFLOW tblAuditLog)</span>
+  <span>ITEM_NUANCE — הוסר (← ITEM_LINK_ATTRIBUTE)</span>
+</div>
+<div id="erd"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Segoe UI", Arial, sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '12px',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+  },
+});
+
+const diagram = `erDiagram
+
+  %% ── ORDERS ──────────────────────────────────────────────
+  COMPANY       ||--o{ ORDERS          : "owns"
+  CUSTOMER      ||--o{ ORDERS          : "buys"
+  SUPPLIER      ||--o{ ORDERS          : "supplies"
+  SALES_DOMAIN  ||--o{ ORDERS          : "classifies"
+  APP_USER      ||--o{ ORDERS          : "edits"
+  PAYMENT_TERM  ||--o{ ORDERS          : "terms"
+  SALE_TERMS    ||--o{ ORDERS          : "incoterms"
+  ORDERS        }o--o| ORDERS          : "draws from"
+
+  %% ── ORDER LINES ─────────────────────────────────────────
+  ORDERS           ||--o{ ORDER_LINE        : "contains"
+  ITEM_LINK        ||--o{ ORDER_LINE        : "used in"
+  COMMISSION_TYPE  ||--o{ ORDER_LINE        : "typed by"
+
+  %% ── SHIPMENT / FINANCIALS / DOCS ────────────────────────
+  ORDERS  ||--o{ SHIPMENT_TRACKING  : "tracked by"
+  ORDERS  ||--o{ ORDER_FINANCIALS   : "financials"
+  ORDERS  ||--o{ ORDER_DOCUMENT     : "attaches"
+
+  %% ── ITEM LINK ───────────────────────────────────────────
+  SUPPLIER      ||--o{ ITEM_LINK         : "leads"
+  CUSTOMER      ||--o{ ITEM_LINK         : "for"
+  SUPPLIER_ITEM }o--|| ITEM_LINK         : "linked via"
+
+  %% ── DYNAMIC ATTRIBUTES ──────────────────────────────────
+  ITEM_LINK           ||--o{ ITEM_LINK_ATTRIBUTE  : "has"
+  ITEM_ATTRIBUTE_DEF  ||--o{ ITEM_LINK_ATTRIBUTE  : "defines"
+
+  %% ── CATALOGER WORKFLOW ───────────────────────────────────
+  ITEM_LINK  ||--o| CATALOG_TASK  : "requires"
+  APP_USER   ||--o{ CATALOG_TASK  : "handles"
+  ITEM_LINK  }o--o| ITEM_LINK     : "merged into"
+
+  %% ── MASTER DATA ─────────────────────────────────────────
+  SUPPLIER   ||--o{ SUPPLIER_ITEM  : "catalogs"
+  CUSTOMER   ||--o{ CONTACT        : "has"
+  SUPPLIER   ||--o{ CONTACT        : "has"
+  CURRENCY   ||--o{ EXCHANGE_RATE  : "rates"
+
+  %% ═══════════════════════════════════════════════════════
+  %% ENTITY DEFINITIONS
+  %% ═══════════════════════════════════════════════════════
+
+  ORDERS {
+    bigint   OrderID            PK
+    int      OrderNumber
+    smallint OrderYear
+    int      CompanyID          FK
+    int      SupplierID         FK
+    int      CustomerID         FK
+    int      SalesDomainID      FK
+    int      SalesPersonID      FK
+    int      ActualEditorID     FK
+    int      SupplierContactID  FK
+    int      CustomerContactID  FK
+    string   CustomerRef
+    string   PaymentTerms1
+    smallint CreditDays
+    char     TransportMode
+    int      SaleTermsID        FK
+    int      CurrencyID         FK
+    decimal  TotalValue
+    decimal  TotalCommission
+    date     OrderDate
+    boolean  IsCancelled
+    boolean  IsFrozen
+    boolean  IsImportant
+    boolean  IsFrameContract
+    bigint   FrameContractOrderID FK
+    boolean  IsActive
+    datetime CreatedAt
+    datetime UpdatedAt
+  }
+
+  ORDER_LINE {
+    bigint   OrderLineID          PK
+    bigint   OrderID              FK
+    smallint GroupNo
+    smallint LineNo
+    bigint   ItemLinkID           FK
+    string   SupplierSKU
+    string   CustomerSKU
+    string   SupplierDescSnapshot
+    decimal  Price
+    decimal  QtyOrdered
+    decimal  QtyRemaining
+    string   UOM
+    int      CurrencyID           FK
+    decimal  DiscountPct
+    decimal  LineValue
+    char     CommissionType
+    decimal  CommissionPct
+    decimal  CommissionFixed
+    decimal  CommissionPerPrice
+    smallint CommissionPerQty
+    date     DeliveryDate
+    boolean  IsFrameContract
+    datetime CreatedAt
+    datetime UpdatedAt
+  }
+
+  SHIPMENT_TRACKING {
+    bigint   ShipmentTrackingID   PK
+    bigint   OrderID              FK
+    smallint GroupNo
+    string   SupplierOC
+    date     SupplierOCDate
+    date     DesiredDeliveryDate
+    date     UpdatedDeliveryDate
+    date     GoodsLeftFactoryDate
+    date     ETD
+    date     ETA
+    date     ATA
+    string   BLNumber
+    string   VesselName
+    boolean  HasDocuments
+    int      PaymentStatusID      FK
+    datetime CreatedAt
+    datetime UpdatedAt
+  }
+
+  ORDER_FINANCIALS {
+    bigint   OrderFinancialID         PK
+    bigint   OrderID                  FK
+    smallint GroupNo
+    string   SupplierInvoiceNo
+    date     SupplierInvoiceDate
+    decimal  InvoiceAmount
+    boolean  CustomerPaid
+    decimal  AmountPaidByCustomer
+    boolean  InvoiceIssuedToSupplier
+    boolean  CommissionReceived
+    decimal  CommissionAmountReceived
+    boolean  IsOnCall
+    int      CurrencyID              FK
+    datetime CreatedAt
+    datetime UpdatedAt
+  }
+
+  ORDER_DOCUMENT {
+    bigint   DocumentID        PK
+    bigint   OrderID           FK
+    string   DocType
+    string   FileName
+    string   FileFormat
+    string   Notes
+    int      UploadedByUserID  FK
+    datetime UploadedAt
+  }
+
+  ITEM_LINK {
+    bigint   ItemLinkID        PK
+    int      SupplierID        FK
+    string   SupplierSKU
+    int      CustomerID        FK
+    string   CustomerSKU
+    string   CustomerSKUDesc
+    int      UOMID             FK
+    int      ResponsibleUserID FK
+    boolean  IsTempSKU
+    boolean  IsGlobalSKU
+    boolean  IsActive
+    datetime CreatedAt
+    datetime UpdatedAt
+  }
+
+  ITEM_ATTRIBUTE_DEF {
+    int     AttributeDefID  PK
+    string  AttributeName
+    string  DataType
+    boolean IsRequired
+    int     SortOrder
+    boolean IsActive
+  }
+
+  ITEM_LINK_ATTRIBUTE {
+    bigint  AttributeID     PK
+    bigint  ItemLinkID      FK
+    int     AttributeDefID  FK
+    boolean ValBoolean
+    string  ValString
+    date    ValDate
+    decimal ValNumber
+  }
+
+  CATALOG_TASK {
+    bigint   CatalogTaskID        PK
+    bigint   ItemLinkID           FK
+    string   ActionType
+    bigint   MergedIntoID         FK
+    string   SupplierSKUStatus
+    string   TempSupplierSKU
+    string   ConfirmedSupplierSKU
+    int      SupplierAssignedTo   FK
+    datetime SupplierCompletedAt
+    string   CustomerSKUStatus
+    string   TempCustomerSKU
+    string   ConfirmedCustomerSKU
+    int      CustomerAssignedTo   FK
+    datetime CustomerCompletedAt
+    datetime RequestedAt
+    string   Notes
+  }
+
+  SUPPLIER_ITEM {
+    bigint   SupplierItemID      PK
+    int      SupplierID          FK
+    string   SupplierSKU
+    string   Description
+    decimal  DefaultPrice
+    decimal  DefaultCommissionPct
+    int      DefaultCurrencyID   FK
+    string   DefaultUOM
+    boolean  IsActive
+  }
+
+  CUSTOMER {
+    int      CustomerID           PK
+    string   ShortNameEN
+    string   FullNameEN
+    string   ShortNameHE
+    string   FullNameHE
+    string   CompanyRegNo
+    string   PSNPrefix
+    int      PSNNumerator
+    int      DefaultCurrencyID   FK
+    int      DefaultPaymentTermID FK
+    int      DefaultSalesDomainID FK
+    boolean  IsActive
+    datetime CreatedAt
+    datetime UpdatedAt
+  }
+
+  SUPPLIER {
+    int      SupplierID    PK
+    string   ShortName
+    string   FullName
+    string   PSNPrefix
+    int      PSNNumerator
+    boolean  IsActive
+    datetime CreatedAt
+    datetime UpdatedAt
+  }
+
+  CONTACT {
+    bigint   ContactID  PK
+    string   OwnerType
+    int      OwnerID
+    string   Name
+    string   Phone
+    string   Email
+    string   Role
+    boolean  IsActive
+  }
+
+  COMPANY {
+    int     CompanyID                 PK
+    string  CompanyNameHE
+    string  CompanyNameEN
+    decimal ImportantOrderThreshold
+    int     ImportantOrderCurrencyID  FK
+    boolean IsActive
+  }
+
+  SALES_DOMAIN {
+    smallint SalesDomainID  PK
+    string   DomainName
+    string   Prefix
+    int      Numerator
+    boolean  IsActive
+  }
+
+  COMMISSION_TYPE {
+    int     CommissionTypeID  PK
+    char    TypeCode
+    string  TypeName
+    boolean IsActive
+  }
+
+  PAYMENT_TERM {
+    int      PaymentTermID  PK
+    string   Description1
+    string   Description2
+    smallint CreditDays
+    boolean  IsActive
+  }
+
+  SALE_TERMS {
+    int     SaleTermsID  PK
+    string  TermsCode
+    string  Description
+    boolean IsActive
+  }
+
+  CURRENCY {
+    int     CurrencyID    PK
+    string  CurrencyName
+    string  CurrencyCode
+    boolean IsBase
+    boolean IsActive
+  }
+
+  EXCHANGE_RATE {
+    bigint   ExchangeRateID  PK
+    int      CurrencyID      FK
+    date     RateDate
+    decimal  Rate
+    datetime CreatedAt
+  }
+
+  APP_USER {
+    int     UserID    PK
+    string  Username
+    string  FullName
+    string  Email
+    boolean IsActive
+  }`;
+
+const { svg } = await mermaid.render('erd-svg', diagram);
+document.getElementById('erd').innerHTML = svg;
+</script>
+</body>
+</html>

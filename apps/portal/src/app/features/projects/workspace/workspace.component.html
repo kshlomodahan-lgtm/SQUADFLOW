@@ -1,0 +1,87 @@
+<div class="ws-root">
+
+  <!-- ── Header ──────────────────────────────────────────── -->
+  <header class="ws-header">
+    <div class="ws-header-inner">
+      <button class="back-btn" (click)="back()">
+        <mat-icon>arrow_back</mat-icon>
+        <span>פרויקטים</span>
+      </button>
+
+      @if (project(); as p) {
+        <div class="ws-project-info">
+          <div class="ws-badge">FLOWSPACE</div>
+          <h1 class="ws-project-name">{{ p.ProjectName }}</h1>
+          <div class="ws-meta">
+            <span class="ws-code">{{ p.ProjectCode }}</span>
+            @if (p.ClientOrgName) {
+              <span class="ws-sep">·</span>
+              <span class="ws-client">{{ p.ClientOrgName }}</span>
+            }
+            <span class="ws-sep">·</span>
+            <span class="ws-status">{{ statusLabel(p.Status) }}</span>
+          </div>
+        </div>
+      }
+
+      <div class="ws-header-end">
+        <div class="ws-pulse">
+          <span class="pulse-dot"></span>
+          <span class="pulse-label">סביבת פיתוח AI</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Neural line decoration -->
+    <div class="ws-neural-line">
+      @for (i of [1,2,3,4,5,6,7,8]; track i) {
+        <div class="nl-node" [style.animation-delay]="(i * 0.15) + 's'"></div>
+        @if (i < 8) { <div class="nl-edge"></div> }
+      }
+    </div>
+  </header>
+
+  <!-- ── Areas Grid ──────────────────────────────────────── -->
+  <main class="ws-main">
+    @if (loading()) {
+      <div class="ws-loading">
+        <div class="ws-spinner"></div>
+        <span>טוען סביבת פיתוח...</span>
+      </div>
+    } @else {
+      <div class="ws-areas-label">
+        <mat-icon>account_tree</mat-icon>
+        <span>אזורי FLOWSPACE — בחר אזור לעבודה</span>
+      </div>
+
+      <div class="ws-grid">
+        @for (area of areas; track area.id) {
+          <div class="ws-area-card" [class.area-ready]="area.ready"
+               [style.--area-color]="area.color"
+               [style.--area-glow]="area.glow">
+            <div class="area-glow-bg"></div>
+            <div class="area-icon-wrap">
+              <mat-icon class="area-icon">{{ area.icon }}</mat-icon>
+            </div>
+            <div class="area-content">
+              <div class="area-name">{{ area.name }}</div>
+              <div class="area-name-he">{{ area.nameHe }}</div>
+              <div class="area-desc">{{ area.desc }}</div>
+            </div>
+            <div class="area-footer">
+              @if (area.ready) {
+                <span class="area-status-ready">
+                  <mat-icon>check_circle</mat-icon> פעיל
+                </span>
+              } @else {
+                <span class="area-status-soon">בפיתוח</span>
+              }
+              <mat-icon class="area-arrow">arrow_forward</mat-icon>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </main>
+
+</div>

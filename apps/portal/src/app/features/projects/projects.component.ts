@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { GridModule, PageChangeEvent, GridComponent } from '@progress/kendo-angular-grid';
+import { RouterLink } from '@angular/router';
 import { DialogModule } from '@progress/kendo-angular-dialog';
 import { SortDescriptor, orderBy } from '@progress/kendo-data-query';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -29,7 +30,7 @@ export interface Project {
   selector: 'app-projects',
   standalone: true,
   imports: [
-    CommonModule, GridModule, DialogModule,
+    CommonModule, GridModule, DialogModule, RouterLink,
     ButtonsModule, IndicatorsModule, MatIconModule,
     ProjectDialogComponent,
   ],

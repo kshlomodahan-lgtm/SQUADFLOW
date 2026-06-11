@@ -96,6 +96,10 @@
     [resizable]="false" [columnMenu]="false">
     <ng-template kendoGridCellTemplate let-row let-rowIndex="rowIndex">
       <div class="row-actions">
+        <button class="act-btn act-open" title="פתח פרויקט"
+                [routerLink]="['/app/projects', row.ProjectID]">
+          <i class="pi pi-arrow-up-right-and-arrow-down-left-from-center"></i>
+        </button>
         <button class="act-btn act-expand"
                 [class.expanded]="isExpanded(row.ProjectID)"
                 [title]="isExpanded(row.ProjectID) ? 'סגור' : 'הרחבה'"
