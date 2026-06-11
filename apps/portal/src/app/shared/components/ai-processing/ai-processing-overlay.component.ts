@@ -68,7 +68,7 @@ export class AiProcessingOverlayComponent implements OnInit, OnDestroy {
   ngOnDestroy() { this.stopTimers(); }
 
   @HostListener('document:keydown.escape', ['$event'])
-  onEscape(e: KeyboardEvent) {
+  onEscape(e: Event) {
     if (this.svc.isActive()) e.stopImmediatePropagation();
   }
 
