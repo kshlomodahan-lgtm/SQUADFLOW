@@ -1,0 +1,95 @@
+@if (svc.isActive()) {
+  <div class="ai-backdrop" role="dialog" aria-modal="true" aria-label="מנוע AI פועל">
+
+    <div class="ai-card" [class.card-done]="svc.completed()" [class.card-error]="svc.hasError()">
+
+      <!-- ── Icon ─────────────────────────────── -->
+      <div class="ai-icon-wrap" [class.done]="svc.completed()" [class.error]="svc.hasError()">
+        @if (svc.completed()) {
+          <svg class="icon-svg" viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="2.5"/>
+            <polyline points="13,24 21,32 35,16" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        } @else if (svc.hasError()) {
+          <svg class="icon-svg" viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="2.5"/>
+            <line x1="17" y1="17" x2="31" y2="31" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <line x1="31" y1="17" x2="17" y2="31" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        } @else {
+          <svg class="icon-svg ai-spin" viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="10" stroke="currentColor" stroke-width="2"/>
+            <circle cx="24" cy="8"  r="3" fill="currentColor"/>
+            <circle cx="24" cy="40" r="3" fill="currentColor"/>
+            <circle cx="8"  cy="24" r="3" fill="currentColor"/>
+            <circle cx="40" cy="24" r="3" fill="currentColor"/>
+            <circle cx="12.7" cy="12.7" r="2.2" fill="currentColor" opacity=".6"/>
+            <circle cx="35.3" cy="35.3" r="2.2" fill="currentColor" opacity=".6"/>
+            <circle cx="35.3" cy="12.7" r="2.2" fill="currentColor" opacity=".6"/>
+            <circle cx="12.7" cy="35.3" r="2.2" fill="currentColor" opacity=".6"/>
+          </svg>
+        }
+      </div>
+
+      <!-- ── Title ─────────────────────────────── -->
+      <h3 class="ai-title">
+        @if (svc.completed()) { הושלם בהצלחה }
+        @else if (svc.hasError()) { אירעה שגיאה }
+        @else { {{ svc.config().title || 'מנוע AI פועל...' }} }
+      </h3>
+
+      <p class="ai-subtitle">
+        @if (svc.hasError()) { {{ svc.errorMsg() }} }
+        @else { {{ svc.config().subtitle || 'המנוע עובד על הבקשה, אנא המתן' }} }
+      </p>
+
+      @if (svc.config().model && !svc.completed() && !svc.hasError()) {
+        <span class="model-badge">{{ svc.config().model }}</span>
+      }
+
+      <!-- ── EQ Bar Graph ───────────────────────── -->
+      @if (!svc.completed() && !svc.hasError()) {
+        <div class="eq-wrap" aria-hidden="true">
+          @for (h of eqHeights(); track $index) {
+            <div class="eq-bar" [style.height.%]="h"></div>
+          }
+        </div>
+      }
+
+      <!-- ── Progress Bar ──────────────────────── -->
+      <div class="progress-outer">
+        <div class="progress-inner"
+             [class.prog-done]="svc.completed()"
+             [class.prog-error]="svc.hasError()"
+             [style.width.%]="svc.hasError() ? 100 : progressPct()">
+        </div>
+      </div>
+
+      <div class="progress-meta">
+        @if (svc.completed()) {
+          <span class="meta-done">✓ הושלם</span>
+        } @else if (svc.hasError()) {
+          <span class="meta-error">⚠ נכשל</span>
+        } @else {
+          <span class="meta-pct">{{ progressPct().toFixed(0) }}%</span>
+          <span class="meta-elapsed">{{ elapsedText() }}</span>
+        }
+      </div>
+
+      <!-- ── Stages ────────────────────────────── -->
+      @if (svc.config().stages?.length && !svc.completed() && !svc.hasError()) {
+        <div class="stages-wrap">
+          @for (stage of svc.config().stages!; track $index) {
+            <div class="stage-item"
+                 [class.stage-done]="currentStageIdx() > $index"
+                 [class.stage-active]="currentStageIdx() === $index">
+              <div class="stage-dot"></div>
+              <span class="stage-label">{{ stage }}</span>
+            </div>
+          }
+        </div>
+      }
+
+    </div>
+  </div>
+}

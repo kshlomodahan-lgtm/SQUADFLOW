@@ -7,6 +7,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../core/services/auth.service';
 import { ThemeService } from '../core/services/theme.service';
 import { RbacService } from '../core/services/rbac.service';
+import { AiProcessingOverlayComponent } from '../shared/components/ai-processing/ai-processing-overlay.component';
 
 interface NavItem  { icon: string; label: string; route: string; }
 interface NavGroup { label: string; items: NavItem[]; }
@@ -18,6 +19,7 @@ interface NavGroup { label: string; items: NavItem[]; }
     CommonModule,
     RouterOutlet, RouterLink, RouterLinkActive,
     MatIconModule, MatButtonModule, MatTooltipModule,
+    AiProcessingOverlayComponent,
   ],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
