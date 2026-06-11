@@ -2,7 +2,7 @@ export type OrderStatus = 'active' | 'important' | 'frozen' | 'cancelled' | 'fra
 export type CommissionType = 'PCT' | 'FIXED' | 'PER_PRICE' | 'NONE';
 
 export interface ArachimOrderLine {
-  orderLineID: number;
+  orderLineId: number;
   groupNo: number;
   lineNo: number;
   supplierSKU: string;
@@ -20,6 +20,7 @@ export interface ArachimOrderLine {
   commissionFixed: number;
   commissionAmount: number;
   deliveryDate: Date | null;
+  itemLinkId: number | null;
 }
 
 export interface ArachimOrderFinancial {
@@ -37,18 +38,26 @@ export interface ArachimOrderFinancial {
 export interface ArachimShipment {
   supplierOC: string;
   supplierOCDate: Date | null;
+  desiredDeliveryDate: Date | null;
+  updatedDeliveryDate: Date | null;
+  handoverToShipperDate: Date | null;
+  goodsLeftFactoryDate: Date | null;
   etd: Date | null;
   eta: Date | null;
   ata: Date | null;
   blNumber: string;
   vesselName: string;
-  desiredDeliveryDate: Date | null;
+  transportMode: 'A' | 'Y' | null;
+  hasDocuments: boolean;
+  paymentStatusId: number | null;
 }
 
 export interface ArachimOrder {
-  orderID: number;
+  orderId: number;
   orderNumber: number;
   orderYear: number;
+  companyId: number;
+  groupNo: number;
   status: OrderStatus;
   supplierID: number;
   supplierShort: string;
@@ -59,16 +68,21 @@ export interface ArachimOrder {
   salesDomain: string;
   salesDomainPrefix: string;
   salesPerson: string;
-  orderDate: Date;
+  orderDate: Date | null;
   deliveryDate: Date | null;
+  eta: Date | null;
+  ata: Date | null;
   totalValue: number;
   currency: string;
   commissionType: CommissionType;
   commissionPct: number;
   commissionAmount: number;
+  commissionReceived: boolean;
+  commissionAmtReceived: number;
   customerRef: string;
   isFrameContract: boolean;
+  lineCount: number;
   lines: ArachimOrderLine[];
-  financial: ArachimOrderFinancial;
-  shipment: ArachimShipment;
+  financial: ArachimOrderFinancial | null;
+  shipment: ArachimShipment | null;
 }

@@ -57,6 +57,7 @@
       <div class="ws-grid">
         @for (area of areas; track area.id) {
           <div class="ws-area-card" [class.area-ready]="area.ready"
+               (click)="openArea(area)"
                [style.--area-color]="area.color"
                [style.--area-glow]="area.glow">
             <div class="area-glow-bg"></div>

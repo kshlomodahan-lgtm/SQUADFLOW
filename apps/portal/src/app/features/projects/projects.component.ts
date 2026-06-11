@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { GridModule, PageChangeEvent, GridComponent } from '@progress/kendo-angular-grid';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { DialogModule } from '@progress/kendo-angular-dialog';
 import { SortDescriptor, orderBy } from '@progress/kendo-data-query';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -30,7 +30,7 @@ export interface Project {
   selector: 'app-projects',
   standalone: true,
   imports: [
-    CommonModule, GridModule, DialogModule, RouterLink,
+    CommonModule, GridModule, DialogModule,
     ButtonsModule, IndicatorsModule, MatIconModule,
     ProjectDialogComponent,
   ],
@@ -70,7 +70,7 @@ export class ProjectsComponent implements OnInit {
     this.filtered().slice(this.skip, this.skip + this.pageSize)
   );
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
   ngOnInit() { this.load(); }
 
@@ -99,6 +99,7 @@ export class ProjectsComponent implements OnInit {
 
   isExpanded(id: number) { return this.expandedRows.has(id); }
 
+  openProject(id: number) { this.router.navigate(['/app/projects', id]); }
   openNew()            { this.editProject.set(null); this.showDialog.set(true); }
   openEdit(p: Project) { this.editProject.set(p);    this.showDialog.set(true); }
   closeDialog()        { this.showDialog.set(false); }

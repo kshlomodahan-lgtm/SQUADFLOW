@@ -186,9 +186,9 @@ BEGIN
     SET NOCOUNT ON;
     SELECT
         p.*,
-        o.CompanyName AS ClientOrgName
+        c.CompanyName AS ClientOrgName
     FROM dbo.tblProjects p
-    LEFT JOIN dbo.tblOrganizations o ON o.OrgID = p.ClientOrgID
+    LEFT JOIN dbo.tblCustomers c ON c.CustomerID = p.ClientOrgID
     WHERE p.ProjectID = @ProjectID
       AND p.TenantID  = @TenantID
       AND p.IsActive  = 1

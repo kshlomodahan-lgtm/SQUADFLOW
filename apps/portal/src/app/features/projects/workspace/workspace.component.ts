@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+
 import { HttpClient } from '@angular/common/http';
 import { MatIconModule } from '@angular/material/icon';
 import { Project } from '../projects.component';
@@ -22,7 +23,7 @@ const AREAS: WorkspaceArea[] = [
     id: 'cortex', name: 'CORTEX', nameHe: 'מודלי נתונים',
     desc: 'הגדרת Objects, Fields, Validations ו-Locale Rules',
     icon: 'hub', color: '#7c3aed', glow: 'rgba(124,58,237,.25)',
-    ready: false,
+    ready: true,
   },
   {
     id: 'nexus', name: 'NEXUS', nameHe: 'מקורות מידע',
@@ -81,6 +82,11 @@ export class WorkspaceComponent implements OnInit {
       next:  r  => { this.project.set(r.data); this.loading.set(false); },
       error: () => this.router.navigate(['/app/projects']),
     });
+  }
+
+  openArea(area: WorkspaceArea) {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (area.id === 'cortex') this.router.navigate(['/app/cortex', id]);
   }
 
   back() { this.router.navigate(['/app/projects']); }

@@ -1,0 +1,221 @@
+<div class="cx-root" (mousedown)="onBgDown($event)" (wheel)="onWheel($event)">
+
+  <!-- ── Toolbar ─────────────────────────────────────────── -->
+  <div class="cx-toolbar">
+    <button class="cx-back" (click)="back()" title="חזרה">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+
+    <div class="cx-brand">
+      <span class="cx-brand-name">CORTEX</span>
+      <span class="cx-brand-sub">מחולל מודלי נתונים</span>
+    </div>
+
+    <div class="cx-tools">
+      <button class="cx-btn" [class.cx-btn-active]="connectMode()"
+              (click)="toggleConnect()" title="חבר בין מודלים">
+        <mat-icon>cable</mat-icon>
+        <span>{{ connectMode() ? 'ביטול' : 'חבר' }}</span>
+      </button>
+      <button class="cx-btn cx-btn-primary" (click)="openAdd()">
+        <mat-icon>add</mat-icon>
+        <span>מודל חדש</span>
+      </button>
+    </div>
+
+    @if (connectMode()) {
+      <div class="cx-connect-hint">
+        @if (connectSource()) {
+          <span class="hint-dot"></span>
+          <span>{{ connectSource()!.ObjectName }} ← בחר מודל יעד</span>
+        } @else {
+          <span class="hint-dot"></span>
+          <span>בחר מודל מקור לחיבור</span>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- ── Canvas ──────────────────────────────────────────── -->
+  <div class="cx-canvas-wrap">
+
+    <!-- Starfield particles -->
+    <div class="cx-particles" aria-hidden="true">
+      @for (p of particles; track $index) {
+        <div class="cx-star"
+             [style.left.px]="p.x" [style.top.px]="p.y"
+             [style.width.px]="p.s" [style.height.px]="p.s"
+             [style.animation-delay.s]="p.d"></div>
+      }
+    </div>
+
+    <!-- Dot grid -->
+    <div class="cx-grid" aria-hidden="true"></div>
+
+    <!-- Panned + Zoomed canvas -->
+    <div class="cx-canvas" [style.transform]="transform" [class.cx-connect]="connectMode()">
+
+      <!-- ── SVG Connections ─────────────────────────────── -->
+      <svg class="cx-svg" width="5000" height="5000"
+           style="position:absolute;top:0;left:0;overflow:visible;pointer-events:none">
+        <defs>
+          <linearGradient id="lg-conn" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#7c3aed" stop-opacity="0.9"/>
+            <stop offset="40%"  stop-color="#06b6d4" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.9"/>
+          </linearGradient>
+          <linearGradient id="lg-conn-r" x1="100%" y1="0%" x2="0%" y2="0%">
+            <stop offset="0%"   stop-color="#7c3aed" stop-opacity="0.9"/>
+            <stop offset="40%"  stop-color="#06b6d4" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.9"/>
+          </linearGradient>
+          <filter id="glow-f" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        @for (c of connections(); track c.ConnectionID) {
+          <g class="cx-conn-g" style="pointer-events:stroke">
+            <!-- Glow layer -->
+            <path [attr.d]="connPath(c)"
+                  stroke="#7c3aed" stroke-width="6" fill="none"
+                  stroke-opacity="0.15" filter="url(#glow-f)"/>
+            <!-- Main animated dash -->
+            <path [attr.d]="connPath(c)"
+                  stroke="url(#lg-conn)" stroke-width="1.8" fill="none"
+                  stroke-dasharray="10 5" class="cx-conn-path"
+                  style="pointer-events:stroke;cursor:pointer"
+                  (click)="deleteConn(c)"/>
+            <!-- Cardinality badge -->
+            <text [attr.x]="connMid(c).x" [attr.y]="connMid(c).y"
+                  class="cx-conn-label" text-anchor="middle">{{ c.RelationType }}</text>
+          </g>
+        }
+      </svg>
+
+      <!-- ── Nodes ─────────────────────────────────────── -->
+      @for (obj of objects(); track obj.ObjectID) {
+        <div class="cortex-node"
+             [class.cx-src]="connectSource()?.ObjectID === obj.ObjectID"
+             [class.cx-tgt]="connectMode() && !!connectSource() && connectSource()!.ObjectID !== obj.ObjectID"
+             [style.left.px]="obj.PosX"
+             [style.top.px]="obj.PosY"
+             [style.width.px]="nodeW"
+             (mousedown)="onNodeDown($event, obj)"
+             (click)="clickNode(obj)">
+
+          <!-- Top glow bar -->
+          <div class="node-glow-bar"></div>
+
+          <!-- Header -->
+          <div class="node-hdr">
+            <div class="node-icon-wrap">
+              <mat-icon class="node-icon">hub</mat-icon>
+            </div>
+            <div class="node-title-wrap">
+              <span class="node-name">{{ obj.ObjectName }}</span>
+              <span class="node-meta">{{ obj.fields.length }} fields</span>
+            </div>
+            <div class="node-ctrls" (mousedown)="$event.stopPropagation()">
+              <button class="nctl" (click)="toggleExpand(obj, $event)"
+                      [title]="obj.expanded ? 'כווץ' : 'הרחב'">
+                <mat-icon>{{ obj.expanded ? 'unfold_less' : 'unfold_more' }}</mat-icon>
+              </button>
+              <button class="nctl nctl-del" (click)="$event.stopPropagation(); deleteObj(obj)" title="מחק">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Fields -->
+          @if (obj.expanded) {
+            <div class="node-fields" (mousedown)="$event.stopPropagation()">
+              @for (f of obj.fields; track f.FieldID) {
+                <div class="nf-row">
+                  <span class="nf-icon">{{ dtIcon(f.DataType) }}</span>
+                  <span class="nf-name">{{ f.FieldName }}</span>
+                  @if (f.IsKey) { <span class="nf-tag tag-pk">PK</span> }
+                  @if (f.IsRequired) { <span class="nf-tag tag-req">!</span> }
+                  <button class="nf-del" (click)="deleteField(obj, f)">×</button>
+                </div>
+              }
+
+              <!-- Add field row -->
+              @if (addingField[obj.ObjectID]) {
+                <div class="nf-add-row">
+                  <input class="nf-input" [(ngModel)]="newFName[obj.ObjectID]"
+                         placeholder="שם שדה" (keyup.enter)="saveField(obj)" />
+                  <select class="nf-sel" [(ngModel)]="newFType[obj.ObjectID]">
+                    @for (dt of dataTypes; track dt.id) {
+                      <option [value]="dt.id">{{ dt.label }}</option>
+                    }
+                  </select>
+                  <button class="nf-ok" (click)="saveField(obj)">✓</button>
+                  <button class="nf-x"  (click)="cancelField(obj.ObjectID)">✕</button>
+                </div>
+              } @else {
+                <button class="nf-add-btn" (click)="startField(obj)">
+                  <mat-icon>add</mat-icon> הוסף שדה
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ── Loading ─────────────────────────────────────────── -->
+  @if (loading()) {
+    <div class="cx-loading">
+      <div class="cx-spinner">
+        <div class="sp-ring"></div>
+        <div class="sp-ring sp-r2"></div>
+        <div class="sp-ring sp-r3"></div>
+        <mat-icon class="sp-icon">hub</mat-icon>
+      </div>
+      <span class="cx-loading-text">CORTEX מאתחל...</span>
+    </div>
+  }
+
+  <!-- ── Empty State ─────────────────────────────────────── -->
+  @if (!loading() && objects().length === 0) {
+    <div class="cx-empty">
+      <mat-icon class="empty-icon">hub</mat-icon>
+      <div class="empty-title">CORTEX ריק</div>
+      <div class="empty-sub">צור את המודל הראשון של הפרויקט</div>
+      <button class="cx-btn cx-btn-primary empty-cta" (click)="openAdd()">
+        <mat-icon>add</mat-icon> מודל ראשון
+      </button>
+    </div>
+  }
+
+  <!-- ── Add Object Dialog ─────────────────────────────── -->
+  @if (showAdd()) {
+    <div class="cx-modal-overlay" (click)="showAdd.set(false)">
+      <div class="cx-modal" (click)="$event.stopPropagation()">
+        <div class="cx-modal-hdr">
+          <mat-icon>hub</mat-icon>
+          <span>מודל נתונים חדש</span>
+        </div>
+        <div class="cx-modal-body">
+          <label>שם המודל <span class="req">*</span></label>
+          <input class="cx-field" [(ngModel)]="addName"
+                 placeholder="לדוגמה: משתמש, מוצר, הזמנה..."
+                 (keyup.enter)="saveObj()" />
+          <label>תיאור</label>
+          <textarea class="cx-field cx-ta" [(ngModel)]="addDesc" rows="3"
+                    placeholder="מה מייצג המודל הזה?"></textarea>
+        </div>
+        <div class="cx-modal-foot">
+          <button class="cx-btn cx-btn-primary" (click)="saveObj()" [disabled]="addSaving">
+            {{ addSaving ? '...' : '✓ צור מודל' }}
+          </button>
+          <button class="cx-btn" (click)="showAdd.set(false)">ביטול</button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

@@ -62,6 +62,11 @@ export const routes: Routes = [
           import('./features/projects/workspace/workspace.component').then(m => m.WorkspaceComponent),
       },
       {
+        path: 'cortex/:projectId',
+        loadComponent: () =>
+          import('./features/projects/workspace/cortex/cortex.component').then(m => m.CortexComponent),
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('./features/settings/settings.component').then(m => m.SettingsComponent),

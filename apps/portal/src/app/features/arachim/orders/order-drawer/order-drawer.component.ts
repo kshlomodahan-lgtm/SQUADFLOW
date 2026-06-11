@@ -39,11 +39,11 @@ export class OrderDrawerComponent {
   }
 
   totalQtyOrdered(): number {
-    return this.order.lines.reduce((s, l) => s + l.qtyOrdered, 0);
+    return (this.order.lines || []).reduce((s, l) => s + l.qtyOrdered, 0);
   }
 
   totalQtyDispatched(): number {
-    return this.order.lines.reduce((s, l) => s + l.qtyDispatched, 0);
+    return (this.order.lines || []).reduce((s, l) => s + l.qtyDispatched, 0);
   }
 
   totalDispatchPct(): number {
@@ -53,6 +53,7 @@ export class OrderDrawerComponent {
 
   shipmentStepDone(step: 'oc' | 'etd' | 'eta' | 'ata'): boolean {
     const s = this.order.shipment;
+    if (!s) return false;
     switch (step) {
       case 'oc':  return !!s.supplierOCDate;
       case 'etd': return !!s.etd;
@@ -61,14 +62,18 @@ export class OrderDrawerComponent {
     }
   }
 
-  dateStr(d: Date | null): string {
+  dateStr(d: Date | null | undefined): string {
     if (!d) return '—';
-    return d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    return new Date(d).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: '2-digit' });
   }
 
   commDetail(): string {
-    if (this.order.commissionType === 'PCT')   return `${this.order.commissionPct}%`;
-    if (this.order.commissionType === 'FIXED') return `${this.order.currency} ${this.order.commissionAmount.toLocaleString()}`;
+    if (this.order.commissionType === 'PCT')   return `${(this.order.commissionPct || 0).toFixed(1)}%`;
+    if (this.order.commissionType === 'FIXED') return `${this.order.currency} ${(this.order.commissionAmount || 0).toLocaleString()}`;
     return '—';
   }
+
+  hasLines(): boolean    { return !!(this.order.lines?.length); }
+  hasShipment(): boolean { return !!this.order.shipment; }
+  hasFinancial(): boolean { return !!this.order.financial; }
 }

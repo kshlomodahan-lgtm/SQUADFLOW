@@ -92,13 +92,13 @@
     </ng-template>
   </kendo-grid-column>
 
-  <kendo-grid-column title="" [width]="106" [sortable]="false"
+  <kendo-grid-column title="" [width]="140" [sortable]="false"
     [resizable]="false" [columnMenu]="false">
     <ng-template kendoGridCellTemplate let-row let-rowIndex="rowIndex">
       <div class="row-actions">
         <button class="act-btn act-open" title="פתח פרויקט"
-                [routerLink]="['/app/projects', row.ProjectID]">
-          <i class="pi pi-arrow-up-right-and-arrow-down-left-from-center"></i>
+                (click)="openProject(row.ProjectID)">
+          <i class="pi pi-external-link"></i>
         </button>
         <button class="act-btn act-expand"
                 [class.expanded]="isExpanded(row.ProjectID)"
