@@ -16,6 +16,7 @@ import { Organization } from '../../../core/models/organization.model';
 import { OrganizationService } from '../../../core/services/organization.service';
 import { UploadService } from '../../../core/services/upload.service';
 import { ReferenceService, Country, Language, Currency } from '../../../core/services/reference.service';
+import { AiProcessingService } from '../../../core/services/ai-processing.service';
 
 interface NavGroup { id: string; text: string; icon: SVGIcon; }
 
@@ -85,14 +86,15 @@ export class OrgDialogComponent implements OnInit {
   get title()  { return this.isEdit ? `עריכת ארגון — ${this.org!.CompanyName}` : 'ארגון חדש'; }
 
   constructor(
-    private fb:        FormBuilder,
-    private svc:       OrganizationService,
-    private upload:    UploadService,
-    private zone:      NgZone,
-    private cdr:       ChangeDetectorRef,
-    private refSvc:    ReferenceService,
-    private http:      HttpClient,
-    private sanitizer: DomSanitizer,
+    private fb:           FormBuilder,
+    private svc:          OrganizationService,
+    private upload:       UploadService,
+    private zone:         NgZone,
+    private cdr:          ChangeDetectorRef,
+    private refSvc:       ReferenceService,
+    private http:         HttpClient,
+    private sanitizer:    DomSanitizer,
+    private aiProcessing: AiProcessingService,
   ) {
     // auto-show map when navigating to address tab if preference is set and countries loaded
     effect(() => {
@@ -245,15 +247,33 @@ export class OrgDialogComponent implements OnInit {
   enrichFromAI() {
     const name = (this.form.get('companyName')?.value || '').trim();
     if (!name) return;
+
     this.enriching.set(true);
     this.enrichMsg.set('');
+
+    this.aiProcessing.start({
+      title: `מנתח פרטים אודות "${name}"`,
+      subtitle: `AI מחפש מידע עסקי, פרטי קשר וכתובת עבור הארגון הנבחר`,
+      model: 'claude-sonnet-4-6',
+      stages: [
+        'מחפש את הארגון ברשת',
+        'מנתח מקורות מידע',
+        'מאמת פרטי קשר',
+        'מסכם ומייצר תוצאות',
+      ],
+    });
+
     this.http.get<{ success: boolean; data: any; sources?: any[] }>(`/api/ai/company-lookup?name=${encodeURIComponent(name)}`).subscribe({
       next: r => {
         this.enriching.set(false);
-        if (!r.success || !r.data) { this.enrichMsg.set('לא נמצאו פרטים'); return; }
+        if (!r.success || !r.data) {
+          this.aiProcessing.error('לא נמצאו פרטים עבור הארגון');
+          this.enrichMsg.set('לא נמצאו פרטים');
+          return;
+        }
+        this.aiProcessing.complete();
         this.enrichResult.set(r.data);
         this.enrichSources.set(r.sources || []);
-        // Pre-select all fields that have a value
         const fields = ['logoUrl','businessNumber','phone','address','city','website','contactName'];
         const preSelected = new Set(fields.filter(f => r.data[f]));
         this.enrichSelected.set(preSelected);
@@ -261,7 +281,9 @@ export class OrgDialogComponent implements OnInit {
       },
       error: err => {
         this.enriching.set(false);
-        this.enrichMsg.set(err.error?.message ?? 'שגיאה בחיפוש');
+        const msg = err.error?.message ?? 'שגיאה בחיפוש';
+        this.aiProcessing.error(msg);
+        this.enrichMsg.set(msg);
       },
     });
   }

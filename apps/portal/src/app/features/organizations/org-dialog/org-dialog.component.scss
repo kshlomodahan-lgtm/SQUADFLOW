@@ -417,29 +417,26 @@ label {
 .btn-ai-enrich {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
+  gap: 6px;
+  padding: 7px 14px;
   border-radius: 8px;
-  border: 1px solid var(--sf-border);
-  background: var(--sf-bg-card);
-  color: var(--sf-text-secondary);
+  border: none;
+  background: linear-gradient(135deg, #7c3aed, #0D47FF);
+  color: #fff;
   font-size: .78rem;
-  font-weight: 600;
+  font-weight: 700;
   font-family: 'Noto Sans Hebrew', sans-serif;
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: background .15s, border-color .15s, color .15s;
+  transition: opacity .15s, transform .1s;
+  box-shadow: 0 2px 8px rgba(124,58,237,.3);
 
-  &:hover:not(:disabled) {
-    background: var(--sf-primary-light, #eff6ff);
-    border-color: var(--sf-primary);
-    color: var(--sf-primary);
-  }
+  i { font-size: .8rem; }
 
-  &:disabled { opacity: .45; cursor: not-allowed; }
-
-  kendo-loader { display: inline-flex; }
+  &:hover:not(:disabled) { opacity: .88; transform: translateY(-1px); }
+  &:active:not(:disabled) { transform: translateY(0); }
+  &:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
 }
 
 .enrich-msg {

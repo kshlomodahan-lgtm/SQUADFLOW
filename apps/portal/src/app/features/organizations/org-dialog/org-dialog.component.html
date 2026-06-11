@@ -66,12 +66,8 @@
                               [disabled]="enriching() || !form.get('companyName')?.value"
                               (click)="enrichFromAI()"
                               title="חפש פרטים ברשת באמצעות AI">
-                        @if (enriching()) {
-                          <kendo-loader type="pulsing" size="small" themeColor="primary" />
-                          מחפש...
-                        } @else {
-                          🤖 מלא אוטומטית לפי שם
-                        }
+                        <i class="pi pi-sparkles"></i>
+                        {{ enriching() ? 'מנתח...' : 'ניתוח AI' }}
                       </button>
                       @if (enrichMsg()) {
                         <small [class.enrich-ok]="enrichMsg().startsWith('✓')"
