@@ -49,7 +49,7 @@ export class GroupsComponent implements OnInit {
   selectedRoleIds: number[] = [];
 
   skip     = 0;
-  pageSize = 10;
+  pageSize = 50;
   sort: SortDescriptor[] = [];
 
   get gridData() { return orderBy(this.groups(), this.sort); }

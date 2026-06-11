@@ -5,6 +5,7 @@
     <button class="btn-save" (click)="openNew()">✓ קבוצה חדשה</button>
   </div>
 
+  <div class="grid-wrap">
   @if (loading()) {
     <div class="center-spin"><mat-spinner diameter="40"/></div>
   } @else if (error()) {
@@ -13,11 +14,11 @@
     <kendo-grid class="groups-grid"
       [data]="{ data: pagedData, total: groups().length }"
       [skip]="skip" [pageSize]="pageSize"
-      [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [10, 25, 50] }"
+      [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [25, 50, 100] }"
       [sortable]="{ mode: 'single', allowUnsort: false }"
       [sort]="sort"
       [reorderable]="true" [resizable]="true"
-      scrollable="none"
+      scrollable="scrollable"
       (pageChange)="onPageChange($event)"
       (sortChange)="onSortChange($event)">
 
@@ -72,6 +73,7 @@
         noRecords="לא נמצאו קבוצות" loading="טוען..." />
     </kendo-grid>
   }
+  </div><!-- /grid-wrap -->
 </div>
 
 <!-- Dialog -->

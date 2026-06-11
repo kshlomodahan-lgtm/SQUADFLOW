@@ -1,5 +1,9 @@
+:host { display: block; width: 100%; height: 100%; }
+
 .groups-wrap {
-  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .page-header {
@@ -7,6 +11,7 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+  flex-shrink: 0;
 
   h2 {
     font-size: 1rem;
@@ -30,7 +35,12 @@
   border-radius: 8px;
 }
 
+// ── Grid wrapper ──────────────────────────────────────────
+.grid-wrap { flex: 1; min-height: 0; overflow: hidden; }
+
 // Grid styles
+.groups-grid { height: 100%; }
+
 .groups-grid .k-grid-header th.k-header {
   background: var(--sf-grid-hd-bg) !important;
   color: var(--sf-grid-hd-color) !important;

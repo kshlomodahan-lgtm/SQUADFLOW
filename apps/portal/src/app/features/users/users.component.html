@@ -24,6 +24,7 @@
     </div>
   </div>
 
+  <div class="grid-wrap">
   @if (loading()) {
     <div class="state-box"><mat-spinner diameter="36" /></div>
   }
@@ -35,13 +36,13 @@
     <kendo-grid
       [data]="{ data: pagedData, total: gridData.length }"
       [skip]="skip" [pageSize]="pageSize"
-      [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [10, 25, 50] }"
+      [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [25, 50, 100] }"
       [sortable]="{ mode: 'single', allowUnsort: false }"
       [sort]="sort"
       [reorderable]="true" [resizable]="true"
       [selectable]="{ mode: 'multiple', checkboxOnly: true }"
       [columnMenu]="true"
-      scrollable="none"
+      scrollable="scrollable"
       (pageChange)="onPageChange($event)"
       (sortChange)="onSortChange($event)"
       class="users-grid">
@@ -220,6 +221,7 @@
 
     </kendo-grid>
   }
+  </div><!-- /grid-wrap -->
 
 </div>
 

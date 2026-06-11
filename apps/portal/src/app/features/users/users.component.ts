@@ -43,7 +43,7 @@ export class UsersComponent implements OnInit {
   gridData:  User[] = [];
   searchTerm = '';
   skip       = 0;
-  pageSize   = 10;
+  pageSize   = 50;
   sort: SortDescriptor[] = [{ field: 'OrgName', dir: 'asc' }];
 
   dialogOpen = signal(false);

@@ -26,6 +26,7 @@
     </div>
   </div>
 
+  <div class="grid-wrap">
   @if (loading()) {
     <div class="center-spinner"><mat-spinner [diameter]="40"></mat-spinner></div>
   }
@@ -38,12 +39,12 @@
       class="at-grid"
       [data]="{ data: pagedData, total: gridData.length }"
       [skip]="skip" [pageSize]="pageSize"
-      [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [25, 50] }"
+      [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [25, 50, 100] }"
       [sortable]="{ mode: 'single', allowUnsort: false }"
       [sort]="sort"
       [reorderable]="true" [resizable]="true"
       [columnMenu]="true"
-      scrollable="none"
+      scrollable="scrollable"
       (pageChange)="onPageChange($event)"
       (sortChange)="onSortChange($event)">
 
@@ -112,6 +113,7 @@
         noRecords="לא נמצאו סוגי פעולות" loading="טוען..." />
     </kendo-grid>
   }
+  </div><!-- /grid-wrap -->
 
 </div>
 

@@ -113,6 +113,7 @@
     </div>
   </div>
 
+  <div class="grid-wrap">
   <!-- Loading -->
   @if (loading()) {
     <div class="center-spinner">
@@ -140,7 +141,7 @@
       [reorderable]="true"
       [resizable]="true"
       [columnMenu]="true"
-      scrollable="none"
+      scrollable="scrollable"
       (pageChange)="onPageChange($event)">
 
       <!-- Detail Template -->
@@ -249,5 +250,6 @@
         noRecords="לא נמצאו רשומות ביומן" loading="טוען..." />
     </kendo-grid>
   }
+  </div><!-- /grid-wrap -->
 
 </div>

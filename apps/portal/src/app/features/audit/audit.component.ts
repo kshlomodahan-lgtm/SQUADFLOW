@@ -34,7 +34,7 @@ export class AuditComponent implements OnInit {
   total   = signal(0);
 
   skip     = 0;
-  pageSize = 25;
+  pageSize = 50;
 
   dateFrom: Date | null = null;
   dateTo:   Date | null = null;

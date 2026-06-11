@@ -36,7 +36,7 @@ export class AuditActionTypesComponent implements OnInit {
   gridData: AuditActionType[] = [];
 
   skip     = 0;
-  pageSize = 25;
+  pageSize = 50;
   sort: SortDescriptor[] = [{ field: 'SortOrder', dir: 'asc' }];
   searchTerm = '';
 

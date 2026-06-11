@@ -1,5 +1,5 @@
-:host { display: block; width: 100%; }
-.users-page { width: 100%; }
+:host { display: block; width: 100%; height: 100%; }
+.users-page { width: 100%; display: flex; flex-direction: column; height: 100%; }
 
 // ── Header ────────────────────────────────────────────
 .page-header {
@@ -9,6 +9,7 @@
   direction: rtl;
   gap: 16px;
   margin-bottom: 20px;
+  flex-shrink: 0;
 }
 
 .header-titles {
@@ -24,7 +25,11 @@
   justify-content: space-between;
   direction: rtl;
   gap: 8px;
+  flex-shrink: 0;
 }
+
+// ── Grid wrapper ──────────────────────────────────────────
+.grid-wrap { flex: 1; min-height: 0; overflow: hidden; }
 
 // ── Export Buttons ────────────────────────────────────
 .export-btns {
@@ -86,7 +91,8 @@
 
 // ── Kendo Grid ────────────────────────────────────────
 :host ::ng-deep {
-  .users-grid {
+    .users-grid {
+    height: 100%;
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid var(--sf-border);

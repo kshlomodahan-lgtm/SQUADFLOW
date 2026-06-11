@@ -38,7 +38,7 @@ export class PackagesComponent implements OnInit {
   gridData:    Package[] = [];
   searchTerm = '';
   skip       = 0;
-  pageSize   = 10;
+  pageSize   = 50;
   sort: SortDescriptor[] = [{ field: 'SortOrder', dir: 'asc' }];
 
   dialogOpen    = signal(false);

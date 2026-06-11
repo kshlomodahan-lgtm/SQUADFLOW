@@ -35,7 +35,7 @@ export class AuditEntityTypesComponent implements OnInit {
   gridData: AuditEntityType[] = [];
 
   skip     = 0;
-  pageSize = 25;
+  pageSize = 50;
   sort: SortDescriptor[] = [{ field: 'SortOrder', dir: 'asc' }];
   searchTerm = '';
 
