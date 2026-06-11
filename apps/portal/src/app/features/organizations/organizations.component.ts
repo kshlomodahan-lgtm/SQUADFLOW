@@ -43,7 +43,7 @@ export class OrganizationsComponent implements OnInit {
   gridData: Organization[] = [];
   searchTerm = '';
   skip       = 0;
-  pageSize   = 10;
+  pageSize   = 50;
   sort: SortDescriptor[] = [{ field: 'CompanyName', dir: 'asc' }];
 
   dialogOpen = signal(false);
