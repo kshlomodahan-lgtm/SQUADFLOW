@@ -11,7 +11,7 @@
   } @else if (error()) {
     <div class="error-box">{{ error() }}</div>
   } @else {
-    <kendo-grid class="groups-grid" direction="rtl"
+    <kendo-grid class="groups-grid"
       [data]="{ data: pagedData, total: groups().length }"
       [skip]="skip" [pageSize]="pageSize"
       [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [25, 50, 100] }"
