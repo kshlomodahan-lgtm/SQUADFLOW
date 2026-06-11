@@ -8,6 +8,7 @@ import { AuthService } from '../core/services/auth.service';
 import { ThemeService } from '../core/services/theme.service';
 import { RbacService } from '../core/services/rbac.service';
 import { AiProcessingOverlayComponent } from '../shared/components/ai-processing/ai-processing-overlay.component';
+import { AiProcessingService } from '../core/services/ai-processing.service';
 
 interface NavItem  { icon: string; label: string; route: string; }
 interface NavGroup { label: string; items: NavItem[]; }
@@ -62,6 +63,7 @@ export class ShellComponent implements OnInit {
     public auth:  AuthService,
     public theme: ThemeService,
     private rbac: RbacService,
+    public  aiProcessing: AiProcessingService,
   ) {}
 
   ngOnInit() {
@@ -69,4 +71,14 @@ export class ShellComponent implements OnInit {
   }
 
   logout() { this.auth.logout(); }
+
+  demoAi() {
+    this.aiProcessing.start({
+      title: 'מנתח פרויקט AI...',
+      subtitle: 'המנוע עובד על הבקשה, אנא המתן',
+      model: 'claude-sonnet-4-6',
+      stages: ['מכין הקשר', 'שולח ל-API', 'מנתח תגובה', 'מסיים ומעצב'],
+    });
+    setTimeout(() => this.aiProcessing.complete(), 5000);
+  }
 }
