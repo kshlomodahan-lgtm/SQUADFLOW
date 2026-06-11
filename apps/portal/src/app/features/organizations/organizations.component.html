@@ -20,6 +20,11 @@
              placeholder="חיפוש לפי שם, קוד, אימייל..."
              (input)="onSearch($any($event.target).value)" />
     </div>
+    <button class="btn-ai-analyze" (click)="analyzeWithAi()">
+      <i class="pi pi-sparkles"></i>
+      ניתוח AI
+    </button>
+
     <div class="export-btns">
       <button kendoButton fillMode="outline" [svgIcon]="excelIcon" (click)="exportExcel()" class="btn-export btn-excel" title="ייצוא לאקסל">
         Excel

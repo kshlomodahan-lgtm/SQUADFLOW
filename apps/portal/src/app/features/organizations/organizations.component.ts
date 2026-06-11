@@ -16,6 +16,7 @@ import { OrganizationService } from '../../core/services/organization.service';
 import { Organization } from '../../core/models/organization.model';
 import { OrgDialogComponent } from './org-dialog/org-dialog.component';
 import { HasPermDirective } from '../../core/directives/has-perm.directive';
+import { AiProcessingService } from '../../core/services/ai-processing.service';
 
 @Component({
   selector: 'app-organizations',
@@ -49,7 +50,7 @@ export class OrganizationsComponent implements OnInit {
   dialogOpen = signal(false);
   dialogOrg  = signal<Organization | null>(null);
 
-  constructor(private svc: OrganizationService) {}
+  constructor(private svc: OrganizationService, private aiProcessing: AiProcessingService) {}
 
   ngOnInit() { this.load(); }
 
@@ -147,5 +148,24 @@ export class OrganizationsComponent implements OnInit {
 
   get pagedData() {
     return this.gridData.slice(this.skip, this.skip + this.pageSize);
+  }
+
+  analyzeWithAi() {
+    const count = this.gridData.length;
+    this.aiProcessing.start({
+      title: `מנתח ${count} ארגונים...`,
+      subtitle: 'AI סורק נתוני מנויים, מגמות פעילות ותחזיות חידוש',
+      model: 'claude-sonnet-4-6',
+      stages: [
+        'טוען נתוני ארגונים',
+        'מנתח מגמות מנויים',
+        'מזהה ארגונים בסיכון',
+        'מייצר המלצות',
+        'מסיים דוח',
+      ],
+    });
+
+    // בהמשך: קריאה אמיתית ל-/api/ai/analyze-tenants
+    setTimeout(() => this.aiProcessing.complete(), 6000);
   }
 }

@@ -22,6 +22,27 @@
 // ── Grid wrapper — fills remaining height ─────────────────
 .grid-wrap { flex: 1; min-height: 0; overflow: hidden; }
 
+.btn-ai-analyze {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #7c3aed, #0D47FF);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: .82rem;
+  font-weight: 700;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  cursor: pointer;
+  transition: opacity .15s, transform .1s;
+  white-space: nowrap;
+
+  i { font-size: .85rem; }
+  &:hover { opacity: .88; transform: translateY(-1px); }
+  &:active { transform: translateY(0); }
+}
+
 .export-btns {
   display: flex;
   gap: 0;
