@@ -1,13 +1,12 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, ViewChild, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { GridModule, PageChangeEvent } from '@progress/kendo-angular-grid';
+import { GridModule, PageChangeEvent, GridComponent } from '@progress/kendo-angular-grid';
+import { DialogModule } from '@progress/kendo-angular-dialog';
 import { SortDescriptor, orderBy } from '@progress/kendo-data-query';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { IndicatorsModule } from '@progress/kendo-angular-indicators';
-import { IconsModule } from '@progress/kendo-angular-icons';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { ProjectDialogComponent } from './project-dialog/project-dialog.component';
 
 export interface Project {
@@ -30,8 +29,8 @@ export interface Project {
   selector: 'app-projects',
   standalone: true,
   imports: [
-    CommonModule, GridModule, ButtonsModule, IndicatorsModule,
-    IconsModule, MatIconModule, MatTooltipModule,
+    CommonModule, GridModule, DialogModule,
+    ButtonsModule, IndicatorsModule, MatIconModule,
     ProjectDialogComponent,
   ],
   templateUrl: './projects.component.html',
@@ -39,13 +38,17 @@ export interface Project {
 })
 export class ProjectsComponent implements OnInit {
 
+  @ViewChild(GridComponent) grid!: GridComponent;
+
   loading  = signal(true);
   error    = signal('');
   allData  = signal<Project[]>([]);
   search   = signal('');
 
-  showDialog  = signal(false);
-  editProject = signal<Project | null>(null);
+  showDialog     = signal(false);
+  editProject    = signal<Project | null>(null);
+  pendingDelete  = signal<Project | null>(null);
+  expandedRows   = new Set<number>();
 
   sort: SortDescriptor[] = [{ field: 'UpdatedAt', dir: 'desc' }];
   skip     = 0;
@@ -72,6 +75,7 @@ export class ProjectsComponent implements OnInit {
 
   load() {
     this.loading.set(true);
+    this.expandedRows.clear();
     this.http.get<any>('/api/projects').subscribe({
       next:  r  => { this.allData.set(r.data ?? []); this.loading.set(false); },
       error: () => { this.error.set('שגיאה בטעינת פרויקטים'); this.loading.set(false); },
@@ -79,27 +83,37 @@ export class ProjectsComponent implements OnInit {
   }
 
   onSearch(v: string) { this.search.set(v); this.skip = 0; }
+  onSortChange(s: SortDescriptor[]) { this.sort = s; this.skip = 0; }
+  onPageChange(e: PageChangeEvent)  { this.skip = e.skip; this.expandedRows.clear(); }
 
-  onSortChange(s: SortDescriptor[]) {
-    this.sort = s; this.skip = 0;
+  toggleDetail(p: Project, rowIndex: number) {
+    if (this.expandedRows.has(p.ProjectID)) {
+      this.expandedRows.delete(p.ProjectID);
+      this.grid.collapseRow(rowIndex);
+    } else {
+      this.expandedRows.add(p.ProjectID);
+      this.grid.expandRow(rowIndex);
+    }
   }
 
-  onPageChange(e: PageChangeEvent) { this.skip = e.skip; }
+  isExpanded(id: number) { return this.expandedRows.has(id); }
 
-  openNew()               { this.editProject.set(null); this.showDialog.set(true); }
-  openEdit(p: Project)    { this.editProject.set(p);    this.showDialog.set(true); }
-  closeDialog()           { this.showDialog.set(false); }
+  openNew()            { this.editProject.set(null); this.showDialog.set(true); }
+  openEdit(p: Project) { this.editProject.set(p);    this.showDialog.set(true); }
+  closeDialog()        { this.showDialog.set(false); }
 
-  onSaved() {
-    this.showDialog.set(false);
-    this.load();
-  }
+  onSaved() { this.showDialog.set(false); this.load(); }
 
-  deleteProject(p: Project) {
-    if (!confirm(`למחוק את הפרויקט "${p.ProjectName}"?`)) return;
+  askDelete(p: Project)  { this.pendingDelete.set(p); }
+  cancelDelete()         { this.pendingDelete.set(null); }
+
+  confirmDelete() {
+    const p = this.pendingDelete();
+    if (!p) return;
+    this.pendingDelete.set(null);
     this.http.delete(`/api/projects/${p.ProjectID}`).subscribe({
       next:  () => this.load(),
-      error: () => alert('שגיאה במחיקה'),
+      error: () => {},
     });
   }
 

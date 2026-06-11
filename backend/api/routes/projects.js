@@ -43,7 +43,6 @@ router.post('/', async (req, res) => {
   try {
     const b = req.body;
     const db = (await getPool()).request();
-    const outCode = new sql.Int(), outMsg = new sql.NVarChar(200);
     const result = await db
       .input('ProjectID',    sql.Int,           null)
       .input('TenantID',     sql.Int,           req.user.tenantId)

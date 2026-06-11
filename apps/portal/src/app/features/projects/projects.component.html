@@ -92,19 +92,53 @@
     </ng-template>
   </kendo-grid-column>
 
-  <kendo-grid-column title="" [width]="80" [sortable]="false"
+  <kendo-grid-column title="" [width]="106" [sortable]="false"
     [resizable]="false" [columnMenu]="false">
-    <ng-template kendoGridCellTemplate let-row>
+    <ng-template kendoGridCellTemplate let-row let-rowIndex="rowIndex">
       <div class="row-actions">
-        <button class="action-btn" (click)="openEdit(row)" matTooltip="עריכה">
-          <mat-icon>edit</mat-icon>
+        <button class="act-btn act-expand"
+                [class.expanded]="isExpanded(row.ProjectID)"
+                [title]="isExpanded(row.ProjectID) ? 'סגור' : 'הרחבה'"
+                (click)="toggleDetail(row, rowIndex)">
+          <i class="pi" [class.pi-chevron-down]="!isExpanded(row.ProjectID)"
+                        [class.pi-chevron-up]="isExpanded(row.ProjectID)"></i>
         </button>
-        <button class="action-btn danger" (click)="deleteProject(row)" matTooltip="מחיקה">
-          <mat-icon>delete_outline</mat-icon>
+        <button class="act-btn act-edit" title="עריכה" (click)="openEdit(row)">
+          <i class="pi pi-pencil"></i>
+        </button>
+        <button class="act-btn act-delete" title="מחיקה" (click)="askDelete(row)">
+          <i class="pi pi-trash"></i>
         </button>
       </div>
     </ng-template>
   </kendo-grid-column>
+
+  <!-- ── Detail Row ─────────────────────────────────────── -->
+  <ng-template kendoGridDetailTemplate let-row>
+    <div class="project-detail-card">
+      <div class="detail-group">
+        <div class="detail-group-title">פרטי פרויקט</div>
+        <div class="detail-row"><span class="dl">קוד</span><span class="dv mono">{{ row.ProjectCode }}</span></div>
+        <div class="detail-row"><span class="dl">סטטוס</span>
+          <span class="status-badge" [ngClass]="statusClass(row.Status)">{{ statusLabel(row.Status) }}</span>
+        </div>
+        <div class="detail-row"><span class="dl">לקוח</span><span class="dv">{{ row.ClientOrgName || '—' }}</span></div>
+        <div class="detail-row"><span class="dl">מוצרים ארוזים</span><span class="dv">{{ row.ProductCount || '—' }}</span></div>
+      </div>
+      <div class="detail-group">
+        <div class="detail-group-title">לוח זמנים</div>
+        <div class="detail-row"><span class="dl">תאריך התחלה</span><span class="dv">{{ row.StartDate ? (row.StartDate | date:'dd/MM/yyyy') : '—' }}</span></div>
+        <div class="detail-row"><span class="dl">תאריך יעד</span><span class="dv">{{ row.TargetDate ? (row.TargetDate | date:'dd/MM/yyyy') : '—' }}</span></div>
+        <div class="detail-row"><span class="dl">הושלם</span><span class="dv">{{ row.CompletedDate ? (row.CompletedDate | date:'dd/MM/yyyy') : '—' }}</span></div>
+      </div>
+      @if (row.Description) {
+        <div class="detail-group detail-group-full">
+          <div class="detail-group-title">תיאור</div>
+          <div class="detail-desc">{{ row.Description }}</div>
+        </div>
+      }
+    </div>
+  </ng-template>
 
   <kendo-grid-messages
     pagerItemsPerPage="שורות בעמוד" pagerOf="מתוך" pagerItems="רשומות"
@@ -116,9 +150,35 @@
 
 }
 
+<!-- ── Edit Dialog ─────────────────────────────────────── -->
 @if (showDialog()) {
   <app-project-dialog
     [project]="editProject()"
     (closed)="closeDialog()"
     (saved)="onSaved()" />
+}
+
+<!-- ── Confirm Delete Dialog ──────────────────────────── -->
+@if (pendingDelete()) {
+  <kendo-dialog [width]="420" (close)="cancelDelete()">
+    <div class="confirm-body">
+      <div class="confirm-icon-wrap">
+        <i class="pi pi-exclamation-triangle confirm-icon"></i>
+      </div>
+      <div class="confirm-title">אישור מחיקה</div>
+      <div class="confirm-msg">
+        האם למחוק את הפרויקט<br>
+        <strong>{{ pendingDelete()!.ProjectName }}</strong>?
+      </div>
+      <div class="confirm-sub">פעולה זו אינה ניתנת לביטול</div>
+    </div>
+    <kendo-dialog-actions>
+      <div class="confirm-footer">
+        <button class="btn-danger-confirm" (click)="confirmDelete()">
+          <i class="pi pi-trash"></i> מחק
+        </button>
+        <button class="btn-cancel-confirm" (click)="cancelDelete()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
 }

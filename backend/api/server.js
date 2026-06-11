@@ -23,7 +23,7 @@ app.use('/api', (req, res, next) => { res.setHeader('Content-Type', 'application
 app.use(express.urlencoded({ extended: true }));
 
 // ── Static Frontend ───────────────────────────────────────
-app.use(express.static(path.join(__dirname, '../frontend')));
+app.use(express.static(path.join(__dirname, '../frontend/browser')));
 
 // ── API Routes ────────────────────────────────────────────
 app.use('/api/public', require('./routes/public'));   // ללא auth
@@ -57,7 +57,7 @@ app.use('/api/{*path}', (_req, res) => res.status(404).json({ success: false, me
 
 // Fallback → Angular SPA
 app.use((_req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+  res.sendFile(path.join(__dirname, '../frontend/browser/index.html'));
 });
 
 // ── Start ─────────────────────────────────────────────────

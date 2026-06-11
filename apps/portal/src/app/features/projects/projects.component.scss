@@ -70,15 +70,82 @@
 .badge-green { background: #d1fae5; color: #059669; }
 .badge-muted { background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0; }
 
-// ── Actions ──────────────────────────────────────────────────
-.row-actions { display: flex; gap: 4px; justify-content: center; }
-.action-btn {
-  background: none; border: none; cursor: pointer; padding: 4px;
-  border-radius: 6px; color: var(--sf-text-muted); display: flex;
-  align-items: center; transition: background .13s, color .13s;
-  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+// ── Actions — סטנדרט FRONT ───────────────────────────────────
+.row-actions { display: flex; align-items: center; gap: 4px; }
+.act-btn {
+  background: none; border: none; cursor: pointer;
+  width: 30px; height: 30px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+  i { font-size: .9rem; }
+}
+.act-expand { color: var(--sf-text-secondary); &:hover { background: var(--sf-bg-hover); color: var(--sf-primary); } &.expanded { color: var(--sf-primary); } }
+.act-edit   { color: #3b82f6; &:hover { background: #eff6ff; } }
+.act-delete { color: #ef4444; &:hover { background: #fef2f2; } }
+
+// ── Detail Card ───────────────────────────────────────────────
+.project-detail-card {
+  display: flex; flex-wrap: wrap; gap: 16px;
+  padding: 16px 8px; direction: rtl;
+}
+.detail-group {
+  background: var(--sf-bg-card); border: 1px solid var(--sf-border);
+  border-radius: 12px; padding: 14px 18px; min-width: 220px; flex: 1;
+  box-shadow: 0 4px 16px rgba(0,0,0,.07), 0 1px 4px rgba(0,0,0,.04);
+}
+.detail-group-full { flex-basis: 100%; }
+.detail-group-title {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--sf-text-muted);
+  margin-bottom: 10px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--sf-border);
+}
+.detail-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 5px 0; font-size: .83rem;
+  & + & { border-top: 1px solid var(--sf-border); }
+}
+.dl { color: var(--sf-text-secondary); }
+.dv { font-weight: 600; color: var(--sf-text); }
+.mono { font-family: 'Share Tech Mono', monospace; font-size: .8rem; }
+.detail-desc { font-size: .84rem; color: var(--sf-text); line-height: 1.6; }
+
+// ── Confirm Delete Dialog ────────────────────────────────────
+::ng-deep .k-dialog-actions { direction: rtl !important; }
+
+.confirm-body {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 24px 16px 8px; text-align: center; direction: rtl;
+}
+.confirm-icon-wrap {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: #fff7ed; display: flex; align-items: center; justify-content: center;
+  margin-bottom: 16px;
+}
+.confirm-icon { font-size: 2rem; color: #f97316; }
+.confirm-title { font-size: 1.1rem; font-weight: 700; color: var(--sf-text); margin-bottom: 10px; }
+.confirm-msg   { font-size: .92rem; color: var(--sf-text-secondary); line-height: 1.6; margin-bottom: 6px; }
+.confirm-sub   { font-size: .78rem; color: var(--sf-danger); font-weight: 500; }
+
+.confirm-footer {
+  display: flex; gap: 10px; direction: rtl; width: 100%; padding: 0 4px;
+}
+.btn-danger-confirm {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #ef4444; color: #fff; border: none; border-radius: 8px;
+  padding: 9px 22px; font-size: .875rem; font-weight: 600;
+  font-family: 'Noto Sans Hebrew', sans-serif; cursor: pointer;
+  transition: background .15s;
+  i { font-size: .85rem; }
+  &:hover { background: #dc2626; }
+}
+.btn-cancel-confirm {
+  background: var(--sf-bg-card); color: var(--sf-text-secondary);
+  border: 1px solid var(--sf-border); border-radius: 8px;
+  padding: 9px 20px; font-size: .875rem; font-weight: 500;
+  font-family: 'Noto Sans Hebrew', sans-serif; cursor: pointer;
+  transition: background .13s;
   &:hover { background: var(--sf-bg-hover); color: var(--sf-text); }
-  &.danger:hover { background: #fef2f2; color: #ef4444; }
 }
 
 // ── Buttons ──────────────────────────────────────────────────
