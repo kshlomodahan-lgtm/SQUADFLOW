@@ -67,6 +67,11 @@ export const routes: Routes = [
           import('./features/projects/workspace/cortex/cortex.component').then(m => m.CortexComponent),
       },
       {
+        path: 'nexus/:projectId',
+        loadComponent: () =>
+          import('./features/projects/workspace/nexus/nexus.component').then(m => m.NexusComponent),
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('./features/settings/settings.component').then(m => m.SettingsComponent),

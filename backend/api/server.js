@@ -52,6 +52,7 @@ app.use('/api/ai',             require('./routes/ai'));
 app.use('/api/connectors',     require('./routes/connectors'));
 app.use('/api/projects',       require('./routes/projects'));
 app.use('/api/cortex',         require('./routes/cortex'));
+app.use('/api/nexus',          require('./routes/nexus'));
 app.use('/api/arachim/orders', require('./routes/arachim'));
 
 // 404

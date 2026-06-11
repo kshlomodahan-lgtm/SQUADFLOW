@@ -1,0 +1,243 @@
+<div class="nx-root" (mousedown)="onBgDown($event)" (wheel)="onWheel($event)">
+
+  <!-- ── Toolbar ──────────────────────────────────────────── -->
+  <div class="nx-toolbar">
+    <button class="nx-back" (click)="back()">
+      <mat-icon>arrow_back</mat-icon>
+      <span>SPACEFLOW</span>
+    </button>
+
+    <div class="nx-brand">
+      <span class="nx-brand-name">NEXUS</span>
+      <span class="nx-brand-sub">מקורות מידע</span>
+    </div>
+
+    <div class="nx-tools">
+      @if (connectMode()) {
+        <div class="nx-connect-hint">
+          @if (connectSource()) {
+            <span class="hint-dot"></span>
+            <span>{{ connectSource()!.SourceName }} ← בחר יעד</span>
+          } @else {
+            <span class="hint-dot"></span>
+            <span>בחר מקור לחיבור</span>
+          }
+        </div>
+      }
+      <button class="nx-btn" [class.nx-btn-active]="connectMode()"
+              (click)="toggleConnect()" title="חבר מקורות">
+        <mat-icon>cable</mat-icon>
+        <span>{{ connectMode() ? 'ביטול' : 'חבר' }}</span>
+      </button>
+      <button class="nx-btn nx-btn-primary" (click)="openAdd()">
+        <mat-icon>add</mat-icon>
+        <span>מקור חדש</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Canvas ───────────────────────────────────────────── -->
+  <div class="nx-canvas-wrap">
+
+    <app-neural-net aria-hidden="true"></app-neural-net>
+
+    <div class="nx-canvas" [style.transform]="transform" [class.nx-connect]="connectMode()">
+
+      <!-- SVG connections -->
+      <svg class="nx-svg" width="5000" height="5000"
+           style="position:absolute;top:0;left:0;overflow:visible;pointer-events:none">
+        <defs>
+          <linearGradient id="nx-lg" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#0891b2" stop-opacity="0.9"/>
+            <stop offset="50%"  stop-color="#06b6d4" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#0891b2" stop-opacity="0.9"/>
+          </linearGradient>
+          <filter id="nx-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        @for (m of mappings(); track m.MappingID) {
+          <g style="pointer-events:stroke">
+            <path [attr.d]="connPath(m)"
+                  stroke="#0891b2" stroke-width="6" fill="none"
+                  stroke-opacity="0.12" filter="url(#nx-glow)"/>
+            <path [attr.d]="connPath(m)"
+                  stroke="url(#nx-lg)" stroke-width="1.8" fill="none"
+                  stroke-dasharray="12 5" class="nx-conn-path"
+                  style="pointer-events:stroke;cursor:pointer"
+                  (click)="deleteMapping(m)"/>
+            <text [attr.x]="connMid(m).x" [attr.y]="connMid(m).y"
+                  class="nx-conn-label" text-anchor="middle">{{ m.Label || '→' }}</text>
+          </g>
+        }
+      </svg>
+
+      <!-- Source nodes -->
+      @for (src of sources(); track src.SourceID) {
+        <div class="nx-node"
+             [class.nx-src]="connectSource()?.SourceID === src.SourceID"
+             [class.nx-tgt]="connectMode() && !!connectSource() && connectSource()!.SourceID !== src.SourceID"
+             [style.left.px]="src.PosX"
+             [style.top.px]="src.PosY"
+             [style.width.px]="nodeW"
+             [style.--node-color]="typeInfo(src.SourceType).color"
+             (mousedown)="onNodeDown($event, src)"
+             (click)="clickNode(src)">
+
+          <div class="node-accent-bar"></div>
+
+          <div class="node-hdr" (mousedown)="$event.stopPropagation()">
+            <div class="node-icon-wrap">
+              <mat-icon class="node-icon">{{ typeInfo(src.SourceType).icon }}</mat-icon>
+            </div>
+            <div class="node-title">
+              <span class="node-name">{{ src.SourceName }}</span>
+              <span class="node-type">{{ typeInfo(src.SourceType).label }}</span>
+            </div>
+            <div class="node-actions" (mousedown)="$event.stopPropagation()">
+              <button class="nact"
+                      [class.nact-testing]="testing[src.SourceID]"
+                      (click)="$event.stopPropagation(); testConn(src)"
+                      title="בדוק חיבור">
+                <mat-icon>{{ testing[src.SourceID] ? 'sync' : 'cable' }}</mat-icon>
+              </button>
+              <button class="nact nact-del" (click)="$event.stopPropagation(); deleteSource(src)" title="מחק">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <div class="node-body">
+            @if (src.Host) {
+              <div class="node-row">
+                <mat-icon class="row-icon">dns</mat-icon>
+                <span class="row-val">{{ src.Host }}{{ src.Port ? ':' + src.Port : '' }}</span>
+              </div>
+            }
+            @if (src.DbName) {
+              <div class="node-row">
+                <mat-icon class="row-icon">storage</mat-icon>
+                <span class="row-val">{{ src.DbName }}</span>
+              </div>
+            }
+            @if (src.Notes) {
+              <div class="node-row node-row-notes">
+                <mat-icon class="row-icon">notes</mat-icon>
+                <span class="row-val">{{ src.Notes }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="node-footer">
+            <span class="status-badge" [class]="'status-' + src.Status">
+              <span class="status-dot"></span>
+              {{ statusLabel(src.Status) }}
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ── Loading ──────────────────────────────────────────── -->
+  @if (loading()) {
+    <div class="nx-loading">
+      <div class="nx-spinner">
+        <div class="sp-ring"></div>
+        <div class="sp-ring sp-r2"></div>
+        <mat-icon class="sp-icon">hub</mat-icon>
+      </div>
+      <span class="nx-loading-text">NEXUS מאתחל...</span>
+    </div>
+  }
+
+  <!-- ── Empty State ──────────────────────────────────────── -->
+  @if (!loading() && sources().length === 0) {
+    <div class="nx-empty">
+      <mat-icon class="empty-icon">storage</mat-icon>
+      <div class="empty-title">NEXUS ריק</div>
+      <div class="empty-sub">חבר את מקור הנתונים הראשון לפרויקט</div>
+      <button class="nx-btn nx-btn-primary empty-cta" (click)="openAdd()">
+        <mat-icon>add</mat-icon> מקור חדש
+      </button>
+    </div>
+  }
+
+  <!-- ── Add Dialog ───────────────────────────────────────── -->
+  @if (showAdd()) {
+    <div class="nx-modal-overlay" (click)="showAdd.set(false)">
+      <div class="nx-modal" (click)="$event.stopPropagation()">
+
+        <!-- Step 1: choose type -->
+        @if (addStep() === 'type') {
+          <div class="nx-modal-hdr">
+            <mat-icon>add_circle</mat-icon>
+            <span>בחר סוג מקור</span>
+          </div>
+          <div class="nx-type-grid">
+            @for (t of sourceTypes; track t.id) {
+              <button class="type-card" (click)="selectType(t.id)">
+                <div class="type-icon-wrap" [style.background]="t.color + '22'" [style.border-color]="t.color + '55'">
+                  <mat-icon [style.color]="t.color">{{ t.icon }}</mat-icon>
+                </div>
+                <span class="type-label">{{ t.label }}</span>
+                <span class="type-desc">{{ t.desc }}</span>
+                <mat-icon class="type-arrow">chevron_left</mat-icon>
+              </button>
+            }
+          </div>
+        }
+
+        <!-- Step 2: fill details -->
+        @if (addStep() === 'detail') {
+          <div class="nx-modal-hdr">
+            <button class="hdr-back" (click)="backToType()">
+              <mat-icon>arrow_back</mat-icon>
+            </button>
+            <mat-icon [style.color]="typeInfo(addType()).color">{{ typeInfo(addType()).icon }}</mat-icon>
+            <span>{{ typeInfo(addType()).label }}</span>
+          </div>
+          <div class="nx-modal-body">
+            <label>שם מקור <span class="req">*</span></label>
+            <input class="nx-field" [(ngModel)]="addName" placeholder="לדוגמה: DB_ייצור, API_CRM..." (keyup.enter)="saveSource()" />
+
+            @if (addType() === 'DB' || addType() === 'API') {
+              <label>{{ addType() === 'DB' ? 'שרת / Host' : 'URL / Endpoint' }}</label>
+              <input class="nx-field" [(ngModel)]="addHost" placeholder="{{ addType() === 'DB' ? '192.168.1.10' : 'https://api.example.com' }}" />
+            }
+
+            @if (addType() === 'DB') {
+              <div class="nx-row-2">
+                <div>
+                  <label>פורט</label>
+                  <input class="nx-field" [(ngModel)]="addPort" type="number" placeholder="1433" />
+                </div>
+                <div>
+                  <label>שם מסד</label>
+                  <input class="nx-field" [(ngModel)]="addDb" placeholder="MyDatabase" />
+                </div>
+              </div>
+            }
+
+            <label>הערות</label>
+            <textarea class="nx-field nx-ta" [(ngModel)]="addNotes" rows="2"
+                      placeholder="תיאור קצר..."></textarea>
+
+            @if (addError) {
+              <div class="nx-error">{{ addError }}</div>
+            }
+          </div>
+          <div class="nx-modal-foot">
+            <button class="nx-btn nx-btn-primary" (click)="saveSource()" [disabled]="addSaving">
+              {{ addSaving ? '...' : '✓ הוסף מקור' }}
+            </button>
+            <button class="nx-btn" (click)="showAdd.set(false)">ביטול</button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+</div>

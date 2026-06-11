@@ -90,14 +90,15 @@ router.post('/fields', async (req, res) => {
     const b = req.body;
     const db = (await getPool()).request();
     const result = await db
-      .input('FieldID',    sql.Int,          0)
-      .input('ObjectID',   sql.Int,          b.objectId)
-      .input('TenantID',   sql.Int,          req.user.tenantId)
+      .input('FieldID',    sql.Int,           0)
+      .input('ObjectID',   sql.Int,           b.objectId)
+      .input('TenantID',   sql.Int,           req.user.tenantId)
       .input('FieldName',  sql.NVarChar(100), b.fieldName)
       .input('DataType',   sql.NVarChar(50),  b.dataType || 'text')
-      .input('IsRequired', sql.Bit,          b.isRequired ? 1 : 0)
-      .input('IsKey',      sql.Bit,          b.isKey ? 1 : 0)
-      .input('SortOrder',  sql.Int,          b.sortOrder || 0)
+      .input('Format',     sql.NVarChar(50),  b.format || null)
+      .input('IsRequired', sql.Bit,           b.isRequired ? 1 : 0)
+      .input('IsKey',      sql.Bit,           b.isKey ? 1 : 0)
+      .input('SortOrder',  sql.Int,           b.sortOrder || 0)
       .output('ResultCode',    sql.Int)
       .output('ResultMessage', sql.NVarChar(200))
       .execute('dbo.sp_CortexFieldSave');
@@ -107,6 +108,24 @@ router.post('/fields', async (req, res) => {
   } catch (err) {
     console.error('cortex POST /fields:', err);
     res.status(500).json({ success: false, message: 'שגיאה בהוספת שדה' });
+  }
+});
+
+// PUT /api/cortex/fields/:id/order
+router.put('/fields/:id/order', async (req, res) => {
+  try {
+    const b = req.body;
+    const db = (await getPool()).request();
+    await db
+      .input('FieldID',   sql.Int,          parseInt(req.params.id))
+      .input('ObjectID',  sql.Int,          b.objectId)
+      .input('TenantID',  sql.Int,          req.user.tenantId)
+      .input('Direction', sql.NVarChar(4),  b.direction)
+      .execute('dbo.sp_CortexFieldReorder');
+    res.json({ success: true });
+  } catch (err) {
+    console.error('cortex PUT /fields/order:', err);
+    res.status(500).json({ success: false });
   }
 });
 

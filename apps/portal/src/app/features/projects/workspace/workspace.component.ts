@@ -29,7 +29,7 @@ const AREAS: WorkspaceArea[] = [
     id: 'nexus', name: 'NEXUS', nameHe: 'מקורות מידע',
     desc: 'ERD ויזואלי, חיבורי DB, APIs ו-Data Sources',
     icon: 'account_tree', color: '#0891b2', glow: 'rgba(8,145,178,.25)',
-    ready: false,
+    ready: true,
   },
   {
     id: 'studio', name: 'STUDIO', nameHe: 'מחולל מסכים',
@@ -87,6 +87,7 @@ export class WorkspaceComponent implements OnInit {
   openArea(area: WorkspaceArea) {
     const id = this.route.snapshot.paramMap.get('id');
     if (area.id === 'cortex') this.router.navigate(['/app/cortex', id]);
+    if (area.id === 'nexus')  this.router.navigate(['/app/nexus',  id]);
   }
 
   back() { this.router.navigate(['/app/projects']); }

@@ -2,16 +2,31 @@
 
   <!-- ── Toolbar ─────────────────────────────────────────── -->
   <div class="cx-toolbar">
-    <button class="cx-back" (click)="back()" title="חזרה">
+    <!-- back first → LEFT in LTR -->
+    <button class="cx-back" (click)="back()">
       <mat-icon>arrow_back</mat-icon>
+      <span>SPACEFLOW</span>
     </button>
 
+    <!-- brand center (absolute) -->
     <div class="cx-brand">
       <span class="cx-brand-name">CORTEX</span>
       <span class="cx-brand-sub">מחולל מודלי נתונים</span>
     </div>
 
+    <!-- tools last → RIGHT in LTR -->
     <div class="cx-tools">
+      @if (connectMode()) {
+        <div class="cx-connect-hint">
+          @if (connectSource()) {
+            <span class="hint-dot"></span>
+            <span>{{ connectSource()!.ObjectName }} ← בחר מודל יעד</span>
+          } @else {
+            <span class="hint-dot"></span>
+            <span>בחר מודל מקור לחיבור</span>
+          }
+        </div>
+      }
       <button class="cx-btn" [class.cx-btn-active]="connectMode()"
               (click)="toggleConnect()" title="חבר בין מודלים">
         <mat-icon>cable</mat-icon>
@@ -22,35 +37,13 @@
         <span>מודל חדש</span>
       </button>
     </div>
-
-    @if (connectMode()) {
-      <div class="cx-connect-hint">
-        @if (connectSource()) {
-          <span class="hint-dot"></span>
-          <span>{{ connectSource()!.ObjectName }} ← בחר מודל יעד</span>
-        } @else {
-          <span class="hint-dot"></span>
-          <span>בחר מודל מקור לחיבור</span>
-        }
-      </div>
-    }
   </div>
 
   <!-- ── Canvas ──────────────────────────────────────────── -->
   <div class="cx-canvas-wrap">
 
-    <!-- Starfield particles -->
-    <div class="cx-particles" aria-hidden="true">
-      @for (p of particles; track $index) {
-        <div class="cx-star"
-             [style.left.px]="p.x" [style.top.px]="p.y"
-             [style.width.px]="p.s" [style.height.px]="p.s"
-             [style.animation-delay.s]="p.d"></div>
-      }
-    </div>
-
-    <!-- Dot grid -->
-    <div class="cx-grid" aria-hidden="true"></div>
+    <!-- Neural net animation (same as login page) -->
+    <app-neural-net aria-hidden="true"></app-neural-net>
 
     <!-- Panned + Zoomed canvas -->
     <div class="cx-canvas" [style.transform]="transform" [class.cx-connect]="connectMode()">
@@ -131,28 +124,63 @@
           <!-- Fields -->
           @if (obj.expanded) {
             <div class="node-fields" (mousedown)="$event.stopPropagation()">
-              @for (f of obj.fields; track f.FieldID) {
+              @for (f of obj.fields; track f.FieldID; let fi = $index; let last = $last) {
                 <div class="nf-row">
+                  <div class="nf-reorder">
+                    <button class="nf-arr" [disabled]="fi === 0"
+                            (click)="$event.stopPropagation(); moveField(obj, f, 'up')" title="הזז למעלה">▲</button>
+                    <button class="nf-arr" [disabled]="last"
+                            (click)="$event.stopPropagation(); moveField(obj, f, 'down')" title="הזז למטה">▼</button>
+                  </div>
                   <span class="nf-icon">{{ dtIcon(f.DataType) }}</span>
-                  <span class="nf-name">{{ f.FieldName }}</span>
+                  <div class="nf-info">
+                    <span class="nf-name">{{ f.FieldName }}</span>
+                    @if (f.Format) { <span class="nf-fmt">{{ f.Format }}</span> }
+                  </div>
                   @if (f.IsKey) { <span class="nf-tag tag-pk">PK</span> }
                   @if (f.IsRequired) { <span class="nf-tag tag-req">!</span> }
-                  <button class="nf-del" (click)="deleteField(obj, f)">×</button>
+                  <button class="nf-del" (click)="$event.stopPropagation(); deleteField(obj, f)">×</button>
                 </div>
               }
 
-              <!-- Add field row -->
+              <!-- Add field panel (expanded) -->
               @if (addingField[obj.ObjectID]) {
-                <div class="nf-add-row">
-                  <input class="nf-input" [(ngModel)]="newFName[obj.ObjectID]"
-                         placeholder="שם שדה" (keyup.enter)="saveField(obj)" />
-                  <select class="nf-sel" [(ngModel)]="newFType[obj.ObjectID]">
-                    @for (dt of dataTypes; track dt.id) {
-                      <option [value]="dt.id">{{ dt.label }}</option>
-                    }
-                  </select>
-                  <button class="nf-ok" (click)="saveField(obj)">✓</button>
-                  <button class="nf-x"  (click)="cancelField(obj.ObjectID)">✕</button>
+                <div class="nf-add-panel">
+                  <div class="nf-panel-row">
+                    <label class="nf-label">שם שדה</label>
+                    <input class="nf-input-lg" [(ngModel)]="newFName[obj.ObjectID]"
+                           placeholder="לדוגמה: CustomerName, OrderDate..."
+                           (keyup.enter)="saveField(obj)" autofocus />
+                  </div>
+                  <div class="nf-panel-row">
+                    <label class="nf-label">סוג נתון</label>
+                    <select class="nf-sel-lg" [(ngModel)]="newFType[obj.ObjectID]">
+                      @for (dt of dataTypes; track dt.id) {
+                        <option [value]="dt.id">{{ dt.icon }} {{ dt.label }}</option>
+                      }
+                    </select>
+                  </div>
+                  @if (dtHasFormat(newFType[obj.ObjectID])) {
+                    <div class="nf-panel-row">
+                      <label class="nf-label">פורמט תצוגה</label>
+                      <input class="nf-input-lg" [(ngModel)]="newFFormat[obj.ObjectID]"
+                             [placeholder]="dtFormatHint(newFType[obj.ObjectID])" />
+                    </div>
+                  }
+                  <div class="nf-panel-checks">
+                    <label class="nf-check-label">
+                      <input type="checkbox" [(ngModel)]="newFKey[obj.ObjectID]" />
+                      <span class="nf-check-txt">🔑 מפתח ראשי (PK)</span>
+                    </label>
+                    <label class="nf-check-label">
+                      <input type="checkbox" [(ngModel)]="newFReq[obj.ObjectID]" />
+                      <span class="nf-check-txt">! שדה חובה</span>
+                    </label>
+                  </div>
+                  <div class="nf-panel-foot">
+                    <button class="nf-ok-lg" (click)="saveField(obj)">✓ הוסף</button>
+                    <button class="nf-x-lg"  (click)="cancelField(obj.ObjectID)">ביטול</button>
+                  </div>
                 </div>
               } @else {
                 <button class="nf-add-btn" (click)="startField(obj)">
