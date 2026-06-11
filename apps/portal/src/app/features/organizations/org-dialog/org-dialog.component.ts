@@ -42,6 +42,7 @@ export class OrgDialogComponent implements OnInit {
   enrichMsg      = signal('');
   enrichResult   = signal<any>(null);
   enrichSources  = signal<any[]>([]);
+  enrichSelected = signal<Set<string>>(new Set());
   showEnrichDlg  = signal(false);
   errorMsg   = '';
   form!: FormGroup;
@@ -252,6 +253,10 @@ export class OrgDialogComponent implements OnInit {
         if (!r.success || !r.data) { this.enrichMsg.set('לא נמצאו פרטים'); return; }
         this.enrichResult.set(r.data);
         this.enrichSources.set(r.sources || []);
+        // Pre-select all fields that have a value
+        const fields = ['logoUrl','businessNumber','phone','address','city','website','contactName'];
+        const preSelected = new Set(fields.filter(f => r.data[f]));
+        this.enrichSelected.set(preSelected);
         this.showEnrichDlg.set(true);
       },
       error: err => {
@@ -261,19 +266,30 @@ export class OrgDialogComponent implements OnInit {
     });
   }
 
+  toggleEnrichField(field: string) {
+    const s = new Set(this.enrichSelected());
+    s.has(field) ? s.delete(field) : s.add(field);
+    this.enrichSelected.set(s);
+  }
+
+  isEnrichSelected(field: string) { return this.enrichSelected().has(field); }
+
   applyEnrichment() {
     const d = this.enrichResult();
+    const sel = this.enrichSelected();
     if (!d) return;
-    if (d.businessNumber) this.form.get('businessNumber')?.setValue(d.businessNumber);
-    if (d.phone)          this.form.get('phone')?.setValue(d.phone);
-    if (d.address)        this.form.get('address')?.setValue(d.address);
-    if (d.city)           this.form.get('city')?.setValue(d.city);
-    if (d.website)        this.form.get('website')?.setValue(d.website);
-    if (d.contactName)    this.form.get('contactName')?.setValue(d.contactName);
-    if (d.logoUrl)        { this.form.get('logoUrl')?.setValue(d.logoUrl); this.logoPreview = d.logoUrl; }
+    if (sel.has('businessNumber') && d.businessNumber) this.form.get('businessNumber')?.setValue(d.businessNumber);
+    if (sel.has('phone')          && d.phone)          this.form.get('phone')?.setValue(d.phone);
+    if (sel.has('address')        && d.address)        this.form.get('address')?.setValue(d.address);
+    if (sel.has('city')           && d.city)           this.form.get('city')?.setValue(d.city);
+    if (sel.has('website')        && d.website)        this.form.get('website')?.setValue(d.website);
+    if (sel.has('contactName')    && d.contactName)    this.form.get('contactName')?.setValue(d.contactName);
+    if (sel.has('logoUrl')        && d.logoUrl)        { this.form.get('logoUrl')?.setValue(d.logoUrl); this.logoPreview = d.logoUrl; }
     this.showEnrichDlg.set(false);
     this.enrichResult.set(null);
-    this.enrichMsg.set('✓ פרטים מולאו אוטומטית');
+    this.enrichSources.set([]);
+    const count = sel.size;
+    this.enrichMsg.set(`✓ ${count} פרטים מולאו אוטומטית`);
     setTimeout(() => this.enrichMsg.set(''), 4000);
   }
 

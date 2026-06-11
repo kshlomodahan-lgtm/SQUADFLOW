@@ -479,46 +479,53 @@
 
       <div class="enrich-rows">
         @if (enrichResult()?.logoUrl) {
-          <div class="enrich-row">
+          <label class="enrich-row" [class.row-off]="!isEnrichSelected('logoUrl')">
+            <input type="checkbox" class="enrich-cb" [checked]="isEnrichSelected('logoUrl')" (change)="toggleEnrichField('logoUrl')" />
             <span class="enrich-lbl">לוגו</span>
             <img [src]="enrichResult().logoUrl" class="enrich-logo" alt="לוגו" />
-          </div>
+          </label>
         }
         @if (enrichResult()?.businessNumber) {
-          <div class="enrich-row">
+          <label class="enrich-row" [class.row-off]="!isEnrichSelected('businessNumber')">
+            <input type="checkbox" class="enrich-cb" [checked]="isEnrichSelected('businessNumber')" (change)="toggleEnrichField('businessNumber')" />
             <span class="enrich-lbl">ח.פ. / עוסק מורשה</span>
             <span class="enrich-val">{{ enrichResult().businessNumber }}</span>
-          </div>
+          </label>
         }
         @if (enrichResult()?.phone) {
-          <div class="enrich-row">
+          <label class="enrich-row" [class.row-off]="!isEnrichSelected('phone')">
+            <input type="checkbox" class="enrich-cb" [checked]="isEnrichSelected('phone')" (change)="toggleEnrichField('phone')" />
             <span class="enrich-lbl">טלפון</span>
             <span class="enrich-val">{{ enrichResult().phone }}</span>
-          </div>
+          </label>
         }
         @if (enrichResult()?.address) {
-          <div class="enrich-row">
+          <label class="enrich-row" [class.row-off]="!isEnrichSelected('address')">
+            <input type="checkbox" class="enrich-cb" [checked]="isEnrichSelected('address')" (change)="toggleEnrichField('address')" />
             <span class="enrich-lbl">כתובת</span>
             <span class="enrich-val">{{ enrichResult().address }}</span>
-          </div>
+          </label>
         }
         @if (enrichResult()?.city) {
-          <div class="enrich-row">
+          <label class="enrich-row" [class.row-off]="!isEnrichSelected('city')">
+            <input type="checkbox" class="enrich-cb" [checked]="isEnrichSelected('city')" (change)="toggleEnrichField('city')" />
             <span class="enrich-lbl">עיר</span>
             <span class="enrich-val">{{ enrichResult().city }}</span>
-          </div>
+          </label>
         }
         @if (enrichResult()?.website) {
-          <div class="enrich-row">
+          <label class="enrich-row" [class.row-off]="!isEnrichSelected('website')">
+            <input type="checkbox" class="enrich-cb" [checked]="isEnrichSelected('website')" (change)="toggleEnrichField('website')" />
             <span class="enrich-lbl">אתר</span>
             <span class="enrich-val ltr">{{ enrichResult().website }}</span>
-          </div>
+          </label>
         }
         @if (enrichResult()?.contactName) {
-          <div class="enrich-row">
+          <label class="enrich-row" [class.row-off]="!isEnrichSelected('contactName')">
+            <input type="checkbox" class="enrich-cb" [checked]="isEnrichSelected('contactName')" (change)="toggleEnrichField('contactName')" />
             <span class="enrich-lbl">איש קשר</span>
             <span class="enrich-val">{{ enrichResult().contactName }}</span>
-          </div>
+          </label>
         }
       </div>
 
