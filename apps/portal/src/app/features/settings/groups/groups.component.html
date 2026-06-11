@@ -11,7 +11,7 @@
   } @else if (error()) {
     <div class="error-box">{{ error() }}</div>
   } @else {
-    <kendo-grid class="groups-grid"
+    <kendo-grid class="groups-grid" direction="rtl"
       [data]="{ data: pagedData, total: groups().length }"
       [skip]="skip" [pageSize]="pageSize"
       [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [25, 50, 100] }"
@@ -81,7 +81,7 @@
   <kendo-dialog [title]="editingGroup ? 'עריכת קבוצה' : 'קבוצה חדשה'"
                 [width]="520" [minWidth]="380" (close)="closeDialog()">
 
-    <form [formGroup]="form" class="group-form">
+    <form [formGroup]="form" class="group-form" dir="rtl">
 
       <div class="form-row">
         <label>שם קבוצה <span class="req">*</span></label>
@@ -102,6 +102,22 @@
       <div class="form-row">
         <label>תיאור</label>
         <kendo-textbox formControlName="description" placeholder="תיאור קצר של הקבוצה" />
+      </div>
+
+      <div class="form-row">
+        <label>סטטוס</label>
+        <div class="seg-ctrl">
+          <button type="button" class="seg-btn"
+                  [class.seg-on]="!!form.get('isActive')?.value"
+                  (click)="form.get('isActive')?.setValue(true)">
+            ✓ פעיל
+          </button>
+          <button type="button" class="seg-btn"
+                  [class.seg-off]="!form.get('isActive')?.value"
+                  (click)="form.get('isActive')?.setValue(false)">
+            ✗ מושהה
+          </button>
+        </div>
       </div>
 
       <div class="form-row color-row">

@@ -84,6 +84,7 @@ export class GroupsComponent implements OnInit {
       groupCode:   ['', [Validators.required, Validators.pattern(/^[A-Z0-9_]+$/)]],
       description: [''],
       colorHex:    ['#64748b'],
+      isActive:    [true],
       sortOrder:   [0],
     });
     this.dialogOpen.set(true);
@@ -96,6 +97,7 @@ export class GroupsComponent implements OnInit {
       groupCode:   [g.GroupCode,   [Validators.required, Validators.pattern(/^[A-Z0-9_]+$/)]],
       description: [g.Description],
       colorHex:    [g.ColorHex],
+      isActive:    [g.IsActive],
       sortOrder:   [0],
     });
     this.selectedRoleIds = [];
