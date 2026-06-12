@@ -374,7 +374,9 @@ router.post('/:key/test', async (req, res) => {
           options:  { encrypt: !!config.encrypt, trustServerCertificate: true },
           connectionTimeout: 5000,
         };
-        const testPool = await mssql.connect(testCfg);
+        // Use new ConnectionPool (not mssql.connect) to avoid replacing the global ProfitsCRM pool
+        const testPool = new mssql.ConnectionPool(testCfg);
+        await testPool.connect();
         await testPool.request().query('SELECT 1 AS ok');
         await testPool.close();
         status = 'OK';

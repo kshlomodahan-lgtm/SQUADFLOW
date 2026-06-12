@@ -7,7 +7,7 @@ const config = {
   user:     process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   options:  { trustServerCertificate: true, enableArithAbort: true, useUTC: false },
-  pool:     { max: 10, min: 0, idleTimeoutMillis: 30000 }
+  pool:     { max: 10, min: 1, idleTimeoutMillis: 300000 }
 };
 
 // sql.connect stores Hebrew correctly (verified via test2.js)
