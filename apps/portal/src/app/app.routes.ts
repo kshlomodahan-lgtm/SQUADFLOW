@@ -72,6 +72,11 @@ export const routes: Routes = [
           import('./features/projects/workspace/nexus/nexus.component').then(m => m.NexusComponent),
       },
       {
+        path: 'ws-connectors/:projectId',
+        loadComponent: () =>
+          import('./features/projects/workspace/ws-connectors/ws-connectors.component').then(m => m.WsConnectorsComponent),
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('./features/settings/settings.component').then(m => m.SettingsComponent),

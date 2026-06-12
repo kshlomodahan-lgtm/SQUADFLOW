@@ -15,8 +15,16 @@ function resolveTenantId(req) {
 
   if (scopeParam === 'PLATFORM' && isPlatformAdmin) return 0;
   if (scopeParam === 'TENANT')   return req.user.tenantId;
+  if (scopeParam === 'PROJECT')  return req.user.tenantId;
   // auto: platform admin defaults to platform scope, others to their tenant
   return isPlatformAdmin ? 0 : req.user.tenantId;
+}
+
+function resolveProjectId(req) {
+  if ((req.query.scope || req.body?.scope) === 'PROJECT') {
+    return parseInt(req.query.projectId || req.body?.projectId || '0');
+  }
+  return null; // null = ignore ProjectID filter (use ProductID logic)
 }
 
 // Return masked config for display (replaces password-type field values with ****)
@@ -32,23 +40,80 @@ function maskConfig(config, schema) {
 }
 
 // ── GET /api/connectors ───────────────────────────────────────
-// ?scope=PLATFORM|TENANT|auto   ?category=AI|DATABASE|...   ?productId=0
+// ?scope=PLATFORM|TENANT|PROJECT|auto   ?projectId=X   ?category=AI|DATABASE|...
 router.get('/', async (req, res) => {
   try {
     await poolConnect;
     const pool      = await getPool();
     const tenantId  = resolveTenantId(req);
+    const projectId = resolveProjectId(req);
     const productId = parseInt(req.query.productId || '0');
     const category  = req.query.category || null;
 
-    let query = `
+    let query, request;
+
+    if (projectId !== null) {
+      // PROJECT scope — return project connectors + platform definitions (for cards not yet configured)
+      query = `
+        SELECT c.ConnectorID, c.TenantID, c.ProductID,
+               ISNULL(c.ProjectID, 0) AS ProjectID,
+               c.ScopeLevel, c.ConnectorKey, c.Category,
+               c.ConnectorName, c.IconEmoji, c.Description, c.SchemaJSON,
+               c.ConfigJSON,
+               c.IsEnabled, c.LastTestedAt, c.LastTestStatus, c.LastTestMsg, c.UpdatedAt
+        FROM dbo.tblConnectors c
+        WHERE c.TenantID = 0 AND c.ProductID = 0 AND ISNULL(c.ProjectID,0) = 0
+      `;
+      request = pool.request()
+        .input('TenantID',  sql.Int, tenantId)
+        .input('ProjectID', sql.Int, projectId);
+
+      if (category) {
+        query += ' AND c.Category=@Category';
+        request.input('Category', sql.VarChar(30), category);
+      }
+      query += ' ORDER BY c.Category, c.ConnectorName';
+
+      const platResult = await request.query(query);
+      const platRows   = platResult.recordset;
+
+      // Load project-specific overrides
+      const overrideResult = await pool.request()
+        .input('TenantID',  sql.Int, tenantId)
+        .input('ProjectID', sql.Int, projectId)
+        .query(`
+          SELECT ConnectorKey, ConfigJSON, IsEnabled, LastTestedAt, LastTestStatus, LastTestMsg
+          FROM dbo.tblConnectors
+          WHERE TenantID=@TenantID AND ISNULL(ProjectID,0)=@ProjectID AND ISNULL(ProductID,0)=0
+        `);
+      const overrides = {};
+      overrideResult.recordset.forEach(o => { overrides[o.ConnectorKey] = o; });
+
+      const rows = platRows.map(r => {
+        const ov = overrides[r.ConnectorKey];
+        return {
+          ...r,
+          SchemaJSON:     r.SchemaJSON ? JSON.parse(r.SchemaJSON) : [],
+          hasConfig:      !!(ov?.ConfigJSON),
+          IsEnabled:      ov ? ov.IsEnabled : false,
+          LastTestedAt:   ov?.LastTestedAt   ?? null,
+          LastTestStatus: ov?.LastTestStatus ?? null,
+          LastTestMsg:    ov?.LastTestMsg    ?? null,
+        };
+      });
+
+      return res.json({ success: true, data: rows });
+    }
+
+    // PLATFORM / TENANT scope (existing logic)
+    query = `
       SELECT ConnectorID, TenantID, ProductID, ScopeLevel, ConnectorKey, Category,
-             ConnectorName, IconEmoji, Description, SchemaJSON,
+             ConnectorName, IconEmoji, Description, SchemaJSON, ConfigJSON,
              IsEnabled, LastTestedAt, LastTestStatus, LastTestMsg, UpdatedAt
       FROM dbo.tblConnectors
       WHERE TenantID=@TenantID AND ProductID=@ProductID
     `;
-    const request = pool.request()
+    request = pool.request()
       .input('TenantID',  sql.Int, tenantId)
       .input('ProductID', sql.Int, productId);
 
@@ -62,7 +127,7 @@ router.get('/', async (req, res) => {
     const rows   = result.recordset.map(r => ({
       ...r,
       SchemaJSON: r.SchemaJSON ? JSON.parse(r.SchemaJSON) : [],
-      hasConfig:  !!r.ConfigJSON, // don't expose encrypted value
+      hasConfig:  !!r.ConfigJSON,
     }));
 
     res.json({ success: true, data: rows });
@@ -115,28 +180,35 @@ router.get('/:key', async (req, res) => {
 });
 
 // ── PUT /api/connectors/:key ──────────────────────────────────
-// Body: { config: { field: value, ... }, isEnabled: bool, productId: 0 }
+// Body: { config: { field: value, ... }, isEnabled: bool, productId: 0, projectId: X }
 // Password fields with value "****" are kept as-is (not overwritten)
 router.put('/:key', async (req, res) => {
   try {
     await poolConnect;
     const pool      = await getPool();
     const tenantId  = resolveTenantId(req);
+    const projectId = resolveProjectId(req);
     const productId = parseInt(req.body.productId ?? req.query.productId ?? '0');
     const key       = req.params.key;
     const isEnabled = req.body.isEnabled ?? null;
     const incoming  = req.body.config || {};
-    const scopeLevel = tenantId === 0 ? 'PLATFORM' : (productId > 0 ? 'PRODUCT' : 'TENANT');
+    const scopeLevel = tenantId === 0 ? 'PLATFORM'
+      : (projectId ? 'PROJECT' : (productId > 0 ? 'PRODUCT' : 'TENANT'));
 
     // Load existing to merge passwords (don't overwrite masked values)
-    const existing = await pool.request()
-      .input('TenantID',     sql.Int,        tenantId)
-      .input('ProductID',    sql.Int,        productId)
-      .input('ConnectorKey', sql.VarChar(50), key)
-      .query(`
-        SELECT ConnectorID, SchemaJSON, ConfigJSON FROM dbo.tblConnectors
-        WHERE TenantID=@TenantID AND ProductID=@ProductID AND ConnectorKey=@ConnectorKey
-      `);
+    const existingReq = pool.request()
+      .input('TenantID',     sql.Int,         tenantId)
+      .input('ProductID',    sql.Int,         productId)
+      .input('ConnectorKey', sql.VarChar(50), key);
+    let existingQuery = `SELECT ConnectorID, SchemaJSON, ConfigJSON FROM dbo.tblConnectors
+      WHERE TenantID=@TenantID AND ProductID=@ProductID AND ConnectorKey=@ConnectorKey`;
+    if (projectId !== null) {
+      existingReq.input('ProjectID', sql.Int, projectId);
+      existingQuery += ' AND ISNULL(ProjectID,0)=@ProjectID';
+    } else {
+      existingQuery += ' AND ISNULL(ProjectID,0)=0';
+    }
+    const existing = await existingReq.query(existingQuery);
 
     let existingConfig = {};
     let schema = [];
@@ -174,10 +246,11 @@ router.put('/:key', async (req, res) => {
         .input('ConnectorKey', sql.VarChar(50), key)
         .query(`SELECT ConnectorName, IconEmoji, Description, Category, SchemaJSON FROM dbo.tblConnectors WHERE TenantID=0 AND ProductID=0 AND ConnectorKey=@ConnectorKey`);
 
-      const pd = platDef.recordset[0] || {};
-      await pool.request()
+      const pd  = platDef.recordset[0] || {};
+      const ins = pool.request()
         .input('TenantID',      sql.Int,           tenantId)
         .input('ProductID',     sql.Int,           productId)
+        .input('ProjectID',     sql.Int,           projectId ?? 0)
         .input('ScopeLevel',    sql.VarChar(20),   scopeLevel)
         .input('ConnectorKey',  sql.VarChar(50),   key)
         .input('Category',      sql.VarChar(30),   pd.Category || 'OTHER')
@@ -187,8 +260,23 @@ router.put('/:key', async (req, res) => {
         .input('SchemaJSON',    sql.NVarChar(sql.MAX), pd.SchemaJSON || '[]')
         .input('ConfigJSON',    sql.NVarChar(sql.MAX), encryptedConfig)
         .input('IsEnabled',     sql.Bit,           isEnabled !== null ? (isEnabled ? 1 : 0) : 0)
-        .input('UpdatedBy',     sql.Int,           req.user.userId)
-        .query(`
+        .input('UpdatedBy',     sql.Int,           req.user.userId);
+
+      // Check if ProjectID column exists
+      const colCheck = await pool.request().query(`SELECT COUNT(1) AS cnt FROM sys.columns WHERE object_id=OBJECT_ID('dbo.tblConnectors') AND name='ProjectID'`);
+      const hasProjectCol = colCheck.recordset[0].cnt > 0;
+
+      if (hasProjectCol) {
+        await ins.query(`
+          INSERT INTO dbo.tblConnectors
+            (TenantID, ProductID, ProjectID, ScopeLevel, ConnectorKey, Category, ConnectorName, IconEmoji,
+             Description, SchemaJSON, ConfigJSON, IsEnabled, UpdatedAt, UpdatedBy)
+          VALUES
+            (@TenantID, @ProductID, @ProjectID, @ScopeLevel, @ConnectorKey, @Category, @ConnectorName, @IconEmoji,
+             @Description, @SchemaJSON, @ConfigJSON, @IsEnabled, GETDATE(), @UpdatedBy)
+        `);
+      } else {
+        await ins.query(`
           INSERT INTO dbo.tblConnectors
             (TenantID, ProductID, ScopeLevel, ConnectorKey, Category, ConnectorName, IconEmoji,
              Description, SchemaJSON, ConfigJSON, IsEnabled, UpdatedAt, UpdatedBy)
@@ -196,6 +284,7 @@ router.put('/:key', async (req, res) => {
             (@TenantID, @ProductID, @ScopeLevel, @ConnectorKey, @Category, @ConnectorName, @IconEmoji,
              @Description, @SchemaJSON, @ConfigJSON, @IsEnabled, GETDATE(), @UpdatedBy)
         `);
+      }
     } else {
       const updateReq = pool.request()
         .input('TenantID',     sql.Int,           tenantId)
@@ -212,7 +301,12 @@ router.put('/:key', async (req, res) => {
         updateReq.input('IsEnabled', sql.Bit, isEnabled ? 1 : 0);
         updateSql += ', IsEnabled=@IsEnabled';
       }
-      updateSql += ' WHERE TenantID=@TenantID AND ProductID=@ProductID AND ConnectorKey=@ConnectorKey';
+      if (projectId !== null) {
+        updateReq.input('ProjectID', sql.Int, projectId);
+        updateSql += ' WHERE TenantID=@TenantID AND ProductID=@ProductID AND ConnectorKey=@ConnectorKey AND ISNULL(ProjectID,0)=@ProjectID';
+      } else {
+        updateSql += ' WHERE TenantID=@TenantID AND ProductID=@ProductID AND ConnectorKey=@ConnectorKey AND ISNULL(ProjectID,0)=0';
+      }
       await updateReq.query(updateSql);
     }
 

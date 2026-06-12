@@ -20,6 +20,12 @@ interface WorkspaceArea {
 
 const AREAS: WorkspaceArea[] = [
   {
+    id: 'connectors', name: 'CONNECTORS', nameHe: 'חיבורי פרויקט',
+    desc: 'הגדרת חיבורי DB, API, AI ושירותים חיצוניים לפרויקט',
+    icon: 'cable', color: '#0891b2', glow: 'rgba(8,145,178,.25)',
+    ready: true,
+  },
+  {
     id: 'cortex', name: 'CORTEX', nameHe: 'מודלי נתונים',
     desc: 'הגדרת Objects, Fields, Validations ו-Locale Rules',
     icon: 'hub', color: '#7c3aed', glow: 'rgba(124,58,237,.25)',
@@ -27,8 +33,8 @@ const AREAS: WorkspaceArea[] = [
   },
   {
     id: 'nexus', name: 'NEXUS', nameHe: 'מקורות מידע',
-    desc: 'ERD ויזואלי, חיבורי DB, APIs ו-Data Sources',
-    icon: 'account_tree', color: '#0891b2', glow: 'rgba(8,145,178,.25)',
+    desc: 'ERD ויזואלי — טבלאות מ-Connectors מחוברים',
+    icon: 'account_tree', color: '#0e7490', glow: 'rgba(14,116,144,.25)',
     ready: true,
   },
   {
@@ -86,8 +92,9 @@ export class WorkspaceComponent implements OnInit {
 
   openArea(area: WorkspaceArea) {
     const id = this.route.snapshot.paramMap.get('id');
-    if (area.id === 'cortex') this.router.navigate(['/app/cortex', id]);
-    if (area.id === 'nexus')  this.router.navigate(['/app/nexus',  id]);
+    if (area.id === 'connectors') this.router.navigate(['/app/ws-connectors', id]);
+    if (area.id === 'cortex')     this.router.navigate(['/app/cortex',        id]);
+    if (area.id === 'nexus')      this.router.navigate(['/app/nexus',         id]);
   }
 
   back() { this.router.navigate(['/app/projects']); }
