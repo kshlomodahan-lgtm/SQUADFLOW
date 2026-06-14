@@ -1,6 +1,6 @@
 <div class="wc-root">
 
-  <!-- ── Toolbar ──────────────────────────────────────────── -->
+  <!-- ── Toolbar ──────────────────────────────────────────────── -->
   <div class="wc-toolbar">
     <button class="wc-back" (click)="back()">
       <mat-icon>arrow_back</mat-icon>
@@ -9,11 +9,11 @@
 
     <div class="wc-brand">
       <span class="wc-brand-name">CONNECTORS</span>
-      <span class="wc-brand-sub">חיבורי פרויקט</span>
+      <span class="wc-brand-sub">חיבורים חיצוניים לפרויקט</span>
     </div>
 
     <div class="wc-tools">
-      <button class="btn-new-connector" (click)="openNew()" type="button">
+      <button class="btn-new-connector" (click)="openAdd()" type="button">
         + חיבור חדש
       </button>
       @if (testResult()) {
@@ -27,146 +27,316 @@
     </div>
   </div>
 
-  <!-- ── Background ─────────────────────────────────────────── -->
+  <!-- ── Background ───────────────────────────────────────────── -->
   <app-neural-net aria-hidden="true"></app-neural-net>
 
-  <!-- ── Body ──────────────────────────────────────────────── -->
+  <!-- ── Body ────────────────────────────────────────────────── -->
   <div class="wc-body">
 
-    <!-- Category Tabs -->
-    <div class="cat-tabs">
-      @for (cat of categories; track cat.id) {
-        <button class="cat-tab" [class.active]="activeCategory() === cat.id"
-                (click)="activeCategory.set(cat.id)" type="button">
-          <span class="cat-icon">{{ cat.icon }}</span>
-          <span class="cat-label">{{ cat.label }}</span>
-          @if (catCount(cat.id) > 0) {
-            <span class="cat-badge" [class.has-enabled]="catEnabledCount(cat.id) > 0">
-              {{ catEnabledCount(cat.id) }}/{{ catCount(cat.id) }}
-            </span>
-          }
-        </button>
-      }
+    <!-- ── Category Sidebar ─────────────────────────────────── -->
+    <div class="wc-layout">
+
+      <nav class="cat-sidebar">
+        @for (cat of categories; track cat.id) {
+          <button class="cat-item" [class.active]="activeCategory() === cat.id"
+                  [style.--cat-color]="cat.color"
+                  (click)="activeCategory.set(cat.id)" type="button">
+            <span class="cat-emoji">{{ cat.icon }}</span>
+            <span class="cat-name">{{ cat.label }}</span>
+            @if (catCount(cat.id) > 0) {
+              <span class="cat-count" [class.has-enabled]="catEnabledCount(cat.id) > 0">
+                {{ catEnabledCount(cat.id) }}/{{ catCount(cat.id) }}
+              </span>
+            }
+          </button>
+        }
+      </nav>
+
+      <!-- ── Main Content ─────────────────────────────────────── -->
+      <div class="wc-main">
+
+        <!-- Category header -->
+        @if (activeCatDef()) {
+          <div class="cat-header">
+            <span class="cat-hd-icon" [style.color]="activeCatDef()!.color">{{ activeCatDef()!.icon }}</span>
+            <div>
+              <div class="cat-hd-title">{{ activeCatDef()!.label }}</div>
+              <div class="cat-hd-sub">
+                {{ catCount(activeCategory()) }} חיבורים מוגדרים
+                · {{ activeCatDef()!.types.length }} סוגי חיבור זמינים
+              </div>
+            </div>
+
+            <!-- Type chips for this category -->
+            <div class="cat-type-chips">
+              @for (t of activeCatDef()!.types; track t.typeCode) {
+                <span class="type-chip">{{ t.icon }} {{ t.typeName }}</span>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Loading / Error -->
+        @if (loading()) {
+          <div class="wc-loading">
+            <kendo-loader type="pulsing" size="large" themeColor="primary" />
+          </div>
+        } @else if (error()) {
+          <div class="wc-error">{{ error() }}</div>
+        } @else {
+
+          <div class="conn-grid">
+            @for (c of categorized(); track c.ConnectorKey) {
+              <div class="conn-card" [class.enabled]="c.IsEnabled" [class.no-config]="!c.hasConfig"
+                   [style.--card-color]="catColor(c.Category)">
+
+                <div class="card-top">
+                  <div class="card-icon">{{ c.IconEmoji }}</div>
+                  <div class="card-info">
+                    <div class="card-name">{{ c.ConnectorName }}</div>
+                    <div class="card-desc">{{ c.Description }}</div>
+                  </div>
+                  <div class="card-status" [class]="statusClass(c.LastTestStatus)">
+                    {{ c.hasConfig ? statusLabel(c.LastTestStatus) : 'לא הוגדר' }}
+                  </div>
+                </div>
+
+                @if (c.hasConfig && c.LastTestedAt) {
+                  <div class="card-meta">
+                    בדיקה: {{ formatDate(c.LastTestedAt) }}
+                    @if (c.LastTestMsg) { <span class="card-meta-msg">— {{ c.LastTestMsg }}</span> }
+                  </div>
+                }
+
+                @if (c.ConnectorToken) {
+                  <div class="card-uuid" (click)="copyToken(c.ConnectorToken)"
+                       [title]="'UUID: ' + c.ConnectorToken">
+                    <span class="card-uuid-val">{{ c.ConnectorToken }}</span>
+                    <span class="card-uuid-copy">{{ copiedToken() === c.ConnectorToken ? '✓' : '⎘' }}</span>
+                  </div>
+                }
+
+                <div class="card-actions">
+                  <button type="button" class="btn-test"
+                          [disabled]="testRunning() === c.ConnectorKey"
+                          (click)="testConnection(c)">
+                    @if (testRunning() === c.ConnectorKey) {
+                      <kendo-loader type="pulsing" size="small" themeColor="primary" />
+                    } @else { ▶ }
+                    בדוק
+                  </button>
+                  <button type="button" class="btn-edit" (click)="openEdit(c)">
+                    ✎ {{ c.hasConfig ? 'ערוך' : 'הגדר' }}
+                  </button>
+                  <button type="button" class="btn-delete-card" (click)="confirmDelete(c)" title="מחק">✕</button>
+                  <div class="enabled-dot" [class.on]="c.IsEnabled"
+                       [title]="c.IsEnabled ? 'פעיל' : 'מושבת'"></div>
+                </div>
+
+              </div>
+            }
+
+            <!-- Empty state -->
+            @if (categorized().length === 0) {
+              <div class="conn-empty">
+                <div class="conn-empty-icon" [style.color]="activeCatDef()?.color">
+                  {{ activeCatDef()?.icon }}
+                </div>
+                <p class="conn-empty-title">אין חיבורים מוגדרים</p>
+                <p class="conn-empty-sub">לחץ "+ חיבור חדש" להוסיף חיבור מסוג {{ activeCatDef()?.label }}</p>
+                <button class="btn-empty-add" (click)="openAdd()" type="button">
+                  + הוסף חיבור ראשון
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
     </div>
-
-    <!-- Content -->
-    @if (loading()) {
-      <div class="wc-loading">
-        <kendo-loader type="pulsing" size="large" themeColor="primary" />
-      </div>
-    } @else if (error()) {
-      <div class="wc-error">{{ error() }}</div>
-    } @else {
-
-      <div class="conn-grid">
-        @for (c of categorized(); track c.ConnectorKey) {
-          <div class="conn-card" [class.enabled]="c.IsEnabled" [class.no-config]="!c.hasConfig">
-
-            <div class="card-top">
-              <div class="card-icon">{{ c.IconEmoji }}</div>
-              <div class="card-info">
-                <div class="card-name">{{ c.ConnectorName }}</div>
-                <div class="card-desc">{{ c.Description }}</div>
-              </div>
-              <div class="card-status" [class]="statusClass(c.LastTestStatus)">
-                {{ c.hasConfig ? statusLabel(c.LastTestStatus) : 'לא הוגדר' }}
-              </div>
-            </div>
-
-            @if (c.hasConfig && c.LastTestedAt) {
-              <div class="card-meta">
-                בדיקה: {{ formatDate(c.LastTestedAt) }}
-                @if (c.LastTestMsg) { <span class="card-meta-msg">— {{ c.LastTestMsg }}</span> }
-              </div>
-            }
-
-            @if (c.ConnectorToken) {
-              <div class="card-uuid" (click)="copyToken(c.ConnectorToken)"
-                   [title]="'UUID: ' + c.ConnectorToken">
-                <span class="card-uuid-val">{{ c.ConnectorToken }}</span>
-                <span class="card-uuid-copy">{{ copiedToken() === c.ConnectorToken ? '✓' : '⎘' }}</span>
-              </div>
-            }
-
-            <div class="card-actions">
-              <button type="button" class="btn-test"
-                      [disabled]="testRunning() === c.ConnectorKey"
-                      (click)="testConnection(c)">
-                @if (testRunning() === c.ConnectorKey) {
-                  <kendo-loader type="pulsing" size="small" themeColor="primary" />
-                } @else { ▶ }
-                בדוק חיבור
-              </button>
-              <button type="button" class="btn-edit" (click)="openEdit(c)">
-                ✎ {{ c.hasConfig ? 'ערוך' : 'הגדר' }}
-              </button>
-              <button type="button" class="btn-delete-card" (click)="confirmDelete(c)" title="מחק חיבור">✕</button>
-              <div class="enabled-dot" [class.on]="c.IsEnabled"
-                   [title]="c.IsEnabled ? 'פעיל' : 'מושבת'"></div>
-            </div>
-
-          </div>
-        }
-
-        @if (categorized().length === 0) {
-          <div class="conn-empty">
-            <div class="conn-empty-icon">{{ categoryMeta[activeCategory()]?.icon }}</div>
-            <p>אין חיבורים בקטגוריה זו</p>
-          </div>
-        }
-      </div>
-    }
   </div>
 
 </div>
 
-<!-- ── New Connector Dialog ───────────────────────────────── -->
-@if (newOpen()) {
-  <kendo-dialog title="🔌 חיבור חדש" [width]="480" (close)="newOpen.set(false)">
-    <div class="edit-body">
+<!-- ════════════════════════════════════════════════════════════════
+  ── Add Connector — 3-Step Dialog ─────────────────────────────
+═══════════════════════════════════════════════════════════════════ -->
+@if (addOpen()) {
+  <kendo-dialog [width]="680" [minWidth]="500" (close)="addOpen.set(false)">
 
-      @if (newError()) { <div class="edit-error">{{ newError() }}</div> }
-
-      <div class="edit-row">
-        <label class="edit-label">שם חיבור <span class="req">*</span></label>
-        <div class="edit-field">
-          <input class="edit-input" type="text" [(ngModel)]="newForm.connectorName"
-                 placeholder="לדוגמה: BITAN API, Slack, SMS Gateway" dir="rtl" />
+    <!-- Header with steps -->
+    <div class="add-dialog-header">
+      <div class="add-steps">
+        <div class="add-step" [class.done]="addStep() > 1" [class.active]="addStep() === 1">
+          <span class="step-num">{{ addStep() > 1 ? '✓' : '1' }}</span>
+          <span class="step-lbl">קטגוריה</span>
+        </div>
+        <div class="step-line" [class.done]="addStep() > 1"></div>
+        <div class="add-step" [class.done]="addStep() > 2" [class.active]="addStep() === 2">
+          <span class="step-num">{{ addStep() > 2 ? '✓' : '2' }}</span>
+          <span class="step-lbl">סוג חיבור</span>
+        </div>
+        <div class="step-line" [class.done]="addStep() > 2"></div>
+        <div class="add-step" [class.active]="addStep() === 3">
+          <span class="step-num">3</span>
+          <span class="step-lbl">הגדרות</span>
         </div>
       </div>
+    </div>
 
-      <div class="edit-row">
-        <label class="edit-label">קטגוריה</label>
-        <div class="edit-field cat-select-wrap">
-          @for (cat of categories; track cat.id) {
-            <button type="button" class="cat-pick-btn"
-                    [class.active]="newForm.category === cat.id"
-                    (click)="onCategoryChange(cat.id)">
-              {{ cat.icon }} {{ cat.label }}
+    <!-- ── Step 1: Category ───────────────────────────────────── -->
+    @if (addStep() === 1) {
+      <div class="add-body step1-body">
+        <p class="step-hint">בחר את קטגוריית החיבור</p>
+        <div class="cat-grid">
+          @for (cat of catalog; track cat.id) {
+            <button class="cat-card" type="button" (click)="selectCat(cat)"
+                    [style.--cc]="cat.color">
+              <span class="cc-icon">{{ cat.icon }}</span>
+              <span class="cc-label">{{ cat.label }}</span>
+              <span class="cc-count">{{ cat.types.length }} סוגים</span>
             </button>
           }
         </div>
       </div>
+    }
 
-      <div class="edit-row">
-        <label class="edit-label">תיאור</label>
-        <div class="edit-field">
-          <input class="edit-input" type="text" [(ngModel)]="newForm.description"
-                 placeholder="תיאור קצר של החיבור" dir="rtl" />
+    <!-- ── Step 2: Type ───────────────────────────────────────── -->
+    @if (addStep() === 2 && addSelCat()) {
+      <div class="add-body step2-body">
+        <div class="step-back-row">
+          <button class="btn-back-step" type="button" (click)="backToStep(1)">
+            ← חזור לקטגוריות
+          </button>
+          <span class="step-cat-badge" [style.background]="addSelCat()!.color + '22'" [style.color]="addSelCat()!.color">
+            {{ addSelCat()!.icon }} {{ addSelCat()!.label }}
+          </span>
+        </div>
+        <p class="step-hint">בחר את סוג החיבור</p>
+        <div class="type-grid">
+          @for (type of addSelCat()!.types; track type.typeCode) {
+            <button class="type-card" type="button" (click)="selectType(type)">
+              <span class="tc-icon">{{ type.icon }}</span>
+              <div class="tc-info">
+                <div class="tc-name">{{ type.typeName }}</div>
+                @if (type.description) {
+                  <div class="tc-desc">{{ type.description }}</div>
+                }
+                <div class="tc-fields">{{ type.fields.length }} שדות הגדרה</div>
+              </div>
+            </button>
+          }
         </div>
       </div>
+    }
 
-    </div>
+    <!-- ── Step 3: Form ───────────────────────────────────────── -->
+    @if (addStep() === 3 && addSelType()) {
+      <div class="add-body step3-body">
+        <div class="step-back-row">
+          <button class="btn-back-step" type="button" (click)="backToStep(2)">
+            ← חזור לסוגים
+          </button>
+          <span class="step-type-badge">
+            {{ addSelType()!.icon }} {{ addSelType()!.typeName }}
+          </span>
+        </div>
+
+        @if (addError()) { <div class="add-error">{{ addError() }}</div> }
+
+        <!-- Name -->
+        <div class="edit-row">
+          <label class="edit-label">שם החיבור <span class="req">*</span></label>
+          <div class="edit-field">
+            <input class="edit-input" type="text"
+                   [value]="addName()" (input)="addName.set($any($event.target).value)"
+                   placeholder="שם מזהה לחיבור" dir="rtl" />
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="edit-row">
+          <label class="edit-label">תיאור</label>
+          <div class="edit-field">
+            <input class="edit-input" type="text"
+                   [value]="addDesc()" (input)="addDesc.set($any($event.target).value)"
+                   placeholder="תיאור קצר" dir="rtl" />
+          </div>
+        </div>
+
+        <!-- Dynamic fields from type definition -->
+        @for (field of addSelType()!.fields; track field.key) {
+          <div class="edit-row">
+            <label class="edit-label">
+              {{ field.label }}
+              @if (field.required) { <span class="req">*</span> }
+            </label>
+            <div class="edit-field">
+              @if (field.hint) { <span class="field-hint">{{ field.hint }}</span> }
+
+              @if (field.type === 'password') {
+                <div class="pass-wrap">
+                  <input [type]="addShowPass[field.key] ? 'text' : 'password'"
+                         class="edit-input" [value]="getAddField(field.key)"
+                         [placeholder]="field.placeholder || ''"
+                         [dir]="field.ltr ? 'ltr' : 'rtl'"
+                         (input)="setAddField(field.key, $any($event.target).value)" />
+                  <button type="button" class="btn-eye" (click)="toggleAddShow(field.key)">
+                    {{ addShowPass[field.key] ? '🙈' : '👁' }}
+                  </button>
+                </div>
+              } @else if (field.type === 'boolean') {
+                <div class="seg-ctrl">
+                  <button type="button" class="seg-btn" [class.seg-on]="!!getAddField(field.key)"
+                          (click)="setAddField(field.key, true)">✓ כן</button>
+                  <button type="button" class="seg-btn" [class.seg-off]="!getAddField(field.key)"
+                          (click)="setAddField(field.key, false)">✗ לא</button>
+                </div>
+              } @else if (field.type === 'number') {
+                <input type="number" class="edit-input" dir="ltr"
+                       [value]="getAddField(field.key) || field.default || ''"
+                       [placeholder]="field.default || ''"
+                       (input)="setAddField(field.key, +$any($event.target).value)" />
+              } @else if (field.type === 'select') {
+                <select class="edit-input edit-select"
+                        (change)="setAddField(field.key, $any($event.target).value)">
+                  @for (opt of field.options || []; track opt) {
+                    <option [value]="opt" [selected]="(getAddField(field.key) || field.default) === opt">
+                      {{ opt }}
+                    </option>
+                  }
+                </select>
+              } @else if (field.type === 'textarea') {
+                <textarea class="edit-input edit-textarea"
+                          [dir]="field.ltr ? 'ltr' : 'rtl'"
+                          [placeholder]="field.placeholder || ''"
+                          rows="4"
+                          (input)="setAddField(field.key, $any($event.target).value)">{{ getAddField(field.key) }}</textarea>
+              } @else {
+                <input type="text" class="edit-input"
+                       [value]="getAddField(field.key)"
+                       [dir]="field.ltr ? 'ltr' : 'rtl'"
+                       [placeholder]="field.placeholder || field.default || ''"
+                       (input)="setAddField(field.key, $any($event.target).value)" />
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
     <kendo-dialog-actions>
       <div class="edit-footer">
-        <button kendoButton class="btn-save" (click)="saveNew()" [disabled]="newSaving()">
-          @if (newSaving()) { <kendo-loader type="pulsing" size="small" /> } @else { ✓ }
-          צור חיבור
-        </button>
+        @if (addStep() === 3) {
+          <button kendoButton class="btn-save" (click)="saveAdd()" [disabled]="addSaving()">
+            @if (addSaving()) { <kendo-loader type="pulsing" size="small" /> } @else { ✓ }
+            צור חיבור
+          </button>
+        }
         <button kendoButton fillMode="outline" class="btn-cancel"
-                (click)="newOpen.set(false)" [disabled]="newSaving()">ביטול</button>
+                (click)="addOpen.set(false)" [disabled]="addSaving()">ביטול</button>
       </div>
     </kendo-dialog-actions>
+
   </kendo-dialog>
 }
 
@@ -202,7 +372,6 @@
       @if (editError()) { <div class="edit-error">{{ editError() }}</div> }
       <div class="edit-desc">{{ editConnector()!.Description }}</div>
 
-      <!-- UUID identifier -->
       <div class="token-row">
         <span class="token-label">מזהה חיצוני (UUID)</span>
         <div class="token-field">
@@ -245,27 +414,6 @@
               <input type="number" class="edit-input"
                      [value]="getField(field.key) || field.default || ''"
                      (input)="setField(field.key, +$any($event.target).value)" />
-            } @else if (field.type === 'countries') {
-              <div class="countries-field">
-                <div class="seg-ctrl">
-                  <button type="button" class="seg-btn"
-                          [class.seg-on]="getField(field.key) === 'ALL'"
-                          (click)="setField(field.key, 'ALL')">🌍 הכל</button>
-                  <button type="button" class="seg-btn"
-                          [class.seg-on]="getField(field.key) !== 'ALL'"
-                          (click)="setField(field.key, getField(field.key) === 'ALL' ? (field.default || 'IL') : getField(field.key))">
-                    🚩 רשימה
-                  </button>
-                </div>
-                @if (getField(field.key) !== 'ALL') {
-                  <input type="text" class="edit-input countries-input"
-                         [value]="getField(field.key)"
-                         [placeholder]="field.placeholder || 'IL,US,GB'"
-                         dir="ltr"
-                         (input)="setField(field.key, $any($event.target).value)" />
-                  <span class="countries-hint">קודי ISO-2 מופרדים בפסיק</span>
-                }
-              </div>
             } @else if (field.type === 'select') {
               <select class="edit-input edit-select"
                       (change)="setField(field.key, $any($event.target).value)">
@@ -286,7 +434,7 @@
       }
 
       <div class="edit-row">
-        <label class="edit-label">סטטוס חיבור</label>
+        <label class="edit-label">סטטוס</label>
         <div class="edit-field">
           <div class="seg-ctrl">
             <button type="button" class="seg-btn" [class.seg-on]="editEnabled()"

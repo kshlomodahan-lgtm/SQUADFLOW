@@ -47,6 +47,15 @@ export interface AxonStats {
   secured: number; public: number; categories: number;
 }
 
+export interface SchemaNode {
+  key: string;
+  depth: number;
+  typeName: string;
+  typeColor: string;
+  preview: string;
+  isContainer: boolean;
+}
+
 const METHOD_COLORS: Record<string, { bg: string; color: string }> = {
   GET:    { bg: '#d1fae5', color: '#065f46' },
   POST:   { bg: '#dbeafe', color: '#1e40af' },
@@ -121,9 +130,10 @@ export class AxonComponent implements OnInit {
   displayType = signal<'list' | 'graph'>('list');
 
   // ── Graph state ───────────────────────────────────────────
-  activeGraphCat  = signal<string | null>(null);
-  hoveredGraphCat = signal<string | null>(null);
-  hoveredRoute    = signal<string | null>(null);
+  activeGraphCat    = signal<string | null>(null);
+  hoveredGraphCat   = signal<string | null>(null);
+  hoveredRoute      = signal<string | null>(null);
+  selectedRouteGraph = signal<AxonRoute | null>(null);
 
   readonly CANVAS_W  = 1440;
   readonly CANVAS_H  = 820;
@@ -217,12 +227,14 @@ export class AxonComponent implements OnInit {
     const nodeD  = 38; // min arc spacing (circle diameter + gap)
     const dynR   = Math.max(140, Math.ceil(nodeD * total / (2 * Math.PI)));
 
+    const selKey = this.selectedRouteGraph() ? this.routeKey(this.selectedRouteGraph()!) : null;
     return routes.map((r, i) => {
       const angle = (i / total) * 2 * Math.PI - Math.PI / 2; // start from top
       const m     = this.getMethod(r);
       const style = this.methodStyle(m);
+      const key   = this.routeKey(r);
       return {
-        id:         this.routeKey(r),
+        id:         key,
         route:      r,
         x:          center.x + Math.cos(angle) * dynR,
         y:          center.y + Math.sin(angle) * dynR,
@@ -233,7 +245,8 @@ export class AxonComponent implements OnInit {
         title:      this.getTitle(r),
         bg:         style.bg,
         fg:         style.color,
-        hovered:    this.hoveredRoute() === this.routeKey(r),
+        hovered:    this.hoveredRoute() === key,
+        selected:   selKey === key,
         isLast:     i === total - 1 && allRoutes.length > MAX_DISPLAY,
         extraCount: allRoutes.length - MAX_DISPLAY,
       };
@@ -242,6 +255,72 @@ export class AxonComponent implements OnInit {
 
   toggleGraphCat(cat: string) {
     this.activeGraphCat.set(this.activeGraphCat() === cat ? null : cat);
+    this.selectedRouteGraph.set(null);
+  }
+
+  selectRouteInGraph(r: AxonRoute) {
+    this.selectedRouteGraph.set(this.selectedRouteGraph() === r ? null : r);
+  }
+
+  openInspectorTest(r: AxonRoute) {
+    this.setDisplayType('list');
+    const cat = this.getCategory(r);
+    this.activeCategory.set(cat);
+    const key = this.routeKey(r);
+    this.expandedRoute.set(key);
+    this.testingRoute.set(key);
+    this.initTestParams(r);
+  }
+
+  // ── Schema tree ───────────────────────────────────────
+  schemaNodes = computed(() => {
+    const route = this.selectedRouteGraph();
+    if (!route?.ResSchema) return [];
+    const schema = route.ResSchema;
+    if (typeof schema !== 'object' || !schema) return [];
+    const nodes: SchemaNode[] = [];
+    for (const [key, val] of Object.entries(schema)) {
+      nodes.push(...this.flattenToNodes(val, 0, key));
+    }
+    return nodes;
+  });
+
+  private flattenToNodes(val: any, depth: number, key: string): SchemaNode[] {
+    const nodes: SchemaNode[] = [];
+    if (val === null || val === undefined) {
+      nodes.push({ key, depth, typeName: 'null', typeColor: '#94a3b8', preview: 'null', isContainer: false });
+    } else if (Array.isArray(val)) {
+      nodes.push({ key, depth, typeName: `array[${val.length}]`, typeColor: '#f59e0b', preview: '', isContainer: true });
+      if (val.length > 0 && val[0] !== null && typeof val[0] === 'object') {
+        for (const [k, v] of Object.entries(val[0] as object)) {
+          nodes.push(...this.flattenToNodes(v, depth + 1, k));
+        }
+      }
+    } else if (typeof val === 'object') {
+      const count = Object.keys(val).length;
+      nodes.push({ key, depth, typeName: 'object', typeColor: '#8b5cf6', preview: `{${count}}`, isContainer: true });
+      for (const [k, v] of Object.entries(val)) {
+        nodes.push(...this.flattenToNodes(v, depth + 1, k));
+      }
+    } else if (typeof val === 'string') {
+      const p = val.length > 22 ? `"${val.slice(0, 22)}…"` : `"${val}"`;
+      nodes.push({ key, depth, typeName: 'string', typeColor: '#10b981', preview: p, isContainer: false });
+    } else if (typeof val === 'number') {
+      nodes.push({ key, depth, typeName: 'number', typeColor: '#3b82f6', preview: String(val), isContainer: false });
+    } else if (typeof val === 'boolean') {
+      nodes.push({ key, depth, typeName: 'boolean', typeColor: '#a855f7', preview: String(val), isContainer: false });
+    } else {
+      nodes.push({ key, depth, typeName: typeof val, typeColor: '#64748b', preview: String(val), isContainer: false });
+    }
+    return nodes;
+  }
+
+  getSchemaTypeColor(typeName: string): string {
+    const colors: Record<string, string> = {
+      string: '#10b981', number: '#3b82f6', boolean: '#a855f7',
+      object: '#8b5cf6', array: '#f59e0b', null: '#94a3b8', date: '#f97316',
+    };
+    return colors[typeName] ?? '#64748b';
   }
 
   setDisplayType(t: 'list' | 'graph') {

@@ -211,27 +211,38 @@
         <g class="route-node"
            (mouseenter)="hoveredRoute.set(rn.id)"
            (mouseleave)="hoveredRoute.set(null)"
+           (click)="selectRouteInGraph(rn.route)"
            style="cursor:pointer">
 
+          <!-- Selected pulse ring -->
+          @if (rn.selected) {
+            <circle [attr.cx]="rn.x" [attr.cy]="rn.y" r="24"
+                    [attr.stroke]="rn.bg" stroke-width="1.5" fill="none"
+                    opacity="0.55" class="selected-route-ring"/>
+            <circle [attr.cx]="rn.x" [attr.cy]="rn.y" r="30"
+                    [attr.stroke]="rn.bg" stroke-width="0.8" fill="none"
+                    opacity="0.2"/>
+          }
+
           <!-- Glow halo on hover -->
-          @if (rn.hovered) {
+          @if (rn.hovered || rn.selected) {
             <circle [attr.cx]="rn.x" [attr.cy]="rn.y" r="26"
-                    [attr.fill]="rn.bg" opacity="0.18"
+                    [attr.fill]="rn.bg" opacity="0.15"
                     filter="url(#glow-sm)"/>
           }
 
           <!-- Main circle -->
           <circle [attr.cx]="rn.x" [attr.cy]="rn.y" r="15"
-                  [attr.fill]="rn.hovered ? rn.bg : '#0d2018'"
+                  [attr.fill]="(rn.hovered || rn.selected) ? rn.bg : '#0d2018'"
                   [attr.stroke]="rn.bg"
-                  [attr.stroke-width]="rn.hovered ? 2 : 1.5"
-                  [attr.filter]="rn.hovered ? 'url(#glow-sm)' : ''"/>
+                  [attr.stroke-width]="rn.selected ? 2.5 : (rn.hovered ? 2 : 1.5)"
+                  [attr.filter]="(rn.hovered || rn.selected) ? 'url(#glow-sm)' : ''"/>
 
           <!-- Method letter -->
           <text [attr.x]="rn.x" [attr.y]="rn.y + 4"
                 text-anchor="middle"
                 font-family="monospace" font-size="9" font-weight="800"
-                [attr.fill]="rn.hovered ? rn.fg : rn.bg">{{ rn.method[0] }}</text>
+                [attr.fill]="(rn.hovered || rn.selected) ? rn.fg : rn.bg">{{ rn.method[0] }}</text>
 
           <!-- Hover tooltip: method + path -->
           @if (rn.hovered) {
@@ -404,6 +415,127 @@
       </div>
     }
 
+    <!-- ── Route Inspector Panel (right side, shows when a route is selected) ── -->
+    @if (selectedRouteGraph(); as insp) {
+      <div class="route-inspector">
+        <!-- Header -->
+        <div class="insp-header">
+          <span class="insp-method"
+                [style.background]="methodStyle(getMethod(insp)).bg"
+                [style.color]="methodStyle(getMethod(insp)).color">
+            {{ getMethod(insp) }}
+          </span>
+          <code class="insp-path">{{ getPath(insp) }}</code>
+          <button class="insp-close" (click)="selectedRouteGraph.set(null)">✕</button>
+        </div>
+
+        <div class="insp-body">
+          <!-- Title -->
+          @if (getTitle(insp)) {
+            <div class="insp-title">{{ getTitle(insp) }}</div>
+          }
+
+          <!-- Auth + SP badges -->
+          <div class="insp-meta">
+            <span class="insp-auth" [class.insp-secured]="isAuth(insp)" [class.insp-public]="!isAuth(insp)">
+              {{ isAuth(insp) ? '🔒 JWT Required' : '🌐 Public' }}
+            </span>
+            @if (insp.SpName) {
+              <span class="insp-sp">SP: {{ insp.SpName }}</span>
+            }
+          </div>
+
+          <!-- Description -->
+          @if (getDesc(insp)) {
+            <div class="insp-section">
+              <div class="insp-section-label">Description</div>
+              <p class="insp-desc">{{ getDesc(insp) }}</p>
+            </div>
+          }
+
+          <!-- Path Params -->
+          @if (pathParams(getPath(insp)).length) {
+            <div class="insp-section">
+              <div class="insp-section-label">Path Params</div>
+              @for (pp of pathParams(getPath(insp)); track pp) {
+                <div class="insp-path-param">
+                  <code class="insp-pp-name">:{{ pp }}</code>
+                  <span class="insp-pp-type">string</span>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Request Schema -->
+          @if (insp.ReqSchema && insp.ReqSchema.length) {
+            <div class="insp-section">
+              <div class="insp-section-label">Request Body</div>
+              @for (p of insp.ReqSchema; track p.name) {
+                <div class="insp-path-param">
+                  <code class="insp-pp-name">{{ p.name }}</code>
+                  <span class="insp-pp-type" [style.color]="getSchemaTypeColor(p.type)">{{ p.type }}</span>
+                  @if (p.required) { <span class="insp-pp-req">*</span> }
+                  @if (p.description) { <span class="insp-pp-desc">{{ p.description }}</span> }
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Response Object Tree -->
+          <div class="insp-section insp-section-response">
+            <div class="insp-section-label">
+              Response Object
+              @if (!insp.ResSchema) {
+                <span class="insp-schema-missing-tag">undefined</span>
+              }
+            </div>
+
+            @if (schemaNodes().length) {
+              <div class="schema-tree">
+                @for (node of schemaNodes(); track ($index + node.key + node.depth)) {
+                  <div class="schema-node" [style.padding-left.px]="node.depth * 14 + 8">
+                    <span class="schema-connector">{{ node.depth > 0 ? '└' : '▸' }}</span>
+                    @if (node.key) {
+                      <code class="schema-key">{{ node.key }}</code>
+                    }
+                    <span class="schema-type"
+                          [style.background]="node.typeColor + '22'"
+                          [style.color]="node.typeColor"
+                          [style.borderColor]="node.typeColor + '44'">
+                      {{ node.typeName }}
+                    </span>
+                    @if (node.preview) {
+                      <span class="schema-preview">{{ node.preview }}</span>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="insp-no-schema">
+                <code class="insp-schema-hint">&#123; success: boolean, data: any, message: string &#125;</code>
+                <p class="insp-schema-desc">הגדר Response Schema בעריכת ה-route</p>
+              </div>
+            }
+          </div>
+
+          <!-- Tags -->
+          @if (insp.Tags && insp.Tags.length) {
+            <div class="insp-tags">
+              @for (tag of insp.Tags; track tag) {
+                <span class="insp-tag">{{ tag }}</span>
+              }
+            </div>
+          }
+
+          <!-- Test button -->
+          <button class="insp-test-btn" (click)="openInspectorTest(insp)">
+            <mat-icon>play_circle</mat-icon>
+            Test Route
+          </button>
+        </div>
+      </div>
+    }
+
     <!-- ── Floating routes panel (visible when category is expanded) ── -->
     @if (activeGraphCat(); as activeCat) {
       <div class="routes-float-panel">
@@ -419,8 +551,10 @@
           @for (r of (activeGrouped()[activeCat] ?? []); track routeKey(r)) {
             <div class="rfp-route"
                  [class.rfp-hovered]="hoveredRoute() === routeKey(r)"
+                 [class.rfp-selected]="selectedRouteGraph() === r"
                  (mouseenter)="hoveredRoute.set(routeKey(r))"
-                 (mouseleave)="hoveredRoute.set(null)">
+                 (mouseleave)="hoveredRoute.set(null)"
+                 (click)="selectRouteInGraph(r)">
               <span class="rfp-method"
                     [style.background]="methodStyle(getMethod(r)).bg"
                     [style.color]="methodStyle(getMethod(r)).color">

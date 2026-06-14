@@ -1,0 +1,375 @@
+<div class="st-root">
+
+  <!-- ── Toolbar ──────────────────────────────────────────────── -->
+  <div class="st-toolbar">
+    <button class="st-back" (click)="back()">
+      <mat-icon>arrow_back</mat-icon>
+      <span>FLOWSPACE</span>
+    </button>
+
+    <div class="st-brand">
+      <span class="st-brand-name">STUDIO</span>
+      <span class="st-brand-sub">מחולל מסכים AI-First</span>
+    </div>
+
+    <!-- Mode toggle -->
+    <div class="mode-toggle">
+      <button class="mode-btn" [class.active]="mode() === 'ai'"     (click)="mode.set('ai')">
+        🤖 AI Generate
+      </button>
+      <button class="mode-btn" [class.active]="mode() === 'visual'" (click)="mode.set('visual')">
+        🎨 Visual Builder
+      </button>
+    </div>
+
+    <div class="st-tools">
+      @if (mode() === 'visual' && canvas().length > 0) {
+        <button class="btn-export" type="button" (click)="mode.set('ai')">
+          → ייצא ל-AI
+        </button>
+        <button class="btn-clear" type="button" (click)="clearCanvas()">
+          ✕ נקה
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- ── Background ───────────────────────────────────────────── -->
+  <app-neural-net aria-hidden="true"></app-neural-net>
+
+  <!-- ── Main Layout ──────────────────────────────────────────── -->
+  <div class="st-layout">
+
+    <!-- ── Left: Screen Tree ─────────────────────────────────── -->
+    <aside class="screen-tree-panel">
+      <div class="stp-header">
+        <span class="stp-title">עץ מסכים</span>
+        <button class="btn-add-screen" type="button" (click)="openAddScreen()" title="הוסף מסך">+</button>
+      </div>
+
+      <div class="screen-tree">
+        @for (s of screens(); track s.id) {
+          <div class="tree-node" [class.level0]="true">
+            <div class="tree-item" [class.active]="activeScreen()?.id === s.id"
+                 (click)="selectScreen(s)">
+              @if (s.children.length) {
+                <button class="tree-expand" type="button" (click)="$event.stopPropagation(); toggleScreen(s)">
+                  {{ s.expanded ? '▾' : '▸' }}
+                </button>
+              } @else {
+                <span class="tree-leaf">·</span>
+              }
+              <span class="tree-icon">{{ s.icon }}</span>
+              <span class="tree-name">{{ s.nameHe || s.name }}</span>
+              @if (s.isNew) { <span class="tree-new-badge">חדש</span> }
+              <button class="tree-add-child" type="button"
+                      (click)="$event.stopPropagation(); openAddScreen(s.id)" title="הוסף תת-מסך">+</button>
+            </div>
+
+            @if (s.expanded && s.children.length) {
+              <div class="tree-children">
+                @for (child of s.children; track child.id) {
+                  <div class="tree-item level1" [class.active]="activeScreen()?.id === child.id"
+                       (click)="selectScreen(child)">
+                    <span class="tree-leaf">·</span>
+                    <span class="tree-icon">{{ child.icon }}</span>
+                    <span class="tree-name">{{ child.nameHe || child.name }}</span>
+                    @if (child.isNew) { <span class="tree-new-badge">חדש</span> }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </aside>
+
+    <!-- ── Center ────────────────────────────────────────────── -->
+    <main class="st-center">
+
+      <!-- Active screen indicator -->
+      @if (activeScreen()) {
+        <div class="active-screen-bar">
+          <span class="asb-icon">{{ activeScreen()!.icon }}</span>
+          <span class="asb-name">{{ activeScreen()!.nameHe || activeScreen()!.name }}</span>
+          <span class="asb-route">{{ activeScreen()!.route }}</span>
+          @if (activeScreen()!.isNew) { <span class="asb-new">✦ מסך חדש</span> }
+        </div>
+      }
+
+      <!-- ════ AI MODE ════════════════════════════════════════ -->
+      @if (mode() === 'ai') {
+        <div class="ai-panel">
+
+          <!-- Prompt area -->
+          <div class="ai-prompt-area">
+            <div class="ai-prompt-header">
+              <span class="ai-prompt-title">🤖 תאר מה אתה רוצה לבנות</span>
+              <div class="ai-connector-sel">
+                <select class="ai-select" [value]="aiConnector()"
+                        (change)="aiConnector.set($any($event.target).value)">
+                  <option value="">-- בחר מודל AI --</option>
+                  @for (c of aiConnectors; track c) {
+                    <option [value]="c">{{ c }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <div class="ai-prompt-examples">
+              <span class="ai-eg-label">דוגמאות:</span>
+              @for (eg of ['מסך ניהול לקוחות עם גריד, חיפוש ופילטר לפי סטטוס','דשבורד KPI עם 4 כרטיסים וגרף עמודות חודשי','טופס הוספת מוצר עם תמונה, קטגוריה ומחיר']; track eg) {
+                <button class="ai-eg-btn" type="button" (click)="aiPrompt.set(eg)">{{ eg }}</button>
+              }
+            </div>
+
+            <textarea class="ai-textarea" rows="4" dir="rtl"
+                      [value]="aiPrompt()"
+                      (input)="aiPrompt.set($any($event.target).value)"
+                      placeholder="לדוגמה: מסך ניהול לקוחות עם Kendo Grid, חיפוש, פילטר לפי סטטוס, ודיאלוג עריכה..."></textarea>
+
+            <div class="ai-actions">
+              <button class="btn-ai-generate" type="button" (click)="generateWithAI()"
+                      [disabled]="aiLoading()">
+                @if (aiLoading()) {
+                  <kendo-loader type="pulsing" size="small" themeColor="secondary" />
+                  מחולל...
+                } @else {
+                  ⚡ חולל מסך
+                }
+              </button>
+              @if (aiError()) { <span class="ai-error">{{ aiError() }}</span> }
+            </div>
+          </div>
+
+          <!-- Result -->
+          @if (aiLoading()) {
+            <div class="ai-loading-panel">
+              <div class="ai-loading-ring"></div>
+              <p class="ai-loading-text">הסוכן FRONT מחולל את המסך...</p>
+              <div class="ai-loading-steps">
+                <div class="ai-step done">✓ ניתוח דרישות</div>
+                <div class="ai-step done">✓ תכנון מבנה</div>
+                <div class="ai-step active">⟳ יצירת קוד Angular</div>
+                <div class="ai-step">○ SCSS + RTL</div>
+                <div class="ai-step">○ אינטגרציה</div>
+              </div>
+            </div>
+          }
+
+          @if (aiResult()) {
+            <div class="ai-result">
+              <div class="ai-result-header">
+                <div class="result-tabs">
+                  <button class="result-tab" [class.active]="aiTab() === 'html'"  (click)="aiTab.set('html')">HTML</button>
+                  <button class="result-tab" [class.active]="aiTab() === 'ts'"    (click)="aiTab.set('ts')">TypeScript</button>
+                  <button class="result-tab" [class.active]="aiTab() === 'scss'"  (click)="aiTab.set('scss')">SCSS</button>
+                </div>
+                <div class="result-actions">
+                  <button class="btn-copy-code" type="button"
+                          (click)="copyCode(aiResult()![aiTab()])">⎘ העתק</button>
+                  <button class="btn-deploy" type="button">⇢ שלח לפרויקט</button>
+                </div>
+              </div>
+
+              <pre class="ai-code-block"><code [innerHTML]="aiResult()![aiTab()]"></code></pre>
+            </div>
+          }
+
+          @if (!aiLoading() && !aiResult()) {
+            <div class="ai-empty">
+              <div class="ai-empty-icon">⚡</div>
+              <p>תאר את המסך שאתה רוצה לבנות ולחץ "חולל מסך"</p>
+              <p class="ai-empty-sub">הסוכן FRONT יחולל קוד Angular מלא עם Kendo, RTL וסטנדרטי הפלטפורמה</p>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ════ VISUAL MODE ════════════════════════════════════ -->
+      @if (mode() === 'visual') {
+        <div class="visual-panel">
+
+          <!-- Control Palette -->
+          <div class="palette-panel">
+            <div class="palette-header">פקדים</div>
+            <div class="palette-cats">
+              @for (cat of paletteCats; track cat) {
+                <button class="palette-cat" [class.active]="paletteCat() === cat"
+                        (click)="paletteCat.set(cat)">
+                  {{ paletteCatLabels[cat] }}
+                </button>
+              }
+            </div>
+            <div class="palette-items">
+              @for (ctrl of filteredPalette(); track ctrl.type) {
+                <div class="palette-item" draggable="true"
+                     [style.--ctrl-color]="ctrl.color"
+                     (dragstart)="onDragStart(ctrl.type)"
+                     (dragend)="onDragEnd()"
+                     [title]="ctrl.desc || ctrl.label">
+                  <span class="pi-icon">{{ ctrl.icon }}</span>
+                  <span class="pi-label">{{ ctrl.label }}</span>
+                  @if (ctrl.isContainer) { <span class="pi-container">📦</span> }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Canvas -->
+          <div class="canvas-area"
+               (dragover)="onDragOver($event, 'root')"
+               (dragleave)="onDragLeave()"
+               (drop)="onDropToCanvas($event)"
+               [class.drop-hover]="dropTarget() === 'root'">
+
+            @if (canvas().length === 0) {
+              <div class="canvas-empty">
+                <div class="canvas-empty-icon">🎨</div>
+                <p>גרור פקדים מהפלטה לכאן</p>
+                <p class="canvas-empty-sub">או השתמש ב-AI Generate לקבל קוד מלא מיד</p>
+              </div>
+            }
+
+            @for (ctrl of canvas(); track ctrl.id) {
+              <ng-container *ngTemplateOutlet="canvasNode; context: { $implicit: ctrl, depth: 0 }"></ng-container>
+            }
+          </div>
+
+        </div>
+      }
+    </main>
+
+    <!-- ── Right: Properties ─────────────────────────────────── -->
+    @if (mode() === 'visual') {
+      <aside class="props-panel">
+        <div class="props-header">
+          @if (selected()) { ✎ מאפיינים — {{ selected()!.label }}
+          } @else { בחר פקד לעריכה }
+        </div>
+
+        @if (selected()) {
+          <div class="props-body">
+            <div class="prop-row">
+              <label class="prop-label">כותרת</label>
+              <input class="prop-input" type="text" [value]="selected()!.props['label'] || ''"
+                     (input)="updateProp('label', $any($event.target).value)" />
+            </div>
+            <div class="prop-row">
+              <label class="prop-label">Placeholder</label>
+              <input class="prop-input" type="text" [value]="selected()!.props['placeholder'] || ''"
+                     (input)="updateProp('placeholder', $any($event.target).value)" />
+            </div>
+            <div class="prop-row">
+              <label class="prop-label">שדה חובה</label>
+              <div class="prop-toggle">
+                <button class="prop-bool" [class.on]="selected()!.props['required']"
+                        (click)="updateProp('required', !selected()!.props['required'])">
+                  {{ selected()!.props['required'] ? '✓ כן' : '✗ לא' }}
+                </button>
+              </div>
+            </div>
+            <div class="prop-row">
+              <label class="prop-label">סוג</label>
+              <span class="prop-type">{{ ctrlDef(selected()!.type)?.label }}</span>
+            </div>
+            <button class="btn-remove-ctrl" type="button" (click)="removeCtrl(selected()!.id)">
+              ✕ הסר פקד
+            </button>
+          </div>
+        }
+      </aside>
+    }
+  </div>
+
+</div>
+
+<!-- ── Canvas Node Template ──────────────────────────────────── -->
+<ng-template #canvasNode let-ctrl let-depth="depth">
+  <div class="canvas-node"
+       [class.selected]="ctrl.selected"
+       [class.is-container]="ctrlDef(ctrl.type)?.isContainer"
+       [style.--node-depth]="depth"
+       (click)="$event.stopPropagation(); selectCtrl(ctrl)">
+
+    <div class="cn-row">
+      @if (ctrlDef(ctrl.type)?.isContainer) {
+        <button class="cn-expand" type="button" (click)="$event.stopPropagation(); toggleCtrlExpand(ctrl)">
+          {{ ctrl.expanded ? '▾' : '▸' }}
+        </button>
+      }
+      <span class="cn-icon" [style.color]="ctrlDef(ctrl.type)?.color">
+        {{ ctrlDef(ctrl.type)?.icon }}
+      </span>
+      <span class="cn-label">{{ ctrl.label }}</span>
+      <span class="cn-type">{{ ctrlDef(ctrl.type)?.label }}</span>
+      <button class="cn-remove" type="button" (click)="$event.stopPropagation(); removeCtrl(ctrl.id)">✕</button>
+    </div>
+
+    @if (ctrlDef(ctrl.type)?.isContainer && ctrl.expanded) {
+      <div class="cn-children"
+           (dragover)="onDragOver($event, ctrl.id)"
+           (dragleave)="onDragLeave()"
+           (drop)="onDropToCtrl($event, ctrl)"
+           [class.drop-hover]="dropTarget() === ctrl.id">
+        @for (child of ctrl.children; track child.id) {
+          <ng-container *ngTemplateOutlet="canvasNode; context: { $implicit: child, depth: depth + 1 }"></ng-container>
+        }
+        @if (ctrl.children.length === 0) {
+          <div class="cn-drop-hint">גרור פקד לכאן</div>
+        }
+      </div>
+    }
+  </div>
+</ng-template>
+
+<!-- ── Add Screen Dialog ─────────────────────────────────────── -->
+@if (addScreenOpen()) {
+  <kendo-dialog title="✦ מסך חדש" [width]="460" (close)="addScreenOpen.set(false)">
+    <div class="edit-body">
+      @if (addScreenError()) { <div class="edit-error">{{ addScreenError() }}</div> }
+
+      <div class="edit-row">
+        <label class="edit-label">שם מסך <span class="req">*</span></label>
+        <div class="edit-field">
+          <input class="edit-input" type="text" dir="rtl"
+                 [value]="newScreenName()" (input)="newScreenName.set($any($event.target).value)"
+                 placeholder="לדוגמה: ניהול לקוחות" />
+        </div>
+      </div>
+
+      <div class="edit-row">
+        <label class="edit-label">Route (URL)</label>
+        <div class="edit-field">
+          <input class="edit-input" type="text" dir="ltr"
+                 [value]="newScreenRoute()" (input)="newScreenRoute.set($any($event.target).value)"
+                 placeholder="/app/clients" />
+        </div>
+      </div>
+
+      <div class="edit-row">
+        <label class="edit-label">אייקון</label>
+        <div class="edit-field">
+          <input class="edit-input" type="text"
+                 [value]="newScreenIcon()" (input)="newScreenIcon.set($any($event.target).value)"
+                 placeholder="📄" style="font-size:1.2rem;width:60px;text-align:center;" />
+        </div>
+      </div>
+
+      @if (newScreenParent()) {
+        <div class="edit-row">
+          <label class="edit-label">תחת</label>
+          <div class="edit-field">
+            <span class="prop-type">{{ newScreenParent() }}</span>
+          </div>
+        </div>
+      }
+    </div>
+    <kendo-dialog-actions>
+      <div class="edit-footer">
+        <button kendoButton class="btn-save" (click)="saveNewScreen()">✓ צור מסך</button>
+        <button kendoButton fillMode="outline" class="btn-cancel" (click)="addScreenOpen.set(false)">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}

@@ -82,6 +82,11 @@ export const routes: Routes = [
           import('./features/projects/workspace/ws-connectors/ws-connectors.component').then(m => m.WsConnectorsComponent),
       },
       {
+        path: 'studio/:projectId',
+        loadComponent: () =>
+          import('./features/projects/workspace/studio/studio.component').then(m => m.StudioComponent),
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('./features/settings/settings.component').then(m => m.SettingsComponent),

@@ -16,15 +16,13 @@ import {
   Connector,
 } from '../../../settings/connectors/connectors.component';
 
-const CATEGORY_META: Record<string, { label: string; icon: string }> = {
-  AI:           { label: 'AI ואוטומציה',          icon: '🤖' },
-  DATABASE:     { label: 'בסיסי נתונים',           icon: '🗄️' },
-  EMAIL:        { label: 'דוא"ל',                icon: '📧' },
-  STORAGE:      { label: 'אחסון קבצים',           icon: '☁️' },
-  WEBHOOK:      { label: 'Webhooks ואינטגרציות',   icon: '🔗' },
-  AUTH:         { label: 'זיהוי וכניסה',           icon: '🔐' },
-  EXTERNAL_API: { label: 'API חיצוני',            icon: '🌐' },
-};
+import {
+  CONNECTOR_CATALOG,
+  ConnectorCategoryDef,
+  ConnectorTypeDef,
+  getCategoryById,
+  getTypeByCode,
+} from './connector-catalog';
 
 @Component({
   selector: 'app-ws-connectors',
@@ -44,7 +42,7 @@ export class WsConnectorsComponent implements OnInit {
   error     = signal('');
 
   connectors     = signal<Connector[]>([]);
-  activeCategory = signal('DATABASE');
+  activeCategory = signal(CONNECTOR_CATALOG[0].id);
 
   deleteOpen       = signal(false);
   deleteConnector  = signal<Connector | null>(null);
@@ -64,23 +62,31 @@ export class WsConnectorsComponent implements OnInit {
   copiedToken  = signal<string | null>(null);
   editToken    = computed(() => this.editConnector()?.ConnectorToken ?? null);
 
-  // ── New connector ──
-  newOpen    = signal(false);
-  newSaving  = signal(false);
-  newError   = signal('');
-  newForm = {
-    connectorName: '',
-    category:      'EXTERNAL_API',
-    iconEmoji:     '🌐',
-    description:   '',
-  };
+  // ── 3-step Add Connector ──────────────────────────────────────
+  addOpen       = signal(false);
+  addStep       = signal<1 | 2 | 3>(1);
+  addSelCat     = signal<ConnectorCategoryDef | null>(null);
+  addSelType    = signal<ConnectorTypeDef | null>(null);
+  addForm       = signal<Record<string, any>>({});
+  addName       = signal('');
+  addDesc       = signal('');
+  addSaving     = signal(false);
+  addError      = signal('');
+  addShowPass: Record<string, boolean> = {};
 
-  readonly categories    = Object.entries(CATEGORY_META).map(([id, m]) => ({ id, ...m }));
-  readonly categoryMeta  = CATEGORY_META;
+  // catalog
+  readonly catalog = CONNECTOR_CATALOG;
+
+  // flat category list for tabs
+  readonly categories = CONNECTOR_CATALOG.map(c => ({
+    id: c.id, label: c.label, icon: c.icon, color: c.color,
+  }));
 
   categorized = computed(() =>
     this.connectors().filter(c => c.Category === this.activeCategory())
   );
+
+  activeCatDef = computed(() => getCategoryById(this.activeCategory()));
 
   constructor(
     private route:  ActivatedRoute,
@@ -103,6 +109,8 @@ export class WsConnectorsComponent implements OnInit {
       error: () => { this.error.set('שגיאה בטעינת חיבורים'); this.loading.set(false); },
     });
   }
+
+  // ── Edit existing connector ───────────────────────────────────
 
   openEdit(c: Connector) {
     this.editError.set('');
@@ -142,7 +150,6 @@ export class WsConnectorsComponent implements OnInit {
     if (!c) return;
     this.editSaving.set(true);
     this.editError.set('');
-    // Save AccessMode separately
     this.http.put(`/api/connector-access/connectors/${(c as any).ConnectorID}/access-mode`,
       { accessMode: this.editAccessMode() }
     ).subscribe();
@@ -155,6 +162,8 @@ export class WsConnectorsComponent implements OnInit {
       error: err => { this.editSaving.set(false); this.editError.set(err.error?.message ?? 'שגיאה בשמירה'); },
     });
   }
+
+  // ── Test connection ───────────────────────────────────────────
 
   testConnection(c: Connector, fromDialog = false) {
     this.testRunning.set(c.ConnectorKey);
@@ -175,6 +184,89 @@ export class WsConnectorsComponent implements OnInit {
     });
   }
 
+  // ── Add Connector — 3-step dialog ────────────────────────────
+
+  openAdd() {
+    this.addStep.set(1);
+    this.addSelCat.set(null);
+    this.addSelType.set(null);
+    this.addForm.set({});
+    this.addName.set('');
+    this.addDesc.set('');
+    this.addError.set('');
+    this.addShowPass = {};
+    this.addOpen.set(true);
+  }
+
+  selectCat(cat: ConnectorCategoryDef) {
+    this.addSelCat.set(cat);
+    this.addSelType.set(null);
+    this.addStep.set(2);
+  }
+
+  selectType(type: ConnectorTypeDef) {
+    this.addSelType.set(type);
+    const defaults: Record<string, any> = {};
+    for (const f of type.fields) {
+      if (f.default !== undefined) defaults[f.key] = f.type === 'boolean' ? (f.default === 'true') : f.default;
+    }
+    this.addForm.set(defaults);
+    this.addName.set(type.typeName);
+    this.addDesc.set(type.description ?? '');
+    this.addStep.set(3);
+  }
+
+  getAddField(key: string): any { return this.addForm()[key] ?? ''; }
+
+  setAddField(key: string, value: any) {
+    this.addForm.update(f => ({ ...f, [key]: value }));
+  }
+
+  toggleAddShow(key: string) { this.addShowPass[key] = !this.addShowPass[key]; }
+
+  backToStep(step: 1 | 2) { this.addStep.set(step); }
+
+  saveAdd() {
+    const type = this.addSelType();
+    const cat  = this.addSelCat();
+    if (!type || !cat) return;
+    if (!this.addName().trim()) { this.addError.set('שם חיבור הוא שדה חובה'); return; }
+
+    const requiredMissing = type.fields.filter(f => f.required && !this.getAddField(f.key));
+    if (requiredMissing.length) {
+      this.addError.set(`שדות חובה חסרים: ${requiredMissing.map(f => f.label).join(', ')}`);
+      return;
+    }
+
+    this.addSaving.set(true);
+    this.addError.set('');
+    this.http.post<{ success: boolean; message: string }>(
+      '/api/connectors',
+      {
+        connectorName: this.addName(),
+        category:      cat.id,
+        typeCode:      type.typeCode,
+        iconEmoji:     type.icon,
+        description:   this.addDesc(),
+        config:        this.addForm(),
+        projectId:     this.projectId,
+      }
+    ).subscribe({
+      next: () => {
+        this.addSaving.set(false);
+        this.addOpen.set(false);
+        this.activeCategory.set(cat.id);
+        this.load();
+      },
+      error: err => {
+        this.addSaving.set(false);
+        this.addError.set(err.error?.message ?? 'שגיאה ביצירת חיבור');
+      },
+    });
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────
+
   statusClass(s: string | null): string {
     return { OK: 'status-ok', FAIL: 'status-fail', PENDING: 'status-pending' }[s ?? ''] ?? 'status-none';
   }
@@ -193,6 +285,9 @@ export class WsConnectorsComponent implements OnInit {
 
   catCount(id: string)        { return this.connectors().filter(c => c.Category === id).length; }
   catEnabledCount(id: string) { return this.connectors().filter(c => c.Category === id && c.IsEnabled).length; }
+  catColor(id: string): string {
+    return this.catalog.find(c => c.id === id)?.color ?? '#64748b';
+  }
 
   copyToken(token: string) {
     navigator.clipboard.writeText(token).then(() => {
@@ -213,42 +308,6 @@ export class WsConnectorsComponent implements OnInit {
       next: () => { this.deleteInProgress.set(false); this.cancelDelete(); this.load(); },
       error: err => { this.deleteInProgress.set(false); alert(err.error?.message ?? 'שגיאה במחיקה'); },
     });
-  }
-
-  openNew() {
-    this.newForm = { connectorName: '', category: 'EXTERNAL_API', iconEmoji: '🌐', description: '' };
-    this.newError.set('');
-    this.newOpen.set(true);
-  }
-
-  saveNew() {
-    if (!this.newForm.connectorName.trim()) { this.newError.set('שם חיבור הוא שדה חובה'); return; }
-    this.newSaving.set(true);
-    this.newError.set('');
-    this.http.post<{ success: boolean; message: string }>(
-      '/api/connectors',
-      { ...this.newForm, projectId: this.projectId }
-    ).subscribe({
-      next: () => {
-        this.newSaving.set(false);
-        this.newOpen.set(false);
-        this.activeCategory.set(this.newForm.category);
-        this.load();
-      },
-      error: err => {
-        this.newSaving.set(false);
-        this.newError.set(err.error?.message ?? 'שגיאה ביצירה');
-      },
-    });
-  }
-
-  onCategoryChange(cat: string) {
-    const icons: Record<string, string> = {
-      AI: '🤖', DATABASE: '🗄️', EMAIL: '📧', STORAGE: '☁️',
-      WEBHOOK: '🔗', AUTH: '🔐', EXTERNAL_API: '🌐',
-    };
-    this.newForm.category  = cat;
-    this.newForm.iconEmoji = icons[cat] ?? '🔌';
   }
 
   back() { this.router.navigate(['/app/projects', this.projectId]); }
