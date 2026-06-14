@@ -50,7 +50,7 @@ router.get('/', requireAuth, async (req, res) => {
         LEFT JOIN dbo.tblRoles  r    ON r.RoleID     = u.RoleID
         LEFT JOIN dbo.tblUserRoles ur ON ur.RoleID   = u.RoleID
         LEFT JOIN dbo.tblOrgUnits ou2 ON ou2.OrgUnitID = u.PrimaryOrgUnitID
-        WHERE  u.TenantID > 1 AND u.UserID > 0
+        WHERE  u.TenantID >= 1 AND u.UserID > 0
         ORDER  BY t.CompanyName, u.Username`;
     } else {
       request.input('TenantID', sql.Int, req.user.tenantId);

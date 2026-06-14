@@ -71,6 +71,19 @@
             </div>
           }
 
+          @if (c.ConnectorToken) {
+            <div class="card-uuid" (click)="copyToken(c.ConnectorToken!)" [title]="'העתק UUID: ' + c.ConnectorToken">
+              <span class="card-uuid-val">{{ c.ConnectorToken }}</span>
+              <span class="card-uuid-copy">{{ copiedToken() === c.ConnectorToken ? '✓' : '⎘' }}</span>
+            </div>
+          }
+          @if (c.SourceConnectorToken) {
+            <div class="card-src-token" [title]="'UUID פלטפורמה מקורי: ' + c.SourceConnectorToken">
+              <span class="src-token-label">🏢 מקור פלטפורמה</span>
+              <span class="src-token-val">{{ c.SourceConnectorToken }}</span>
+            </div>
+          }
+
           <div class="card-actions">
             <button type="button" class="btn-test"
                     [disabled]="testRunning() === c.ConnectorKey"
@@ -82,25 +95,87 @@
               }
               בדוק חיבור
             </button>
+            @if ((c.ConnectorKey.includes('provision') || c.ConnectorKey.includes('provison')) && c.IsEnabled && c.hasConfig) {
+              <button type="button" class="btn-live" (click)="openLive(c)" title="פתח צפייה חיה">
+                📹 Live
+              </button>
+            }
             <button type="button" class="btn-edit" (click)="openEdit(c)">
               ✎ {{ c.hasConfig ? 'ערוך' : 'הגדר' }}
             </button>
+            <button type="button" class="btn-delete-card" (click)="confirmDelete(c)" title="מחק חיבור">✕</button>
             <div class="enabled-dot" [class.on]="c.IsEnabled" [title]="c.IsEnabled ? 'פעיל' : 'מושבת'"></div>
           </div>
 
         </div>
       }
 
-      @if (categorized().length === 0) {
+      @if (categorized().length === 0 && scope !== 'PLATFORM') {
+        <div class="conn-section-empty">לא הוגדרו חיבורים בקטגוריה זו</div>
+      }
+      @if (categorized().length === 0 && scope === 'PLATFORM') {
         <div class="conn-empty">
           <div class="conn-empty-icon">{{ categoryMeta[activeCategory()]?.icon }}</div>
           <p>אין חיבורים בקטגוריה זו</p>
         </div>
       }
     </div>
+
+    <!-- ── Platform Connectors (TENANT only) ──────────────────── -->
+    @if (scope === 'TENANT' && platformCategorized().length > 0) {
+      <div class="plat-section">
+        <div class="plat-section-header">
+          <span class="plat-section-title">🏢 חיבורי פלטפורמה זמינים</span>
+          <span class="plat-section-sub">חיבורים שמוצעים על ידי בית התוכנה — לחץ "הוסף" כדי להגדיר</span>
+        </div>
+
+        <div class="conn-grid plat-grid">
+          @for (c of platformCategorized(); track c.ConnectorKey) {
+            <div class="conn-card plat-card">
+              <div class="card-top">
+                <div class="card-icon">{{ c.IconEmoji }}</div>
+                <div class="card-info">
+                  <div class="card-name">{{ c.ConnectorName }}</div>
+                  <div class="card-desc">{{ c.Description }}</div>
+                </div>
+                <div class="plat-access-badge">
+                  {{ accessModeLabel($any(c).AccessMode || 'PUBLIC') }}
+                </div>
+              </div>
+              <div class="card-actions">
+                <button type="button" class="btn-adopt" (click)="adoptConnector(c)">
+                  + הוסף לארגון
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
   }
 
 </div>
+
+<!-- ── Delete Confirm Dialog ── -->
+@if (deleteOpen() && deleteConnector()) {
+  <kendo-dialog title="אישור מחיקה" [width]="420" (close)="cancelDelete()">
+    <div class="delete-confirm-body">
+      <div class="delete-confirm-icon">⚠️</div>
+      <p>האם למחוק את החיבור <strong>{{ deleteConnector()!.ConnectorName }}</strong>?</p>
+      <p class="delete-confirm-note">פעולה זו אינה ניתנת לביטול. כל ההגדרות ישמחקו.</p>
+    </div>
+    <kendo-dialog-actions>
+      <div class="edit-footer">
+        <button kendoButton class="btn-danger" (click)="doDelete()" [disabled]="deleteInProgress()">
+          @if (deleteInProgress()) { <kendo-loader type="pulsing" size="small" /> } @else { ✕ }
+          מחק
+        </button>
+        <button kendoButton fillMode="outline" class="btn-cancel" (click)="cancelDelete()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}
 
 <!-- ── Edit Dialog ── -->
 @if (editOpen() && editConnector()) {
@@ -117,16 +192,52 @@
 
       <div class="edit-desc">{{ editConnector()!.Description }}</div>
 
+      <!-- UUID identifier (always shown) -->
+      <div class="token-row">
+        <span class="token-label">מזהה חיצוני (UUID)</span>
+        <div class="token-field">
+          @if (editToken()) {
+            <code class="token-val">{{ editToken() }}</code>
+            <button type="button" class="btn-copy" (click)="copyToken(editToken()!)">
+              {{ copiedToken() === editToken() ? '✓ הועתק' : '⎘ העתק' }}
+            </button>
+          } @else {
+            <span class="token-empty">—</span>
+          }
+        </div>
+      </div>
+
+      <!-- Source platform UUID (for adopted connectors) -->
+      @if (editSourceToken()) {
+        <div class="token-row src-token-row">
+          <span class="token-label token-label-src">🏢 UUID מקור פלטפורמה</span>
+          <div class="token-field">
+            <code class="token-val token-val-src">{{ editSourceToken() }}</code>
+            <button type="button" class="btn-copy" (click)="copyToken(editSourceToken()!)">
+              {{ copiedToken() === editSourceToken() ? '✓ הועתק' : '⎘ העתק' }}
+            </button>
+          </div>
+        </div>
+      }
+
       <!-- Dynamic fields from SchemaJSON -->
       @for (field of editConnector()!.SchemaJSON; track field.key) {
-        <div class="edit-row">
+        <div class="edit-row" [class.dynamic-row]="field.isDynamic">
           <label class="edit-label">
             {{ field.label }}
-            @if (field.required) { <span class="req">*</span> }
+            @if (field.required && !field.isDynamic) { <span class="req">*</span> }
+            @if (field.isDynamic) { <span class="dynamic-badge">⚡ פרמטר</span> }
           </label>
           <div class="edit-field">
 
-            @if (field.type === 'password') {
+            @if (field.isDynamic) {
+              <!-- שדה דינאמי: ערך בדיקה בלבד -->
+              <input [type]="field.type === 'number' ? 'number' : 'text'"
+                     class="edit-input test-input"
+                     [value]="testValues()[field.key] ?? field.default ?? ''"
+                     [placeholder]="'ערך לבדיקה' + (field.placeholder ? ' — ' + field.placeholder : '')"
+                     (input)="setTestValue(field.key, $any($event.target).value, field.type === 'number')" />
+            } @else if (field.type === 'password') {
               <div class="pass-wrap">
                 <input
                   [type]="editShowPass[field.key] ? 'text' : 'password'"
@@ -152,6 +263,37 @@
               <input type="number" class="edit-input"
                      [value]="getField(field.key) || field.default || ''"
                      (input)="setField(field.key, +$any($event.target).value)" />
+            } @else if (field.type === 'countries') {
+              <div class="countries-field">
+                <div class="seg-ctrl">
+                  <button type="button" class="seg-btn"
+                          [class.seg-on]="getField(field.key) === 'ALL'"
+                          (click)="setField(field.key, 'ALL')">🌍 הכל</button>
+                  <button type="button" class="seg-btn"
+                          [class.seg-on]="getField(field.key) !== 'ALL'"
+                          (click)="setField(field.key, getField(field.key) === 'ALL' ? (field.default || 'IL') : getField(field.key))">
+                    🚩 רשימה
+                  </button>
+                </div>
+                @if (getField(field.key) !== 'ALL') {
+                  <input type="text" class="edit-input countries-input"
+                         [value]="getField(field.key)"
+                         [placeholder]="field.placeholder || 'IL,US,GB'"
+                         dir="ltr"
+                         (input)="setField(field.key, $any($event.target).value)" />
+                  <span class="countries-hint">קודי ISO-2 מופרדים בפסיק</span>
+                }
+              </div>
+            } @else if (field.type === 'select') {
+              <select class="edit-input edit-select"
+                      (change)="setField(field.key, $any($event.target).value)">
+                @for (opt of field.options || []; track opt) {
+                  <option [value]="opt"
+                          [selected]="(getField(field.key) || field.default) === opt">
+                    {{ opt }}
+                  </option>
+                }
+              </select>
             } @else {
               <input type="text" class="edit-input"
                      [value]="getField(field.key)"

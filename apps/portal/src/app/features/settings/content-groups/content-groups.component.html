@@ -1,0 +1,308 @@
+<div class="cg-wrap">
+
+  <!-- sub-nav -->
+  <div class="sub-nav">
+    <button class="sub-btn" [class.active]="activeTab() === 'groups'" (click)="activeTab.set('groups')">
+      קבוצות תוכן
+    </button>
+    <button class="sub-btn" [class.active]="activeTab() === 'entities'" (click)="activeTab.set('entities')">
+      יישויות תוכן
+    </button>
+  </div>
+
+  <!-- ── קבוצות תוכן ──────────────────────────────────── -->
+  @if (activeTab() === 'groups') {
+    <div class="page-header">
+      <h2>קבוצות תוכן</h2>
+      <button class="btn-save" (click)="openNewGroup()">✓ קבוצה חדשה</button>
+    </div>
+
+    <div class="grid-wrap">
+      @if (groupsLoading()) {
+        <div class="center-spin"><mat-spinner diameter="40"/></div>
+      } @else if (groupsError()) {
+        <div class="error-box">{{ groupsError() }}</div>
+      } @else {
+        <kendo-grid class="cg-grid"
+          [data]="{ data: groupsOrdered, total: groupsOrdered.length }"
+          [sortable]="{ mode: 'single', allowUnsort: false }" [sort]="sort"
+          [reorderable]="true" [resizable]="true" scrollable="scrollable"
+          (sortChange)="onSortChange($event)">
+
+          <kendo-grid-column field="GroupName" title="שם קבוצה">
+            <ng-template kendoGridCellTemplate let-row>
+              <strong>{{ row.GroupName }}</strong>
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="GroupCode" title="קוד" [width]="150">
+            <ng-template kendoGridCellTemplate let-row>
+              <span class="badge-code">{{ row.GroupCode }}</span>
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="EntityName" title="יישות תוכן" [width]="180">
+            <ng-template kendoGridCellTemplate let-row>
+              <span class="entity-tag">{{ row.EntityName }}</span>
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="ItemCount" title="פריטים" [width]="100">
+            <ng-template kendoGridCellTemplate let-row>
+              <span class="badge-count">{{ row.ItemCount }}</span>
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="UserCount" title="משתמשים" [width]="110">
+            <ng-template kendoGridCellTemplate let-row>
+              <span class="badge-count">{{ row.UserCount }}</span>
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="IsActive" title="סטטוס" [width]="100">
+            <ng-template kendoGridCellTemplate let-row>
+              <span class="badge" [class.badge-active]="row.IsActive" [class.badge-inactive]="!row.IsActive">
+                {{ row.IsActive ? 'פעיל' : 'מושהה' }}
+              </span>
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column title="" [width]="80" [sortable]="false" [resizable]="false" [columnMenu]="false">
+            <ng-template kendoGridCellTemplate let-row>
+              <div class="row-actions">
+                <button class="act-btn act-edit"   title="ערוך"  (click)="openEditGroup(row)"><i class="pi pi-pencil"></i></button>
+                <button class="act-btn act-delete" title="מחיקה" (click)="deleteGroup(row)"><i class="pi pi-trash"></i></button>
+              </div>
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-messages noRecords="לא נמצאו קבוצות תוכן" loading="טוען..." />
+        </kendo-grid>
+      }
+    </div>
+  }
+
+  <!-- ── יישויות תוכן ──────────────────────────────────── -->
+  @if (activeTab() === 'entities') {
+    <div class="page-header">
+      <h2>יישויות תוכן</h2>
+      <button class="btn-save" (click)="openNewEntity()">✓ יישות חדשה</button>
+    </div>
+
+    <div class="grid-wrap">
+      @if (entityDefsLoading()) {
+        <div class="center-spin"><mat-spinner diameter="40"/></div>
+      } @else if (entityDefsError()) {
+        <div class="error-box">{{ entityDefsError() }}</div>
+      } @else {
+        <kendo-grid class="cg-grid"
+          [data]="{ data: entityDefsOrdered, total: entityDefsOrdered.length }"
+          [sortable]="{ mode: 'single', allowUnsort: false }" [sort]="sort"
+          [reorderable]="true" [resizable]="true" scrollable="scrollable"
+          (sortChange)="onSortChange($event)">
+
+          <kendo-grid-column field="EntityName" title="שם יישות">
+            <ng-template kendoGridCellTemplate let-row>
+              <strong>{{ row.EntityName }}</strong>
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="EntityCode" title="קוד" [width]="160">
+            <ng-template kendoGridCellTemplate let-row>
+              <span class="badge-code">{{ row.EntityCode }}</span>
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="GroupCount" title="קבוצות" [width]="100">
+            <ng-template kendoGridCellTemplate let-row>
+              <span class="badge-count">{{ row.GroupCount }}</span>
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column field="IsActive" title="סטטוס" [width]="100">
+            <ng-template kendoGridCellTemplate let-row>
+              <span class="badge" [class.badge-active]="row.IsActive" [class.badge-inactive]="!row.IsActive">
+                {{ row.IsActive ? 'פעיל' : 'מושהה' }}
+              </span>
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-column title="" [width]="80" [sortable]="false" [resizable]="false" [columnMenu]="false">
+            <ng-template kendoGridCellTemplate let-row>
+              <div class="row-actions">
+                <button class="act-btn act-edit"   title="ערוך"  (click)="openEditEntity(row)"><i class="pi pi-pencil"></i></button>
+                <button class="act-btn act-delete" title="מחיקה" (click)="deleteEntity(row)"><i class="pi pi-trash"></i></button>
+              </div>
+            </ng-template>
+          </kendo-grid-column>
+
+          <kendo-grid-messages noRecords="לא נמצאו יישויות תוכן" loading="טוען..." />
+        </kendo-grid>
+      }
+    </div>
+  }
+</div>
+
+<!-- ── Dialog: קבוצת תוכן ────────────────────────────────── -->
+@if (groupDialogOpen()) {
+  <kendo-dialog [title]="editingGroup ? 'עריכת קבוצת תוכן' : 'קבוצת תוכן חדשה'"
+                [width]="700" [minWidth]="500" (close)="closeGroupDialog()">
+
+    <div class="group-dialog-body" dir="rtl">
+
+      <!-- שמאל: טופס -->
+      <div class="group-form-side">
+        <form [formGroup]="groupForm" class="cg-form">
+
+          <div class="form-row">
+            <label>שם קבוצה <span class="req">*</span></label>
+            <kendo-textbox formControlName="groupName" placeholder="הרשאות אזורים גאוגרפיים" />
+          </div>
+
+          <div class="form-row">
+            <label>קוד <span class="req">*</span></label>
+            <kendo-textbox formControlName="groupCode" placeholder="GEO_NORTH" [disabled]="!!editingGroup" />
+          </div>
+
+          <div class="form-row">
+            <label>יישות תוכן <span class="req">*</span></label>
+            <select class="native-select" formControlName="entityDefId"
+                    (change)="onEntityDefChange(+$any($event.target).value)">
+              <option value="">-- בחר יישות --</option>
+              @for (e of entityDefs(); track e.EntityDefID) {
+                <option [value]="e.EntityDefID">{{ e.EntityName }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-row">
+            <label>תיאור</label>
+            <kendo-textbox formControlName="description" placeholder="תיאור קצר" />
+          </div>
+
+          <div class="form-row">
+            <label>סטטוס</label>
+            <div class="seg-ctrl">
+              <button type="button" class="seg-btn"
+                      [class.seg-on]="!!groupForm.get('isActive')?.value"
+                      (click)="groupForm.get('isActive')?.setValue(true)">✓ פעיל</button>
+              <button type="button" class="seg-btn"
+                      [class.seg-off]="!groupForm.get('isActive')?.value"
+                      (click)="groupForm.get('isActive')?.setValue(false)">✗ מושהה</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- ימין: בחירת פריטים -->
+      <div class="picker-side">
+        <div class="picker-header">
+          <span>בחר ערכים מהיישות</span>
+          @if (selectedItems().length) {
+            <span class="selected-count">{{ selectedItems().length }} נבחרו</span>
+          }
+        </div>
+
+        @if (pickerLoading()) {
+          <div class="center-spin"><mat-spinner diameter="28"/></div>
+        } @else if (pickerItems().length) {
+          <div class="picker-list">
+            @for (item of pickerItems(); track item.KeyValue) {
+              <label class="picker-item" [class.selected]="isItemSelected(item)">
+                <input type="checkbox" [checked]="isItemSelected(item)" (change)="toggleItem(item)" />
+                <span class="item-key">{{ item.KeyValue }}</span>
+                <span class="item-label">{{ item.DisplayLabel }}</span>
+              </label>
+            }
+          </div>
+        } @else {
+          <div class="picker-empty">בחר יישות תוכן כדי לטעון ערכים</div>
+        }
+      </div>
+
+    </div>
+
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-save" [disabled]="savingGroup()" (click)="saveGroup()">
+          @if (savingGroup()) { <kendo-loader size="small" themeColor="primary" /> }
+          @else { ✓ שמור }
+        </button>
+        <button class="btn-cancel" (click)="closeGroupDialog()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}
+
+<!-- ── Dialog: יישות תוכן ────────────────────────────────── -->
+@if (entityDialogOpen()) {
+  <kendo-dialog [title]="editingEntity ? 'עריכת יישות תוכן' : 'יישות תוכן חדשה'"
+                [width]="600" [minWidth]="460" (close)="closeEntityDialog()">
+
+    <form [formGroup]="entityForm" class="cg-form entity-form" dir="rtl">
+
+      <div class="form-row">
+        <label>שם יישות <span class="req">*</span></label>
+        <kendo-textbox formControlName="entityName" placeholder="אזורים גאוגרפיים" />
+      </div>
+
+      <div class="form-row">
+        <label>קוד יישות <span class="req">*</span></label>
+        <kendo-textbox formControlName="entityCode" placeholder="GEOGRAPHIC_REGIONS" [disabled]="!!editingEntity" />
+      </div>
+
+      <div class="form-row">
+        <label>SELECT Query <span class="req">*</span></label>
+        <textarea class="query-area" formControlName="selectQuery" rows="6"
+                  placeholder="SELECT RegionID AS KeyValue, RegionName AS DisplayLabel&#10;FROM tblRegions&#10;WHERE IsActive = 1"></textarea>
+        <span class="field-hint">חובה להחזיר עמודות בשם: <code>KeyValue</code> ו-<code>DisplayLabel</code></span>
+      </div>
+
+      <div class="form-row">
+        <label>סטטוס</label>
+        <div class="seg-ctrl">
+          <button type="button" class="seg-btn"
+                  [class.seg-on]="!!entityForm.get('isActive')?.value"
+                  (click)="entityForm.get('isActive')?.setValue(true)">✓ פעיל</button>
+          <button type="button" class="seg-btn"
+                  [class.seg-off]="!entityForm.get('isActive')?.value"
+                  (click)="entityForm.get('isActive')?.setValue(false)">✗ מושהה</button>
+        </div>
+      </div>
+
+      @if (editingEntity) {
+        <div class="form-row">
+          <button type="button" class="btn-preview" (click)="previewEntity()" [disabled]="previewLoading()">
+            @if (previewLoading()) { טוען... } @else { ▶ הרץ Preview }
+          </button>
+          @if (previewError()) { <span class="field-err">{{ previewError() }}</span> }
+          @if (previewItems().length) {
+            <div class="preview-results">
+              <div class="preview-header">{{ previewItems().length }} תוצאות:</div>
+              @for (item of previewItems().slice(0,10); track item.KeyValue) {
+                <div class="preview-row">
+                  <span class="item-key">{{ item.KeyValue }}</span>
+                  <span class="item-label">{{ item.DisplayLabel }}</span>
+                </div>
+              }
+              @if (previewItems().length > 10) {
+                <div class="preview-more">...ועוד {{ previewItems().length - 10 }}</div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+    </form>
+
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-save" [disabled]="savingEntity()" (click)="saveEntity()">
+          @if (savingEntity()) { <kendo-loader size="small" themeColor="primary" /> }
+          @else { ✓ שמור }
+        </button>
+        <button class="btn-cancel" (click)="closeEntityDialog()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}

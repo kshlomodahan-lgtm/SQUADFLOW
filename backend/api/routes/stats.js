@@ -4,6 +4,51 @@ const { sql, getPool, poolConnect } = require('../db');
 const requireAuth     = require('../middleware/auth');
 const requirePlatform = require('../middleware/platformAdmin');
 
+// ── GET /api/stats/tenant — נתוני ארגון ספציפי ───────────
+router.get('/tenant', requireAuth, async (req, res) => {
+  try {
+    const tenantId = req.user.tenantId;
+    await poolConnect;
+    const db = await getPool();
+
+    const usersResult = await db.request()
+      .input('TenantID', sql.Int, tenantId)
+      .query(`SELECT COUNT(*) AS Total, SUM(CASE WHEN IsActive=1 THEN 1 ELSE 0 END) AS Active FROM dbo.tblUsers WHERE TenantID=@TenantID`);
+
+    let projectsRow = { Total: 0, Active: 0 };
+    try {
+      const r = await db.request().input('TenantID', sql.Int, tenantId)
+        .query(`SELECT COUNT(*) AS Total, SUM(CASE WHEN IsActive=1 THEN 1 ELSE 0 END) AS Active FROM dbo.tblProjects WHERE TenantID=@TenantID`);
+      projectsRow = r.recordset[0];
+    } catch(e) {}
+
+    let connCount = 0;
+    try {
+      const r = await db.request().input('TenantID', sql.Int, tenantId)
+        .query(`SELECT COUNT(*) AS Total FROM dbo.tblConnectors WHERE TenantID=@TenantID AND IsEnabled=1`);
+      connCount = r.recordset[0].Total;
+    } catch(e) {}
+
+    let recentProjects = [];
+    try {
+      const r = await db.request().input('TenantID', sql.Int, tenantId)
+        .query(`SELECT TOP 5 ProjectID, ProjectCode, ProjectName, IsActive, CreatedAt FROM dbo.tblProjects WHERE TenantID=@TenantID ORDER BY ProjectID DESC`);
+      recentProjects = r.recordset;
+    } catch(e) {}
+
+    const u = usersResult.recordset[0];
+    return res.json({
+      success: true,
+      users:    { total: u.Total, active: u.Active },
+      projects: { total: projectsRow.Total, active: projectsRow.Active },
+      connectors: connCount,
+      recentProjects,
+    });
+  } catch(err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 router.use(requireAuth, requirePlatform);
 
 // ── GET /api/stats/platform ───────────────────────────────

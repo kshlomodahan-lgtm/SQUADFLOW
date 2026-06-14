@@ -47,7 +47,7 @@ const AREAS: WorkspaceArea[] = [
     id: 'axon', name: 'AXON', nameHe: 'Backend API',
     desc: 'Routes, Stored Procedures, Auth ו-Middleware',
     icon: 'api', color: '#059669', glow: 'rgba(5,150,105,.25)',
-    ready: false,
+    ready: true,
   },
   {
     id: 'membrane', name: 'MEMBRANE', nameHe: 'סביבת לקוח',
@@ -95,6 +95,7 @@ export class WorkspaceComponent implements OnInit {
     if (area.id === 'connectors') this.router.navigate(['/app/ws-connectors', id]);
     if (area.id === 'cortex')     this.router.navigate(['/app/cortex',        id]);
     if (area.id === 'nexus')      this.router.navigate(['/app/nexus',         id]);
+    if (area.id === 'axon')       this.router.navigate(['/app/axon',          id]);
   }
 
   back() { this.router.navigate(['/app/projects']); }

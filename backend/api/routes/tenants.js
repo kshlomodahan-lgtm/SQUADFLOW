@@ -27,7 +27,7 @@ router.get('/', async (req, res) => {
       LEFT JOIN dbo.tblUsers    u  ON u.TenantID=t.TenantID AND u.IsActive=1 AND u.UserID>0
       LEFT JOIN dbo.tblCustomers c ON c.TenantID=t.TenantID AND c.CustomerID>0
       LEFT JOIN dbo.tblTickets  tk ON tk.TenantID=t.TenantID AND tk.StatusID IN (1,2,3)
-      WHERE t.TenantID > 1
+      WHERE t.TenantID >= 1
       GROUP BY t.TenantID,t.TenantCode,t.CompanyName,t.Email,t.Phone,
                t.PlanType,t.MaxUsers,t.MaxTickets,t.IsActive,t.LogoUrl,
                t.Notes,t.SubscribedAt,t.ExpiresAt,

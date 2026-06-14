@@ -1,10 +1,12 @@
 // ── Root ────────────────────────────────────────────────────
 .ws-root {
   min-height: 100%;
-  background: var(--sf-bg);
+  background: var(--sf-bg-card);
   display: flex;
   flex-direction: column;
   direction: rtl;
+  border-radius: 12px;
+  border: 1px solid var(--sf-border);
 }
 
 // ── Header ───────────────────────────────────────────────────
@@ -34,6 +36,27 @@
   &:hover { background: var(--sf-bg-hover); color: var(--sf-text); }
 }
 
+.ws-logo-wrap {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  direction: ltr;
+}
+
+.ws-logo {
+  height: 64px;
+  width: auto;
+  display: block;
+}
+
+.ws-divider {
+  width: 1px; height: 36px;
+  background: var(--sf-border);
+  flex-shrink: 0;
+}
+
 .ws-project-info { flex: 1; min-width: 0; }
 
 .ws-badge {
@@ -57,6 +80,15 @@
 .ws-code   { font-family: 'Share Tech Mono', monospace; font-size: .78rem; background: var(--sf-bg); border: 1px solid var(--sf-border); border-radius: 4px; padding: 1px 7px; color: var(--sf-text); }
 .ws-sep    { color: var(--sf-text-muted); }
 .ws-status { font-weight: 600; color: var(--sf-primary); }
+.ws-github {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: .78rem; font-weight: 500; color: var(--sf-text-secondary);
+  text-decoration: none; border: 1px solid var(--sf-border);
+  border-radius: 5px; padding: 2px 8px;
+  transition: color .15s, border-color .15s, background .15s;
+  mat-icon { font-size: 14px; width: 14px; height: 14px; }
+  &:hover { color: var(--sf-primary); border-color: var(--sf-primary); background: var(--sf-primary-light); }
+}
 
 .ws-header-end { flex-shrink: 0; }
 

@@ -5,10 +5,10 @@
     <div class="hero-left">
       <p class="hero-greeting">{{ greeting }},</p>
       <h1 class="hero-name">{{ auth.user()?.fullName }}</h1>
-      <p class="hero-sub">סקירת פעילות הפלטפורמה בזמן אמת</p>
+      <p class="hero-sub">{{ isPlatformAdmin ? 'סקירת פעילות הפלטפורמה בזמן אמת' : 'סקירת פעילות הארגון שלך' }}</p>
     </div>
     <div class="hero-right">
-      @if (stats()) {
+      @if (isPlatformAdmin && stats()) {
         <div class="hero-stat">
           <span class="hero-stat-num">{{ stats()!.orgs.total }}</span>
           <span class="hero-stat-label">ארגונים</span>
@@ -27,6 +27,22 @@
         <div class="hero-stat">
           <span class="hero-stat-num">{{ stats()!.packages.total }}</span>
           <span class="hero-stat-label">חבילות</span>
+        </div>
+      }
+      @if (!isPlatformAdmin && tenantStats()) {
+        <div class="hero-stat">
+          <span class="hero-stat-num">{{ tenantStats()!.projects.total }}</span>
+          <span class="hero-stat-label">פרויקטים</span>
+        </div>
+        <div class="hero-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-num">{{ tenantStats()!.users.total }}</span>
+          <span class="hero-stat-label">משתמשים</span>
+        </div>
+        <div class="hero-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-num">{{ tenantStats()!.connectors }}</span>
+          <span class="hero-stat-label">חיבורים פעילים</span>
         </div>
       }
       <div class="hero-badge">
@@ -372,6 +388,49 @@
 
     </div>
 
+  }
+
+  <!-- ── Tenant Dashboard ──────────────────────────────────── -->
+  @if (!loading() && !isPlatformAdmin && tenantStats()) {
+    <div class="kpi-row">
+      <div class="kpi-card kpi-blue">
+        <div class="kpi-top">
+          <span class="kpi-num">{{ tenantStats()!.projects.total }}</span>
+        </div>
+        <div class="kpi-label">סה"כ פרויקטים</div>
+        <div class="kpi-sub">{{ tenantStats()!.projects.active }} פעילים</div>
+      </div>
+      <div class="kpi-card kpi-teal">
+        <div class="kpi-top">
+          <span class="kpi-num">{{ tenantStats()!.users.total }}</span>
+        </div>
+        <div class="kpi-label">משתמשים</div>
+        <div class="kpi-sub">{{ tenantStats()!.users.active }} פעילים</div>
+      </div>
+      <div class="kpi-card kpi-purple">
+        <div class="kpi-top">
+          <span class="kpi-num">{{ tenantStats()!.connectors }}</span>
+        </div>
+        <div class="kpi-label">חיבורים פעילים</div>
+      </div>
+    </div>
+
+    @if (tenantStats()!.recentProjects.length) {
+      <div class="section-card">
+        <div class="card-hd">
+          <div class="card-hd-title">פרויקטים אחרונים</div>
+        </div>
+        <table class="recent-table">
+          @for (p of tenantStats()!.recentProjects; track p.ProjectID) {
+            <tr>
+              <td><strong>{{ p.ProjectName }}</strong></td>
+              <td class="code-cell">{{ p.ProjectCode }}</td>
+              <td><span class="badge" [class.badge-active]="p.IsActive" [class.badge-inactive]="!p.IsActive">{{ p.IsActive ? 'פעיל' : 'לא פעיל' }}</span></td>
+            </tr>
+          }
+        </table>
+      </div>
+    }
   }
 
 </div>

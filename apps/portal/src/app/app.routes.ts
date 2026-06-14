@@ -72,6 +72,11 @@ export const routes: Routes = [
           import('./features/projects/workspace/nexus/nexus.component').then(m => m.NexusComponent),
       },
       {
+        path: 'axon/:projectId',
+        loadComponent: () =>
+          import('./features/projects/workspace/axon/axon.component').then(m => m.AxonComponent),
+      },
+      {
         path: 'ws-connectors/:projectId',
         loadComponent: () =>
           import('./features/projects/workspace/ws-connectors/ws-connectors.component').then(m => m.WsConnectorsComponent),
@@ -80,6 +85,11 @@ export const routes: Routes = [
         path: 'settings',
         loadComponent: () =>
           import('./features/settings/settings.component').then(m => m.SettingsComponent),
+      },
+      {
+        path: 'connector-access',
+        loadComponent: () =>
+          import('./features/settings/connector-access/connector-access.component').then(m => m.ConnectorAccessComponent),
       },
       {
         path: 'audit',

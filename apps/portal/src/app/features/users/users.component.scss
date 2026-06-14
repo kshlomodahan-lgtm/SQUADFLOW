@@ -181,6 +181,7 @@
   }
 
   .act-expand  { color: var(--sf-text-secondary); &:hover { background: var(--sf-bg-hover); color: var(--sf-primary); } }
+  .act-perms   { color: #7c3aed; &:hover { background: #ede9fe; } }
   .act-edit    { color: #3b82f6; &:hover { background: #eff6ff; } }
   .act-lock    { color: #ef4444; &:hover { background: #fef2f2; } }
   .act-unlock  { color: #16a34a; &:hover { background: #f0fdf4; } }

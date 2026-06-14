@@ -122,7 +122,15 @@
 .settings-content {
   flex: 1;
   min-width: 0;
+  min-height: 0;
   padding: 32px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* מסכי טופס — גוללים בתוך ה-content */
+.content-section {
   overflow-y: auto;
 }
 
@@ -320,8 +328,78 @@
   text-transform: uppercase;
 }
 
-/* ─── Counters ─── */
-.content-section--wide { max-width: 100%; }
+/* גרידים ומסכי רשימה — מוגבלים לגובה הזמין */
+.content-section--wide {
+  max-width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Sub tab-bar (אבטחה והרשאות) ─── */
+.content-section--tabbed {
+  padding: 0 !important;
+}
+
+.sub-tabs {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0;
+  border-bottom: 2px solid var(--sf-border);
+  background: var(--sf-bg);
+  flex-shrink: 0;
+  padding: 0 16px;
+}
+
+.sub-tab {
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: var(--sf-text-secondary);
+  font-size: .8rem;
+  font-weight: 500;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color .15s, border-color .15s;
+  white-space: nowrap;
+
+  &:hover:not(.active) { color: var(--sf-text); background: var(--sf-bg-hover); }
+  &.active {
+    color: var(--sf-primary);
+    border-bottom-color: var(--sf-primary);
+    font-weight: 700;
+  }
+}
+
+.sub-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px;
+
+  // רכיבים שצורכים גובה מלא לא צריכים padding פנימי
+  > app-roles-manager,
+  > app-menu-manager,
+  > app-org-chart,
+  > app-profiles,
+  > app-groups,
+  > app-content-groups,
+  > app-permission-codes,
+  > app-perm-assignments,
+  > app-logic-perms {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    margin: -20px -24px;   // מבטל את ה-padding של sub-content
+  }
+}
 
 .counters-toolbar {
   display: flex;

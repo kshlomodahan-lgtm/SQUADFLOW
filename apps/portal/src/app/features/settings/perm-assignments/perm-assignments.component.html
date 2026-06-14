@@ -1,0 +1,275 @@
+<div class="assign-wrap">
+
+  <div class="page-header">
+    <h2>שיוך הרשאות</h2>
+    <button class="btn-save" (click)="openNew()">✓ שיוך חדש</button>
+  </div>
+
+  <!-- filters -->
+  <div class="toolbar">
+    <div class="scope-chips">
+      <button class="chip" [class.active]="filterScope() === ''"               (click)="filterScope.set('')">הכל</button>
+      <button class="chip" [class.active]="filterScope() === 'MENU'"           (click)="filterScope.set('MENU')">תפריט</button>
+      <button class="chip" [class.active]="filterScope() === 'SCREEN'"         (click)="filterScope.set('SCREEN')">מסך</button>
+      <button class="chip" [class.active]="filterScope() === 'CONTROL'"        (click)="filterScope.set('CONTROL')">פקד</button>
+      <button class="chip" [class.active]="filterScope() === 'BUSINESS_LOGIC'" (click)="filterScope.set('BUSINESS_LOGIC')">לוגיקה עסקית</button>
+    </div>
+    <div class="scope-chips">
+      <button class="chip" [class.active]="filterEntity() === ''"              (click)="filterEntity.set('')">כל הישויות</button>
+      <button class="chip" [class.active]="filterEntity() === 'PROFILE'"       (click)="filterEntity.set('PROFILE')">פרופיל</button>
+      <button class="chip" [class.active]="filterEntity() === 'GROUP'"         (click)="filterEntity.set('GROUP')">קבוצה</button>
+      <button class="chip" [class.active]="filterEntity() === 'CONTENT_GROUP'" (click)="filterEntity.set('CONTENT_GROUP')">קבוצת תוכן</button>
+      <button class="chip" [class.active]="filterEntity() === 'USER'"          (click)="filterEntity.set('USER')">משתמש</button>
+    </div>
+  </div>
+
+  <div class="grid-wrap">
+    @if (loading()) {
+      <div class="center-spin"><mat-spinner diameter="40"/></div>
+    } @else if (error()) {
+      <div class="error-box">{{ error() }}</div>
+    } @else {
+      <kendo-grid class="assign-grid"
+        [data]="{ data: pagedData, total: filtered.length }"
+        [skip]="skip" [pageSize]="pageSize"
+        [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [25, 50, 100] }"
+        [sortable]="{ mode: 'single', allowUnsort: false }"
+        [sort]="sort" [reorderable]="true" [resizable]="true" [columnMenu]="true"
+        scrollable="scrollable"
+        (pageChange)="onPageChange($event)" (sortChange)="onSortChange($event)">
+
+        <!-- הרחבת שורה -->
+        <ng-template kendoGridDetailTemplate let-row>
+          <div class="assign-detail-card">
+            <div class="detail-group">
+              <div class="detail-group-title">הרשאה</div>
+              <div class="detail-fields">
+                <div class="detail-field"><span class="df-label">קוד פנימי</span><span class="df-val badge-code">{{ row.PermCode }}</span></div>
+                <div class="detail-field"><span class="df-label">סוג</span>
+                  <span class="df-val"><span class="scope-badge" [class]="scopeClass(row.Scope)">{{ scopeLabel(row.Scope) }}</span></span>
+                </div>
+              </div>
+            </div>
+            @if (row.SourceType === 'SCANNER' && row.Actions) {
+              <div class="detail-group">
+                <div class="detail-group-title">פעולות מורשות</div>
+                <div class="actions-tags">
+                  @for (ac of parseActions(row.Actions); track ac) {
+                    <span class="action-tag">{{ ac }}</span>
+                  }
+                </div>
+              </div>
+            }
+            @if (row.SourceType === 'MANUAL') {
+              <div class="detail-group">
+                <div class="detail-group-title">סוג שיוך</div>
+                <span class="grant-badge" [class.grant-allow]="row.IsGrant" [class.grant-deny]="!row.IsGrant">
+                  {{ row.IsGrant ? '✓ אפשר גישה' : '✗ חסום גישה' }}
+                </span>
+              </div>
+            }
+          </div>
+        </ng-template>
+
+        <!-- הרשאה -->
+        <kendo-grid-column field="PermName" title="הרשאה">
+          <ng-template kendoGridCellTemplate let-row>
+            <div class="name-cell">
+              <span class="perm-name">{{ row.PermName || row.PermCode }}</span>
+              <span class="scope-badge" [class]="scopeClass(row.Scope)">{{ scopeLabel(row.Scope) }}</span>
+            </div>
+          </ng-template>
+        </kendo-grid-column>
+
+        <!-- ישות -->
+        <kendo-grid-column field="EntityName" title="שויך ל" [width]="180">
+          <ng-template kendoGridCellTemplate let-row>
+            <div class="entity-cell">
+              <span class="entity-type-badge">{{ entityLabel(row.EntityType) }}</span>
+              <span class="entity-name">{{ row.EntityName }}</span>
+            </div>
+          </ng-template>
+        </kendo-grid-column>
+
+        <!-- הגדרה (פעולות / grant) -->
+        <kendo-grid-column field="Actions" title="הגדרה" [width]="220">
+          <ng-template kendoGridCellTemplate let-row>
+            @if (row.SourceType === 'SCANNER') {
+              <div class="actions-tags">
+                @for (ac of parseActions(row.Actions); track ac) {
+                  <span class="action-tag">{{ ac }}</span>
+                }
+                @if (!row.Actions) { <span class="text-muted">—</span> }
+              </div>
+            } @else {
+              <span class="grant-badge" [class.grant-allow]="row.IsGrant" [class.grant-deny]="!row.IsGrant">
+                {{ row.IsGrant ? '✓ אפשר' : '✗ חסום' }}
+              </span>
+            }
+          </ng-template>
+        </kendo-grid-column>
+
+        <!-- סטטוס -->
+        <kendo-grid-column field="IsActive" title="סטטוס" [width]="90">
+          <ng-template kendoGridCellTemplate let-row>
+            <span class="badge" [class.badge-active]="row.IsActive" [class.badge-inactive]="!row.IsActive">
+              {{ row.IsActive ? 'פעיל' : 'מושהה' }}
+            </span>
+          </ng-template>
+        </kendo-grid-column>
+
+        <!-- פעולות -->
+        <kendo-grid-column title="" [width]="80" [sortable]="false" [resizable]="false" [columnMenu]="false">
+          <ng-template kendoGridCellTemplate let-row let-rowIndex="rowIndex">
+            <div class="row-actions">
+              <button class="act-btn act-expand" [class.expanded]="isExpanded(row.AssignmentID)"
+                      [title]="isExpanded(row.AssignmentID) ? 'סגור' : 'פרטים'"
+                      (click)="toggleDetail(row, rowIndex)">
+                <i class="pi" [class.pi-chevron-down]="!isExpanded(row.AssignmentID)" [class.pi-chevron-up]="isExpanded(row.AssignmentID)"></i>
+              </button>
+              <button class="act-btn act-edit" title="ערוך" (click)="openEdit(row)">
+                <i class="pi pi-pencil"></i>
+              </button>
+              <button class="act-btn act-delete" title="הסר" (click)="remove(row)">
+                <i class="pi pi-trash"></i>
+              </button>
+            </div>
+          </ng-template>
+        </kendo-grid-column>
+
+        <kendo-grid-messages pagerItemsPerPage="שורות בעמוד" pagerOf="מתוך" pagerItems="רשומות"
+          noRecords="אין שיוכים עדיין" loading="טוען..."
+          columnMenuFilter="סנן" columnMenuSort="מיון" columnMenuColumns="עמודות"
+          columnMenuSortAscending="עולה" columnMenuSortDescending="יורד" />
+      </kendo-grid>
+    }
+  </div>
+</div>
+
+<!-- ═══ דיאלוג שיוך ═══ -->
+@if (dialogOpen()) {
+  <kendo-dialog [title]="editingItem ? 'עריכת שיוך' : 'שיוך הרשאה'"
+                [width]="520" [minWidth]="380" (close)="closeDialog()">
+    <div class="assign-form" dir="rtl">
+
+      <!-- בחירת הרשאה — רק בהוספה -->
+      @if (!editingItem) {
+        <div class="form-row">
+          <label>הרשאה <span class="req">*</span></label>
+          <kendo-dropdownlist
+            [data]="allPerms()"
+            textField="PermName" valueField="PermCodeID"
+            [valuePrimitive]="false"
+            [defaultItem]="{ PermCodeID: 0, PermName: 'בחר הרשאה...' }"
+            (valueChange)="onPermChange($event)"
+            class="full-drop">
+            <ng-template kendoDropDownListItemTemplate let-p>
+              <div class="perm-option">
+                <span class="scope-badge" [class]="scopeClass(p.Scope)">{{ scopeLabel(p.Scope) }}</span>
+                <span>{{ p.PermName || p.PermCode }}</span>
+              </div>
+            </ng-template>
+          </kendo-dropdownlist>
+        </div>
+      } @else {
+        <!-- בעריכה — הרשאה נעולה -->
+        <div class="form-row">
+          <label>הרשאה</label>
+          <div class="readonly-field">
+            <span class="scope-badge" [class]="scopeClass(editingItem.Scope)">{{ scopeLabel(editingItem.Scope) }}</span>
+            {{ editingItem.PermName || editingItem.PermCode }}
+          </div>
+        </div>
+      }
+
+      <!-- בחירת ישות — רק בהוספה -->
+      @if (!editingItem) {
+        <div class="form-row">
+          <label>שיוך ל <span class="req">*</span></label>
+          <div class="seg-ctrl entity-seg">
+            @for (et of entityTypes; track et.value) {
+              <button type="button" class="seg-btn"
+                      [class.seg-active]="selectedEntityType === et.value"
+                      (click)="onEntityTypeChange(et.value)">{{ et.label }}</button>
+            }
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label>{{ entityLabel(selectedEntityType) }} <span class="req">*</span></label>
+          <kendo-dropdownlist
+            [data]="entityOptions()"
+            textField="name" valueField="id"
+            [valuePrimitive]="false"
+            [defaultItem]="{ id: 0, name: 'בחר...' }"
+            (valueChange)="selectedEntity = $event"
+            class="full-drop">
+          </kendo-dropdownlist>
+        </div>
+      } @else {
+        <div class="form-row">
+          <label>ישות</label>
+          <div class="readonly-field">
+            <span class="entity-type-badge">{{ entityLabel(editingItem.EntityType) }}</span>
+            {{ editingItem.EntityName }}
+          </div>
+        </div>
+      }
+
+      <!-- הגדרה לפי סוג הרשאה -->
+      @if (selectedPerm || editingItem) {
+        @let isScanner = (selectedPerm?.SourceType ?? editingItem?.SourceType) === 'SCANNER';
+
+        @if (isScanner) {
+          <!-- הרשאה מובנית: בחירת פעולות -->
+          <div class="form-row">
+            <label>פעולות מורשות</label>
+            <div class="actions-grid">
+              @for (ac of allActions; track ac) {
+                <label class="action-check">
+                  <input type="checkbox" [checked]="selectedActions[ac]" (change)="toggleAction(ac)" />
+                  <span>{{ ac }}</span>
+                </label>
+              }
+            </div>
+            <span class="field-hint">בחר את הפעולות שמותרות לישות זו</span>
+          </div>
+        } @else {
+          <!-- לוגיקה עסקית: grant / deny -->
+          <div class="form-row">
+            <label>סוג שיוך</label>
+            <div class="seg-ctrl">
+              <button type="button" class="seg-btn"
+                      [class.seg-on]="form.get('isGrant')?.value"
+                      (click)="form.get('isGrant')?.setValue(true)">✓ אפשר גישה</button>
+              <button type="button" class="seg-btn"
+                      [class.seg-off]="!form.get('isGrant')?.value"
+                      (click)="form.get('isGrant')?.setValue(false)">✗ חסום גישה</button>
+            </div>
+            <span class="field-hint">האם הרשאה זו מעניקה או חוסמת גישה?</span>
+          </div>
+        }
+      }
+
+      <!-- סטטוס -->
+      <div class="form-row">
+        <label>סטטוס</label>
+        <div class="seg-ctrl">
+          <button type="button" class="seg-btn" [class.seg-on]="form.get('isActive')?.value"
+                  (click)="form.get('isActive')?.setValue(true)">✓ פעיל</button>
+          <button type="button" class="seg-btn" [class.seg-off]="!form.get('isActive')?.value"
+                  (click)="form.get('isActive')?.setValue(false)">✗ מושהה</button>
+        </div>
+      </div>
+
+    </div>
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-save" [disabled]="saving()" (click)="save()">
+          @if (saving()) { <kendo-loader size="small" themeColor="primary" /> } @else { ✓ שמור }
+        </button>
+        <button class="btn-cancel" (click)="closeDialog()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}

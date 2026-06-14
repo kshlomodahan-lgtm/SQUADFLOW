@@ -39,6 +39,32 @@
   margin-top: 3px; letter-spacing: .2px;
 }
 
+// ── Org Logo ────────────────────────────────────────────
+.sidebar-org-logo {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--sf-border);
+  display: flex; align-items: center; gap: 8px;
+}
+
+.org-logo-img {
+  max-height: 36px; max-width: 140px;
+  object-fit: contain; display: block;
+}
+
+.org-logo-initials {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--sf-primary-light); color: var(--sf-primary);
+  font-size: .95rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.org-logo-name {
+  font-size: .78rem; font-weight: 600;
+  color: var(--sf-text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
 // ── Nav ──────────────────────────────────────────────────
 .sidebar-nav {
   flex: 1; padding: 10px 8px;

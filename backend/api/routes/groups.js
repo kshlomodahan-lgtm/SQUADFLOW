@@ -84,33 +84,22 @@ router.get('/', async (req, res) => {
 
 // POST /api/groups
 router.post('/', checkPermission('GROUPS', 'CREATE'), async (req, res) => {
-  const { groupName, groupCode, description = '', colorHex = '#64748b', sortOrder = 0, roleIds = [] } = req.body;
+  const { groupName, groupCode, description = '', colorHex = '#64748b', sortOrder = 0 } = req.body;
   if (!groupName || !groupCode)
     return res.status(400).json({ success: false, message: 'שם וקוד קבוצה חובה' });
   try {
     const pool = await getPool();
     const r = await pool.request()
-      .input('TenantID',    sql.Int,          req.user.tenantId)
-      .input('GroupName',   sql.NVarChar(100), groupName)
-      .input('GroupCode',   sql.VarChar(50),   groupCode.toUpperCase())
-      .input('Description', sql.NVarChar(300), description)
-      .input('ColorHex',    sql.VarChar(7),    colorHex)
-      .input('SortOrder',   sql.Int,           sortOrder)
+      .input('TenantID',    sql.Int,           req.user.tenantId)
+      .input('GroupName',   sql.NVarChar(100),  groupName)
+      .input('GroupCode',   sql.VarChar(50),    groupCode.toUpperCase())
+      .input('Description', sql.NVarChar(300),  description)
+      .input('ColorHex',    sql.VarChar(7),     colorHex)
+      .input('SortOrder',   sql.Int,            sortOrder)
       .query(`INSERT INTO dbo.tblGroups(TenantID,GroupName,GroupCode,Description,ColorHex,SortOrder)
               OUTPUT INSERTED.GroupID
               VALUES(@TenantID,@GroupName,@GroupCode,@Description,@ColorHex,@SortOrder)`);
-
     const groupId = r.recordset[0].GroupID;
-
-    if (roleIds.length) {
-      for (const rid of roleIds) {
-        await pool.request()
-          .input('GroupID', sql.Int, groupId)
-          .input('RoleID',  sql.Int, rid)
-          .query('INSERT INTO dbo.tblGroupRoles(GroupID,RoleID) VALUES(@GroupID,@RoleID)');
-      }
-    }
-
     await logAction(req, { actionType: 'CREATE', entityType: 'GROUP', entityId: groupId, entityName: groupName });
     res.json({ success: true, data: { groupId }, message: 'קבוצה נוצרה בהצלחה' });
   } catch (e) {
@@ -123,33 +112,21 @@ router.post('/', checkPermission('GROUPS', 'CREATE'), async (req, res) => {
 // PUT /api/groups/:id
 router.put('/:id', checkPermission('GROUPS', 'UPDATE'), async (req, res) => {
   const id = parseInt(req.params.id);
-  const { groupName, groupCode, description = '', colorHex = '#64748b', sortOrder = 0, isActive = true, roleIds = [] } = req.body;
+  const { groupName, groupCode, description = '', colorHex = '#64748b', sortOrder = 0, isActive = true } = req.body;
   try {
-    const pool = await getPool();
-    await pool.request()
-      .input('GroupID',     sql.Int,          id)
-      .input('TenantID',    sql.Int,          req.user.tenantId)
-      .input('GroupName',   sql.NVarChar(100), groupName)
-      .input('GroupCode',   sql.VarChar(50),   groupCode.toUpperCase())
-      .input('Description', sql.NVarChar(300), description)
-      .input('ColorHex',    sql.VarChar(7),    colorHex)
-      .input('SortOrder',   sql.Int,           sortOrder)
-      .input('IsActive',    sql.Bit,           isActive ? 1 : 0)
+    await (await getPool()).request()
+      .input('GroupID',     sql.Int,           id)
+      .input('TenantID',    sql.Int,           req.user.tenantId)
+      .input('GroupName',   sql.NVarChar(100),  groupName)
+      .input('GroupCode',   sql.VarChar(50),    groupCode.toUpperCase())
+      .input('Description', sql.NVarChar(300),  description)
+      .input('ColorHex',    sql.VarChar(7),     colorHex)
+      .input('SortOrder',   sql.Int,            sortOrder)
+      .input('IsActive',    sql.Bit,            isActive ? 1 : 0)
       .query(`UPDATE dbo.tblGroups
               SET GroupName=@GroupName, GroupCode=@GroupCode, Description=@Description,
                   ColorHex=@ColorHex, SortOrder=@SortOrder, IsActive=@IsActive, UpdatedAt=GETDATE()
               WHERE GroupID=@GroupID AND TenantID=@TenantID`);
-
-    // replace roles
-    await pool.request().input('GroupID', sql.Int, id)
-      .query('DELETE FROM dbo.tblGroupRoles WHERE GroupID=@GroupID');
-    for (const rid of roleIds) {
-      await pool.request()
-        .input('GroupID', sql.Int, id)
-        .input('RoleID',  sql.Int, rid)
-        .query('INSERT INTO dbo.tblGroupRoles(GroupID,RoleID) VALUES(@GroupID,@RoleID)');
-    }
-
     await logAction(req, { actionType: 'UPDATE', entityType: 'GROUP', entityId: id, entityName: groupName });
     res.json({ success: true, message: 'עודכן בהצלחה' });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }

@@ -127,7 +127,7 @@
 }
 
 .conn-card {
-  background: var(--sf-bg-card);
+  background: #ffffff;
   border: 1px solid var(--sf-border);
   border-radius: 12px;
   padding: 16px;
@@ -135,8 +135,9 @@
   flex-direction: column;
   gap: 10px;
   transition: box-shadow .15s, border-color .15s;
+  color: var(--sf-text);
 
-  &:hover { box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+  &:hover { box-shadow: 0 4px 20px rgba(0,0,0,.12); }
 
   &.enabled { border-color: #86efac; }
   &.no-config { opacity: .8; }
@@ -209,6 +210,17 @@
   margin-top: 2px;
 }
 
+.btn-live {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: 7px;
+  border: 1px solid #ef4444;
+  background: #fef2f2; color: #ef4444;
+  font-size: .76rem; font-weight: 600;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  cursor: pointer; transition: background .15s;
+  &:hover { background: #ef4444; color: #fff; }
+}
+
 .btn-test {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 6px 12px; border-radius: 7px;
@@ -244,14 +256,49 @@
   &:hover { background: var(--sf-primary); color: #fff; }
 }
 
+.btn-delete-card {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 6px;
+  border: 1px solid var(--sf-border);
+  background: transparent;
+  color: var(--sf-text-muted);
+  font-size: .8rem; font-weight: 700;
+  cursor: pointer;
+  transition: border-color .15s, color .15s, background .15s;
+  margin-right: auto;
+
+  &:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
+}
+
 .enabled-dot {
   width: 10px; height: 10px;
   border-radius: 50%;
   background: var(--sf-border);
-  margin-right: auto;
   transition: background .2s;
 
   &.on { background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,.4); }
+}
+
+// ── Delete Confirm ─────────────────────────────────────────────
+.delete-confirm-body {
+  text-align: center;
+  padding: 8px 0 4px;
+
+  .delete-confirm-icon { font-size: 2.2rem; margin-bottom: 12px; }
+  p { margin: 0 0 8px; font-size: .9rem; color: var(--sf-text); }
+  .delete-confirm-note { font-size: .78rem; color: var(--sf-text-muted); }
+}
+
+.btn-danger {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 20px; border-radius: 8px;
+  border: none; background: #ef4444; color: #fff;
+  font-size: .83rem; font-weight: 600;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  cursor: pointer; transition: background .15s;
+
+  &:hover { background: #dc2626; }
+  &:disabled { opacity: .5; cursor: not-allowed; }
 }
 
 // ── Empty ─────────────────────────────────────────────────────
@@ -339,6 +386,29 @@
 
 .req { color: var(--sf-danger); margin-right: 2px; }
 
+.dynamic-row {
+  background: #fffbeb;
+  border: 1px dashed #fbbf24;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 0 -4px;
+}
+
+.dynamic-badge {
+  display: inline-block;
+  font-size: .68rem; font-weight: 700;
+  background: #fef3c7; color: #92400e;
+  border: 1px solid #fbbf24;
+  border-radius: 4px; padding: 1px 6px;
+  margin-right: 4px; vertical-align: middle;
+}
+
+.test-input {
+  border-color: #fbbf24 !important;
+  background: #fffdf0 !important;
+  &:focus { border-color: #f59e0b !important; outline: none; }
+}
+
 .edit-field { display: flex; flex-direction: column; gap: 4px; }
 
 .edit-input {
@@ -366,6 +436,14 @@ input[type="number"].edit-input {
   font-family: 'Share Tech Mono', monospace;
   direction: ltr;
   text-align: left;
+}
+
+select.edit-select {
+  appearance: auto;
+  direction: ltr;
+  text-align: left;
+  cursor: pointer;
+  background-image: none;
 }
 
 .pass-wrap {
@@ -455,4 +533,207 @@ input[type="number"].edit-input {
 .btn-cancel {
   border-color: var(--sf-border) !important;
   color: var(--sf-text-secondary) !important;
+}
+
+.countries-field {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.countries-input { direction: ltr; text-align: left; }
+.countries-hint {
+  font-size: .73rem; color: var(--sf-text-muted);
+  font-family: 'Share Tech Mono', monospace;
+}
+
+// ── Card UUID ─────────────────────────────────────────────────
+.card-uuid {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background .15s;
+
+  &:hover { background: #eff6ff; border-color: var(--sf-primary); }
+}
+
+.card-uuid-val {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .68rem;
+  color: #64748b;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-uuid-copy {
+  font-size: .75rem;
+  color: var(--sf-primary);
+  flex-shrink: 0;
+}
+
+.token-empty { font-size: .8rem; color: var(--sf-text-muted); }
+
+// ── Source (platform origin) token strip ─────────────────────
+.card-src-token {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.src-token-label {
+  font-size: .7rem;
+  font-weight: 600;
+  color: #1d4ed8;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.src-token-val {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .65rem;
+  color: #3b82f6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  direction: ltr;
+}
+
+// ── UUID Token Row ────────────────────────────────────────────
+.token-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--sf-bg-card);
+  border: 1px solid var(--sf-border);
+  border-radius: 8px;
+  direction: rtl;
+}
+
+.token-label {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.token-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  direction: ltr;
+}
+
+.token-val {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .74rem;
+  color: var(--sf-text-secondary);
+  flex: 1;
+  letter-spacing: .02em;
+}
+
+.src-token-row { background: #eff6ff; border-color: #bfdbfe; }
+.token-label-src { color: #1d4ed8; font-size: .72rem; }
+.token-val-src { color: #3b82f6; }
+
+.btn-copy {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-bg);
+  color: var(--sf-primary);
+  font-size: .72rem;
+  font-weight: 600;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s, color .15s;
+
+  &:hover { background: var(--sf-primary); color: #fff; border-color: var(--sf-primary); }
+}
+
+// ── Platform Connectors Section ───────────────────────────────
+.conn-section-empty {
+  font-size: .84rem;
+  color: var(--sf-text-muted);
+  padding: 12px 0;
+}
+
+.plat-section {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 2px dashed var(--sf-border);
+}
+
+.plat-section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.plat-section-title {
+  font-size: .88rem;
+  font-weight: 700;
+  color: var(--sf-text);
+}
+
+.plat-section-sub {
+  font-size: .76rem;
+  color: var(--sf-text-muted);
+}
+
+.plat-grid .conn-card {
+  border-style: dashed;
+  border-color: var(--sf-border);
+  background: var(--sf-bg);
+  opacity: .88;
+
+  &:hover {
+    opacity: 1;
+    border-color: var(--sf-primary);
+    border-style: solid;
+  }
+}
+
+.plat-access-badge {
+  font-size: .7rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-adopt {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 7px;
+  border: 1px solid var(--sf-primary);
+  background: #eff6ff;
+  color: var(--sf-primary);
+  font-size: .75rem;
+  font-weight: 600;
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  cursor: pointer;
+  transition: all .15s;
+
+  &:hover { background: var(--sf-primary); color: #fff; }
 }

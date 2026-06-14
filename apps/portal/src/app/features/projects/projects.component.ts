@@ -17,10 +17,13 @@ export interface Project {
   Description:   string;
   ClientOrgID:   number | null;
   ClientOrgName: string | null;
+  ClientOrgCode: string | null;
+  DevUrl:        string | null;
   Status:        string;
   StartDate:     string | null;
   TargetDate:    string | null;
   CompletedDate: string | null;
+  GithubUrl:     string | null;
   ProductCount:  number;
   CreatedAt:     string;
   UpdatedAt:     string;
@@ -100,6 +103,11 @@ export class ProjectsComponent implements OnInit {
   isExpanded(id: number) { return this.expandedRows.has(id); }
 
   openProject(id: number) { this.router.navigate(['/app/projects', id]); }
+
+  openInBrowser(p: Project) {
+    if (!p.DevUrl) return;
+    window.open(p.DevUrl, '_blank');
+  }
   openNew()            { this.editProject.set(null); this.showDialog.set(true); }
   openEdit(p: Project) { this.editProject.set(p);    this.showDialog.set(true); }
   closeDialog()        { this.showDialog.set(false); }

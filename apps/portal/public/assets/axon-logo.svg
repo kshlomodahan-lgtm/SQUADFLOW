@@ -1,0 +1,51 @@
+<svg viewBox="0 0 248 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon container: rounded square (same as card) -->
+  <rect x="6" y="6" width="68" height="68" rx="14"
+        fill="#f0fdf4" stroke="url(#bg)" stroke-width="2"/>
+
+  <!-- Material "api" icon — scaled to fit inside, centered at (40,40) -->
+  <!-- Top node + arm -->
+  <line x1="40" y1="34" x2="40" y2="21" stroke="#059669" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="40" cy="18" r="5" fill="#10b981"/>
+
+  <!-- Bottom node + arm -->
+  <line x1="40" y1="46" x2="40" y2="58" stroke="#059669" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="40" cy="61" r="5" fill="#10b981"/>
+
+  <!-- Left node + arm -->
+  <line x1="34" y1="40" x2="22" y2="40" stroke="#059669" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="19" cy="40" r="5" fill="#059669"/>
+
+  <!-- Right node + arm -->
+  <line x1="46" y1="40" x2="58" y2="40" stroke="#059669" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="61" cy="40" r="5" fill="#059669"/>
+
+  <!-- Central diamond -->
+  <polygon points="40,31 48,40 40,49 32,40" fill="url(#bg)"/>
+  <!-- Inner highlight -->
+  <polygon points="40,35 44,40 40,45 36,40" fill="#f0fdf4" opacity="0.5"/>
+
+  <!-- Text: "AX" dark + "ON" green gradient -->
+  <text x="85" y="50"
+        font-family="'Segoe UI', Arial, sans-serif"
+        font-size="33" font-weight="800">
+    <tspan fill="#1a2332">AX</tspan><tspan fill="url(#tg)">ON</tspan>
+  </text>
+
+  <!-- Subtitle -->
+  <text x="86" y="67"
+        font-family="'Segoe UI', Arial, sans-serif"
+        font-size="9" font-weight="400"
+        fill="#94a3b8" letter-spacing="3.2">BACKEND API</text>
+</svg>

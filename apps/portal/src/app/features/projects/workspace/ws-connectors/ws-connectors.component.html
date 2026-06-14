@@ -4,7 +4,7 @@
   <div class="wc-toolbar">
     <button class="wc-back" (click)="back()">
       <mat-icon>arrow_back</mat-icon>
-      <span>SPACEFLOW</span>
+      <span>FLOWSPACE</span>
     </button>
 
     <div class="wc-brand">
@@ -13,6 +13,9 @@
     </div>
 
     <div class="wc-tools">
+      <button class="btn-new-connector" (click)="openNew()" type="button">
+        + חיבור חדש
+      </button>
       @if (testResult()) {
         <div class="test-pill" [class.test-ok]="testResult()!.status === 'OK'"
              [class.test-fail]="testResult()!.status === 'FAIL'"
@@ -77,6 +80,14 @@
               </div>
             }
 
+            @if (c.ConnectorToken) {
+              <div class="card-uuid" (click)="copyToken(c.ConnectorToken)"
+                   [title]="'UUID: ' + c.ConnectorToken">
+                <span class="card-uuid-val">{{ c.ConnectorToken }}</span>
+                <span class="card-uuid-copy">{{ copiedToken() === c.ConnectorToken ? '✓' : '⎘' }}</span>
+              </div>
+            }
+
             <div class="card-actions">
               <button type="button" class="btn-test"
                       [disabled]="testRunning() === c.ConnectorKey"
@@ -89,6 +100,7 @@
               <button type="button" class="btn-edit" (click)="openEdit(c)">
                 ✎ {{ c.hasConfig ? 'ערוך' : 'הגדר' }}
               </button>
+              <button type="button" class="btn-delete-card" (click)="confirmDelete(c)" title="מחק חיבור">✕</button>
               <div class="enabled-dot" [class.on]="c.IsEnabled"
                    [title]="c.IsEnabled ? 'פעיל' : 'מושבת'"></div>
             </div>
@@ -108,6 +120,77 @@
 
 </div>
 
+<!-- ── New Connector Dialog ───────────────────────────────── -->
+@if (newOpen()) {
+  <kendo-dialog title="🔌 חיבור חדש" [width]="480" (close)="newOpen.set(false)">
+    <div class="edit-body">
+
+      @if (newError()) { <div class="edit-error">{{ newError() }}</div> }
+
+      <div class="edit-row">
+        <label class="edit-label">שם חיבור <span class="req">*</span></label>
+        <div class="edit-field">
+          <input class="edit-input" type="text" [(ngModel)]="newForm.connectorName"
+                 placeholder="לדוגמה: BITAN API, Slack, SMS Gateway" dir="rtl" />
+        </div>
+      </div>
+
+      <div class="edit-row">
+        <label class="edit-label">קטגוריה</label>
+        <div class="edit-field cat-select-wrap">
+          @for (cat of categories; track cat.id) {
+            <button type="button" class="cat-pick-btn"
+                    [class.active]="newForm.category === cat.id"
+                    (click)="onCategoryChange(cat.id)">
+              {{ cat.icon }} {{ cat.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="edit-row">
+        <label class="edit-label">תיאור</label>
+        <div class="edit-field">
+          <input class="edit-input" type="text" [(ngModel)]="newForm.description"
+                 placeholder="תיאור קצר של החיבור" dir="rtl" />
+        </div>
+      </div>
+
+    </div>
+    <kendo-dialog-actions>
+      <div class="edit-footer">
+        <button kendoButton class="btn-save" (click)="saveNew()" [disabled]="newSaving()">
+          @if (newSaving()) { <kendo-loader type="pulsing" size="small" /> } @else { ✓ }
+          צור חיבור
+        </button>
+        <button kendoButton fillMode="outline" class="btn-cancel"
+                (click)="newOpen.set(false)" [disabled]="newSaving()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}
+
+<!-- ── Delete Confirm Dialog ──────────────────────────────── -->
+@if (deleteOpen() && deleteConnector()) {
+  <kendo-dialog title="אישור מחיקה" [width]="420" (close)="cancelDelete()">
+    <div class="edit-body" style="text-align:center;padding:20px;">
+      <div style="font-size:2rem;margin-bottom:12px;">⚠️</div>
+      <p style="margin:0 0 8px;font-size:.9rem;color:#0f172a;">האם למחוק את החיבור <strong>{{ deleteConnector()!.ConnectorName }}</strong>?</p>
+      <p style="font-size:.78rem;color:#94a3b8;margin:0;">פעולה זו אינה ניתנת לביטול.</p>
+    </div>
+    <kendo-dialog-actions>
+      <div class="edit-footer">
+        <button kendoButton class="btn-save" style="background:#ef4444!important;"
+                (click)="doDelete()" [disabled]="deleteInProgress()">
+          @if (deleteInProgress()) { <kendo-loader type="pulsing" size="small" /> } @else { ✕ }
+          מחק
+        </button>
+        <button kendoButton fillMode="outline" class="btn-cancel" (click)="cancelDelete()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}
+
 <!-- ── Edit Dialog ─────────────────────────────────────────── -->
 @if (editOpen() && editConnector()) {
   <kendo-dialog
@@ -118,6 +201,21 @@
     <div class="edit-body">
       @if (editError()) { <div class="edit-error">{{ editError() }}</div> }
       <div class="edit-desc">{{ editConnector()!.Description }}</div>
+
+      <!-- UUID identifier -->
+      <div class="token-row">
+        <span class="token-label">מזהה חיצוני (UUID)</span>
+        <div class="token-field">
+          @if (editToken()) {
+            <code class="token-val">{{ editToken() }}</code>
+            <button type="button" class="btn-copy" (click)="copyToken(editToken()!)">
+              {{ copiedToken() === editToken() ? '✓ הועתק' : '⎘ העתק' }}
+            </button>
+          } @else {
+            <span class="token-empty">—</span>
+          }
+        </div>
+      </div>
 
       @for (field of editConnector()!.SchemaJSON; track field.key) {
         <div class="edit-row">
@@ -147,6 +245,37 @@
               <input type="number" class="edit-input"
                      [value]="getField(field.key) || field.default || ''"
                      (input)="setField(field.key, +$any($event.target).value)" />
+            } @else if (field.type === 'countries') {
+              <div class="countries-field">
+                <div class="seg-ctrl">
+                  <button type="button" class="seg-btn"
+                          [class.seg-on]="getField(field.key) === 'ALL'"
+                          (click)="setField(field.key, 'ALL')">🌍 הכל</button>
+                  <button type="button" class="seg-btn"
+                          [class.seg-on]="getField(field.key) !== 'ALL'"
+                          (click)="setField(field.key, getField(field.key) === 'ALL' ? (field.default || 'IL') : getField(field.key))">
+                    🚩 רשימה
+                  </button>
+                </div>
+                @if (getField(field.key) !== 'ALL') {
+                  <input type="text" class="edit-input countries-input"
+                         [value]="getField(field.key)"
+                         [placeholder]="field.placeholder || 'IL,US,GB'"
+                         dir="ltr"
+                         (input)="setField(field.key, $any($event.target).value)" />
+                  <span class="countries-hint">קודי ISO-2 מופרדים בפסיק</span>
+                }
+              </div>
+            } @else if (field.type === 'select') {
+              <select class="edit-input edit-select"
+                      (change)="setField(field.key, $any($event.target).value)">
+                @for (opt of field.options || []; track opt) {
+                  <option [value]="opt"
+                          [selected]="(getField(field.key) || field.default) === opt">
+                    {{ opt }}
+                  </option>
+                }
+              </select>
             } @else {
               <input type="text" class="edit-input" [value]="getField(field.key)"
                      [placeholder]="field.placeholder || field.default || ''"
@@ -165,6 +294,28 @@
             <button type="button" class="seg-btn" [class.seg-off]="!editEnabled()"
                     (click)="editEnabled.set(false)">✗ מושבת</button>
           </div>
+        </div>
+      </div>
+
+      <div class="edit-row">
+        <label class="edit-label">הרשאת גישה</label>
+        <div class="edit-field">
+          <div class="seg-ctrl access-ctrl">
+            <button type="button" class="seg-btn"
+                    [class.seg-public]="editAccessMode() === 'PUBLIC'"
+                    (click)="editAccessMode.set('PUBLIC')">🌐 ציבורי</button>
+            <button type="button" class="seg-btn"
+                    [class.seg-approval]="editAccessMode() === 'APPROVAL_REQUIRED'"
+                    (click)="editAccessMode.set('APPROVAL_REQUIRED')">🔔 טעון אישור</button>
+            <button type="button" class="seg-btn"
+                    [class.seg-private]="editAccessMode() === 'PRIVATE'"
+                    (click)="editAccessMode.set('PRIVATE')">🔒 פרטי</button>
+          </div>
+          <span class="access-hint">
+            @if (editAccessMode() === 'PUBLIC') { גישה חיצונית מיידית עם UUID+JWT }
+            @if (editAccessMode() === 'APPROVAL_REQUIRED') { דורש אישור מנהל מערכת }
+            @if (editAccessMode() === 'PRIVATE') { חסום לגישה חיצונית }
+          </span>
         </div>
       </div>
     </div>

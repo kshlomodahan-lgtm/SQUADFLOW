@@ -1,0 +1,144 @@
+<div class="ca-wrap">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h2>בקשות גישה לחיבורים</h2>
+      <p>אישור או דחיית בקשות גישה חיצוניות ל-Connectors</p>
+    </div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="filter-tabs">
+    @for (f of filters; track f.id) {
+      <button class="filter-tab" [class.active]="filter() === f.id"
+              (click)="setFilter(f.id)" type="button">
+        {{ f.label }}
+        @if (f.id === filter()) {
+          <span class="filter-count">{{ requests().length }}</span>
+        }
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="ca-loading"><mat-spinner diameter="36" /></div>
+  } @else if (error()) {
+    <div class="ca-error">{{ error() }}</div>
+  } @else {
+
+    <kendo-grid
+      class="ca-grid"
+      [data]="{ data: paged(), total: requests().length }"
+      [skip]="skip" [pageSize]="pageSize"
+      [pageable]="{ buttonCount: 5, info: true, pageSizes: [10, 25, 50] }"
+      [sortable]="{ mode: 'single', allowUnsort: false }"
+      [sort]="sort"
+      [reorderable]="true" [resizable]="true"
+      scrollable="none"
+      (pageChange)="onPageChange($event)"
+      (sortChange)="onSortChange($event)">
+
+      <!-- Connector -->
+      <kendo-grid-column title="חיבור" field="ConnectorName">
+        <ng-template kendoGridCellTemplate let-r>
+          <div class="cell-connector">
+            <span class="conn-emoji">{{ r.IconEmoji }}</span>
+            <div>
+              <div class="conn-name">{{ r.ConnectorName }}</div>
+              <div class="conn-key">{{ r.Category }}</div>
+            </div>
+          </div>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- UUID -->
+      <kendo-grid-column title="UUID" field="ConnectorToken" [width]="300">
+        <ng-template kendoGridCellTemplate let-r>
+          <code class="uuid-cell">{{ r.ConnectorToken || '—' }}</code>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Caller -->
+      <kendo-grid-column title="מבקש גישה" field="CallerInfo" [width]="160">
+        <ng-template kendoGridCellTemplate let-r>
+          <span class="caller-name">{{ callerDisplay(r.CallerInfo) }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Requested At -->
+      <kendo-grid-column title="תאריך בקשה" field="RequestedAt" [width]="140">
+        <ng-template kendoGridCellTemplate let-r>
+          {{ formatDate(r.RequestedAt) }}
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Status -->
+      <kendo-grid-column title="סטטוס" field="Status" [width]="110">
+        <ng-template kendoGridCellTemplate let-r>
+          <span class="status-badge" [class]="statusClass(r.Status)">{{ statusLabel(r.Status) }}</span>
+        </ng-template>
+      </kendo-grid-column>
+
+      <!-- Actions -->
+      <kendo-grid-column title="" [width]="160" [sortable]="false" [resizable]="false" [columnMenu]="false">
+        <ng-template kendoGridCellTemplate let-r>
+          <div class="row-actions">
+            @if (r.Status === 'PENDING') {
+              <button class="btn-approve" [disabled]="actionInProgress() === r.RequestID"
+                      (click)="openConfirm(r, 'approve')">✓ אשר</button>
+              <button class="btn-deny"   [disabled]="actionInProgress() === r.RequestID"
+                      (click)="openConfirm(r, 'deny')">✗ דחה</button>
+            } @else {
+              <span class="action-done">{{ formatDate(r.ApprovedAt) }}</span>
+            }
+          </div>
+        </ng-template>
+      </kendo-grid-column>
+
+      <kendo-grid-messages
+        pagerItemsPerPage="שורות בעמוד" pagerOf="מתוך" pagerItems="בקשות"
+        noRecords="אין בקשות" loading="טוען..." />
+
+    </kendo-grid>
+  }
+
+</div>
+
+<!-- Confirm Dialog -->
+@if (confirmOpen() && confirmItem()) {
+  <kendo-dialog
+    [title]="confirmAction() === 'approve' ? 'אישור גישה לחיבור' : 'דחיית בקשת גישה'"
+    [width]="460" (close)="closeConfirm()">
+
+    <div class="confirm-body" dir="rtl">
+      <div class="confirm-conn">
+        <span class="conn-emoji">{{ confirmItem()!.IconEmoji }}</span>
+        <strong>{{ confirmItem()!.ConnectorName }}</strong>
+      </div>
+      <p class="confirm-text">
+        @if (confirmAction() === 'approve') {
+          מערכת חיצונית תוכל לגשת לחיבור זה עם ה-UUID.
+        } @else {
+          הבקשה תידחה והגישה תחסם.
+        }
+      </p>
+      <div class="confirm-notes">
+        <label>הערות (אופציונלי)</label>
+        <textarea rows="2" [value]="confirmNotes()"
+                  (input)="confirmNotes.set($any($event.target).value)"></textarea>
+      </div>
+    </div>
+
+    <kendo-dialog-actions>
+      <div class="confirm-footer">
+        @if (confirmAction() === 'approve') {
+          <button class="btn-save" (click)="doAction()">✓ אשר גישה</button>
+        } @else {
+          <button class="btn-danger" (click)="doAction()">✗ דחה בקשה</button>
+        }
+        <button class="btn-cancel" (click)="closeConfirm()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}

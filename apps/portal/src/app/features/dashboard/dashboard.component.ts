@@ -44,6 +44,13 @@ interface PlatformStats {
   topPackages:      TopPackage[];
 }
 
+interface TenantStats {
+  users:      { total: number; active: number };
+  projects:   { total: number; active: number };
+  connectors: number;
+  recentProjects: { ProjectID: number; ProjectCode: string; ProjectName: string; IsActive: boolean; CreatedAt: string }[];
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -52,9 +59,15 @@ interface PlatformStats {
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent implements OnInit {
-  stats   = signal<PlatformStats | null>(null);
-  loading = signal(true);
-  error   = signal('');
+  stats        = signal<PlatformStats | null>(null);
+  tenantStats  = signal<TenantStats | null>(null);
+  loading      = signal(true);
+  error        = signal('');
+
+  get isPlatformAdmin(): boolean {
+    const u = this.auth.user();
+    return u?.tenantId === 1 && u?.roleId === 1;
+  }
 
   readonly icons: Record<string, SVGIcon> = {
     buildings: buildingsIcon,
@@ -140,30 +153,39 @@ export class DashboardComponent implements OnInit {
   constructor(public auth: AuthService, private http: HttpClient) {}
 
   ngOnInit() {
-    this.http.get<{ success: boolean } & PlatformStats>('/api/stats/platform').subscribe({
-      next: r => {
-        if (r.success) {
-          this.stats.set({
-            ...r,
-            products:    r.products    ?? { total: 0, active: 0, inactive: 0, draft: 0, deprecated: 0 },
-            packages:    r.packages    ?? { total: 0, active: 0, inactive: 0, public: 0 },
-            topPackages: r.topPackages ?? [],
-          });
-        } else {
-          this.error.set('השרת החזיר שגיאה — בדוק את הלוג');
-        }
-        this.loading.set(false);
-      },
-      error: err => {
-        const status = err.status;
-        if (status === 401 || status === 403)
-          this.error.set('פג תוקף הסשן — יש להתנתק ולהתחבר מחדש');
-        else if (status === 0)
-          this.error.set('לא ניתן להתחבר לשרת — ודא שה-backend פועל');
-        else
-          this.error.set(`שגיאה ${status} — ${err.message}`);
-        this.loading.set(false);
-      },
-    });
+    const endpoint = this.isPlatformAdmin ? '/api/stats/platform' : '/api/stats/tenant';
+
+    if (this.isPlatformAdmin) {
+      this.http.get<{ success: boolean } & PlatformStats>(endpoint).subscribe({
+        next: r => {
+          if (r.success) {
+            this.stats.set({
+              ...r,
+              products:    r.products    ?? { total: 0, active: 0, inactive: 0, draft: 0, deprecated: 0 },
+              packages:    r.packages    ?? { total: 0, active: 0, inactive: 0, public: 0 },
+              topPackages: r.topPackages ?? [],
+            });
+          } else {
+            this.error.set('השרת החזיר שגיאה — בדוק את הלוג');
+          }
+          this.loading.set(false);
+        },
+        error: err => {
+          this.error.set(err.status === 0 ? 'לא ניתן להתחבר לשרת — ודא שה-backend פועל' : `שגיאה ${err.status}`);
+          this.loading.set(false);
+        },
+      });
+    } else {
+      this.http.get<{ success: boolean } & TenantStats>(endpoint).subscribe({
+        next: r => {
+          if (r.success) this.tenantStats.set(r);
+          this.loading.set(false);
+        },
+        error: err => {
+          this.error.set(err.status === 0 ? 'לא ניתן להתחבר לשרת' : `שגיאה ${err.status}`);
+          this.loading.set(false);
+        },
+      });
+    }
   }
 }

@@ -71,6 +71,8 @@ export class ProjectDialogComponent implements OnInit {
       status:        [p?.Status        ?? 'draft'],
       startDate:     [p?.StartDate     ? new Date(p.StartDate)  : null],
       targetDate:    [p?.TargetDate    ? new Date(p.TargetDate) : null],
+      githubUrl:     [p?.GithubUrl     ?? ''],
+      devUrl:        [p?.DevUrl        ?? ''],
     });
   }
 

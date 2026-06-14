@@ -14,6 +14,7 @@ import { UserService } from '../../core/services/user.service';
 import { User } from '../../core/models/user.model';
 import { UserDialogComponent } from './user-dialog/user-dialog.component';
 import { HasPermDirective } from '../../core/directives/has-perm.directive';
+import { LogicPermsComponent } from '../settings/logic-perms/logic-perms.component';
 
 @Component({
   selector: 'app-users',
@@ -24,6 +25,7 @@ import { HasPermDirective } from '../../core/directives/has-perm.directive';
     MatIconModule, MatProgressSpinnerModule,
     UserDialogComponent,
     HasPermDirective,
+    LogicPermsComponent,
   ],
   templateUrl: './users.component.html',
   styleUrl:    './users.component.scss',
@@ -48,6 +50,9 @@ export class UsersComponent implements OnInit {
 
   dialogOpen = signal(false);
   dialogUser = signal<User | null>(null);
+
+  permsOpen: boolean = false;
+  permsUser: User | null = null;
 
   expandedIds = new Set<number>();
 
@@ -90,6 +95,9 @@ export class UsersComponent implements OnInit {
   openAdd()         { this.dialogUser.set(null); this.dialogOpen.set(false); setTimeout(() => this.dialogOpen.set(true)); }
   openEdit(u: User) { this.dialogUser.set(u); this.dialogOpen.set(false); setTimeout(() => this.dialogOpen.set(true)); }
   onSaved()         { this.load(); }
+
+  openPerms(u: User) { this.permsUser = u; this.permsOpen = true; }
+  closePerms()        { this.permsOpen = false; this.permsUser = null; }
 
   toggleDetail(u: User, rowIndex: number) {
     const abs = this.skip + rowIndex;

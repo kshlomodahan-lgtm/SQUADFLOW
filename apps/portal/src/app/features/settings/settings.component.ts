@@ -26,6 +26,9 @@ import { OrgChartComponent } from './org-chart/org-chart.component';
 import { GroupsComponent } from './groups/groups.component';
 import { ConnectorsComponent } from './connectors/connectors.component';
 import { OrgSettingsComponent } from './org-settings/org-settings.component';
+import { ProfilesComponent } from './profiles/profiles.component';
+import { PermissionCodesComponent } from './permission-codes/permission-codes.component';
+import { ContentGroupsComponent } from './content-groups/content-groups.component';
 
 interface SettingGroup  { id: string; text: string; icon: SVGIcon; }
 interface EditNavGroup  { id: string; text: string; icon: SVGIcon; }
@@ -39,7 +42,8 @@ interface EditNavGroup  { id: string; text: string; icon: SVGIcon; }
             GridModule, MatProgressSpinnerModule, DialogModule,
             AuditActionTypesComponent, AuditEntityTypesComponent,
             MenuManagerComponent, RolesManagerComponent, OrgChartComponent, GroupsComponent,
-            ConnectorsComponent, OrgSettingsComponent],
+            ConnectorsComponent, OrgSettingsComponent,
+            ProfilesComponent, PermissionCodesComponent, ContentGroupsComponent],
   providers: [NotificationService],
   templateUrl: './settings.component.html',
   styleUrl:    './settings.component.scss',
@@ -55,19 +59,29 @@ export class SettingsComponent {
   auditSubGroup    = signal<'action-types' | 'entity-types'>('action-types');
 
   readonly groups: SettingGroup[] = [
-    { id: 'general',       text: 'כללי',          icon: gearIcon           },
-    { id: 'security',      text: 'אבטחה',         icon: passwordIcon       },
-    { id: 'theme',         text: 'מראה ועיצוב',  icon: paletteIcon        },
-    { id: 'notifications', text: 'התראות',        icon: bellIcon           },
-    { id: 'organization',  text: 'ארגון',         icon: buildingsIcon      },
-    { id: 'billing',       text: 'חיוב ומנוי',   icon: walletIcon         },
-    { id: 'counters',      text: 'מונים',         icon: tableIcon          },
-    { id: 'audit-log',     text: 'יומן פעילות',  icon: clipboardTextIcon  },
-    { id: 'menu-tree',     text: 'עץ תפריטים',  icon: menuIcon           },
-    { id: 'roles',         text: 'תפקידים והרשאות', icon: lockIcon        },
-    { id: 'org-chart',     text: 'מבנה ארגוני', icon: buildingsIcon      },
-    { id: 'groups',        text: 'קבוצות',       icon: filterIcon         },
-    { id: 'connectors',   text: 'חיבורים',      icon: globeIcon          },
+    { id: 'general',        text: 'כללי',              icon: gearIcon          },
+    { id: 'theme',          text: 'מראה ועיצוב',      icon: paletteIcon       },
+    { id: 'notifications',  text: 'התראות',            icon: bellIcon          },
+    { id: 'organization',   text: 'ארגון',             icon: buildingsIcon     },
+    { id: 'billing',        text: 'חיוב ומנוי',       icon: walletIcon        },
+    { id: 'counters',       text: 'מונים',             icon: tableIcon         },
+    { id: 'audit-log',      text: 'יומן פעילות',      icon: clipboardTextIcon },
+    { id: 'security-perms', text: 'אבטחה והרשאות',    icon: lockIcon          },
+    { id: 'connectors',     text: 'חיבורים',           icon: globeIcon         },
+  ];
+
+  // ── Security & Permissions sub-tabs ──────────────────────
+  securitySubGroup = signal('security');
+
+  readonly securitySubTabs = [
+    { id: 'security',       text: 'אבטחה'         },
+    { id: 'menu-tree',      text: 'עץ תפריטים'    },
+    { id: 'org-chart',      text: 'מבנה ארגוני'   },
+    { id: 'roles',          text: 'תפקידים'        },
+    { id: 'profiles',       text: 'פרופילים'       },
+    { id: 'groups',         text: 'קבוצות'         },
+    { id: 'content-groups', text: 'קבוצות תוכן'   },
+    { id: 'perm-codes',     text: 'הרשאות'         },
   ];
 
   // ── Counters — רשימה ──────────────────────────────────────

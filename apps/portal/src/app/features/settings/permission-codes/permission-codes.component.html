@@ -1,0 +1,218 @@
+<div class="perm-wrap">
+
+  <div class="page-header">
+    <h2>הרשאות</h2>
+    <button class="btn-save" (click)="openNew()">✓ הרשאה חדשה</button>
+  </div>
+
+  <!-- filters -->
+  <div class="toolbar">
+    <div class="scope-chips">
+      <button class="chip" [class.active]="filterScope() === ''"               (click)="setScope('')">הכל</button>
+      <button class="chip" [class.active]="filterScope() === 'MENU'"           (click)="setScope('MENU')">תפריט</button>
+      <button class="chip" [class.active]="filterScope() === 'SCREEN'"         (click)="setScope('SCREEN')">מסך</button>
+      <button class="chip" [class.active]="filterScope() === 'CONTROL'"        (click)="setScope('CONTROL')">פקד</button>
+      <button class="chip" [class.active]="filterScope() === 'BUSINESS_LOGIC'" (click)="setScope('BUSINESS_LOGIC')">לוגיקה עסקית</button>
+    </div>
+    @if (filterScope() === 'CONTROL') {
+      <div class="scope-chips ctrl-sub-chips">
+        <span class="sub-label">סוג פקד:</span>
+        <button class="chip chip-sm" [class.active]="filterControlType() === ''"       (click)="filterControlType.set('')">הכל</button>
+        <button class="chip chip-sm" [class.active]="filterControlType() === 'BUTTON'" (click)="filterControlType.set('BUTTON')">כפתור</button>
+        <button class="chip chip-sm" [class.active]="filterControlType() === 'FIELD'"  (click)="filterControlType.set('FIELD')">שדה</button>
+        <button class="chip chip-sm" [class.active]="filterControlType() === 'TAB'"    (click)="filterControlType.set('TAB')">טאב</button>
+        <button class="chip chip-sm" [class.active]="filterControlType() === 'PANEL'"  (click)="filterControlType.set('PANEL')">פאנל</button>
+        <button class="chip chip-sm" [class.active]="filterControlType() === 'COLUMN'" (click)="filterControlType.set('COLUMN')">עמודה</button>
+      </div>
+    }
+    @if (allTags.length) {
+      <div class="tag-filter-chips">
+        <span class="tag-filter-label">תג:</span>
+        <button class="chip tag-chip" [class.active]="filterTag() === ''" (click)="filterTag.set('')">הכל</button>
+        @for (t of allTags; track t) {
+          <button class="chip tag-chip" [class.active]="filterTag() === t" (click)="filterTag.set(t)">{{ t }}</button>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="grid-wrap">
+    @if (loading()) {
+      <div class="center-spin"><mat-spinner diameter="40"/></div>
+    } @else if (error()) {
+      <div class="error-box">{{ error() }}</div>
+    } @else {
+      <kendo-grid class="perm-grid"
+        [data]="{ data: pagedData, total: filteredCodes.length }"
+        [skip]="skip" [pageSize]="pageSize"
+        [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [25, 50, 100] }"
+        [sortable]="{ mode: 'single', allowUnsort: false }"
+        [sort]="sort" [reorderable]="true" [resizable]="true" [columnMenu]="true"
+        scrollable="scrollable"
+        (pageChange)="onPageChange($event)" (sortChange)="onSortChange($event)">
+
+        <!-- הרחבת שורה -->
+        <ng-template kendoGridDetailTemplate let-row>
+          <div class="perm-detail-card">
+            <div class="detail-group">
+              <div class="detail-group-title">מזהה</div>
+              <div class="detail-fields">
+                <div class="detail-field"><span class="df-label">קוד פנימי</span><span class="df-val badge-code">{{ row.PermCode }}</span></div>
+                <div class="detail-field"><span class="df-label">סוג</span><span class="df-val"><span class="scope-badge" [class]="scopeClass(row.Scope)">{{ scopeLabel(row.Scope) }}</span> @if (row.ControlType) { <span class="ctrl-badge">{{ row.ControlType }}</span> }</span></div>
+                <div class="detail-field"><span class="df-label">מקור</span><span class="df-val">{{ row.SourceType === 'SCANNER' ? 'מובנית (סורק)' : 'ידנית' }}</span></div>
+              </div>
+            </div>
+            @if (row.Tags) {
+              <div class="detail-group">
+                <div class="detail-group-title">תגים</div>
+                <div class="detail-fields">
+                  <div class="tags-cell">
+                    @for (t of parseTags(row.Tags); track t) { <span class="tag-badge">{{ t }}</span> }
+                  </div>
+                </div>
+              </div>
+            }
+            @if (row.Notes) {
+              <div class="detail-group detail-group-full">
+                <div class="detail-group-title">הערות</div>
+                <p class="detail-notes">{{ row.Notes }}</p>
+              </div>
+            }
+            @if (row.Scope && row.Scope !== 'BUSINESS_LOGIC') {
+              <div class="detail-group detail-group-full">
+                <div class="detail-group-title">פעולות מורשות</div>
+                <p class="detail-notes" style="color: var(--sf-text-muted)">יוגדרו בשלב הבא</p>
+              </div>
+            }
+          </div>
+        </ng-template>
+
+        <!-- שם / קוד -->
+        <kendo-grid-column field="PermName" title="שם הרשאה">
+          <ng-template kendoGridCellTemplate let-row>
+            <div class="name-cell">
+              <span class="perm-name">{{ row.PermName || row.PermCode }}</span>
+              @if (row.PermName) { <span class="badge-code small">{{ row.PermCode }}</span> }
+            </div>
+          </ng-template>
+        </kendo-grid-column>
+
+        <!-- סוג -->
+        <kendo-grid-column field="Scope" title="סוג" [width]="140">
+          <ng-template kendoGridCellTemplate let-row>
+            <span class="scope-badge" [class]="scopeClass(row.Scope)">{{ scopeLabel(row.Scope) }}</span>
+            @if (row.ControlType) { <span class="ctrl-badge">{{ row.ControlType }}</span> }
+          </ng-template>
+        </kendo-grid-column>
+
+        <!-- תגים -->
+        <kendo-grid-column field="Tags" title="תגים" [width]="200">
+          <ng-template kendoGridCellTemplate let-row>
+            <div class="tags-cell">
+              @for (t of parseTags(row.Tags); track t) {
+                <span class="tag-badge" (click)="filterTag.set(t)">{{ t }}</span>
+              }
+            </div>
+          </ng-template>
+        </kendo-grid-column>
+
+        <!-- סטטוס -->
+        <kendo-grid-column field="IsActive" title="סטטוס" [width]="90">
+          <ng-template kendoGridCellTemplate let-row>
+            <span class="badge" [class.badge-active]="row.IsActive" [class.badge-locked]="!row.IsActive">
+              {{ row.IsActive ? 'פעיל' : 'נעול' }}
+            </span>
+          </ng-template>
+        </kendo-grid-column>
+
+        <!-- פעולות -->
+        <kendo-grid-column title="" [width]="104" [sortable]="false" [resizable]="false" [columnMenu]="false">
+          <ng-template kendoGridCellTemplate let-row let-rowIndex="rowIndex">
+            <div class="row-actions">
+              <button class="act-btn act-expand" [class.expanded]="isExpanded(row.PermCodeID)"
+                      [title]="isExpanded(row.PermCodeID) ? 'סגור' : 'פרטים'"
+                      (click)="toggleDetail(row, rowIndex)">
+                <i class="pi" [class.pi-chevron-down]="!isExpanded(row.PermCodeID)" [class.pi-chevron-up]="isExpanded(row.PermCodeID)"></i>
+              </button>
+              <button class="act-btn" [class.act-lock]="row.IsActive" [class.act-unlock]="!row.IsActive"
+                      [title]="row.IsActive ? 'נעל' : 'שחרר'" (click)="toggleLock(row)">
+                <i class="pi" [class.pi-lock]="row.IsActive" [class.pi-lock-open]="!row.IsActive"></i>
+              </button>
+              <button class="act-btn act-edit" title="ערוך" (click)="openEdit(row)">
+                <i class="pi pi-pencil"></i>
+              </button>
+            </div>
+          </ng-template>
+        </kendo-grid-column>
+
+        <kendo-grid-messages pagerItemsPerPage="שורות בעמוד" pagerOf="מתוך" pagerItems="רשומות"
+          noRecords="לא נמצאו הרשאות" loading="טוען..."
+          columnMenuFilter="סנן" columnMenuSort="מיון" columnMenuColumns="עמודות"
+          columnMenuSortAscending="עולה" columnMenuSortDescending="יורד" />
+      </kendo-grid>
+    }
+  </div>
+</div>
+
+<!-- ═══ דיאלוג הוספה / עריכה ═══ -->
+@if (dialogOpen()) {
+  <kendo-dialog [title]="editingCode ? 'עריכת הרשאה' : 'הרשאה חדשה'"
+                [width]="480" [minWidth]="360" (close)="closeDialog()">
+    <form [formGroup]="form" class="perm-form" dir="rtl">
+
+      <div class="form-row">
+        <label>שם הרשאה @if (!editingCode || editingCode.SourceType !== 'SCANNER') { <span class="req">*</span> }</label>
+        @if (editingCode?.SourceType === 'SCANNER') {
+          <div class="readonly-field">{{ editingCode!.PermName }}</div>
+          <span class="field-hint">הרשאה מובנית — השם נקבע אוטומטית ואינו ניתן לעריכה</span>
+        } @else {
+          <kendo-textbox formControlName="permName" placeholder="אישור חשבונית בסכום גבוה" />
+          @if (form.get('permName')?.invalid && form.get('permName')?.touched) {
+            <span class="field-err">שם חובה</span>
+          }
+        }
+      </div>
+
+      <div class="form-row">
+        <label>תגים</label>
+        <div class="tag-input-wrap">
+          <div class="tag-chips-row">
+            @for (t of currentTags; track t) {
+              <span class="tag-badge editable">{{ t }}<button type="button" class="tag-remove" (click)="removeTag(t)">×</button></span>
+            }
+          </div>
+          <input class="tag-input" type="text" placeholder="הוסף תג — Enter לאישור"
+                 [(ngModel)]="tagInput" [ngModelOptions]="{standalone: true}"
+                 (keydown)="onTagKeydown($event)" (blur)="addTag()" />
+        </div>
+        <span class="field-hint">לחץ Enter או פסיק להוספת תג</span>
+      </div>
+
+      <div class="form-row">
+        <label>הערות</label>
+        <textarea class="notes-area" formControlName="notes" rows="3"
+                  placeholder="תיאור חופשי, הקשר, מתי להשתמש..."></textarea>
+      </div>
+
+      <div class="form-row">
+        <label>סטטוס</label>
+        <div class="seg-ctrl">
+          <button type="button" class="seg-btn" [class.seg-on]="!!form.get('isActive')?.value"
+                  (click)="form.get('isActive')?.setValue(true)">✓ פעיל</button>
+          <button type="button" class="seg-btn" [class.seg-off]="!form.get('isActive')?.value"
+                  (click)="form.get('isActive')?.setValue(false)">✗ נעול</button>
+        </div>
+      </div>
+
+    </form>
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-save" [disabled]="saving()" (click)="save()">
+          @if (saving()) { <kendo-loader size="small" themeColor="primary" /> } @else { ✓ שמור }
+        </button>
+        <button class="btn-cancel" (click)="closeDialog()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}
+

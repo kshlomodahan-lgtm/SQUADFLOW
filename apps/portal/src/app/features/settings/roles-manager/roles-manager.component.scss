@@ -1,4 +1,6 @@
-.roles-wrap { padding: 0; }
+:host { display: block; width: 100%; height: 100%; }
+
+.roles-wrap { padding: 0; height: 100%; display: flex; flex-direction: column; }
 
 .mgr-header {
   display: flex; align-items: flex-start; justify-content: space-between;
@@ -20,7 +22,8 @@
   border: 1px solid var(--sf-border);
   border-radius: 12px;
   overflow: hidden;
-  min-height: 500px;
+  flex: 1;
+  min-height: 0;
 }
 
 // ─── Role Panel ───────────────────────────────────────────────

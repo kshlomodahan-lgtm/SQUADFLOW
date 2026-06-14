@@ -12,6 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { SortDescriptor, orderBy } from '@progress/kendo-data-query';
 import { NotificationService, NotificationModule } from '@progress/kendo-angular-notification';
+import { LogicPermsComponent } from '../logic-perms/logic-perms.component';
 
 interface Group {
   GroupID:    number;
@@ -21,17 +22,15 @@ interface Group {
   ColorHex:   string;
   IsActive:   boolean;
   UserCount:  number;
-  RoleNames:  string;
 }
-
-interface Role { RoleID: number; RoleName: string; RoleCode: string; }
 
 @Component({
   selector: 'app-groups',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, GridModule, DialogModule,
             ButtonModule, TextBoxModule, IndicatorsModule, IconsModule,
-            MatProgressSpinnerModule, MatIconModule, NotificationModule],
+            MatProgressSpinnerModule, MatIconModule, NotificationModule,
+            LogicPermsComponent],
   providers: [NotificationService],
   templateUrl: './groups.component.html',
   styleUrl:    './groups.component.scss',
@@ -40,13 +39,14 @@ export class GroupsComponent implements OnInit {
   loading   = signal(true);
   error     = signal('');
   groups    = signal<Group[]>([]);
-  roles     = signal<Role[]>([]);
   dialogOpen = signal(false);
   saving     = signal(false);
   editingGroup: Group | null = null;
 
+  permsOpen:  boolean = false;
+  permsGroup: Group | null = null;
+
   form!: FormGroup;
-  selectedRoleIds: number[] = [];
 
   skip     = 0;
   pageSize = 50;
@@ -57,10 +57,7 @@ export class GroupsComponent implements OnInit {
 
   constructor(private http: HttpClient, private fb: FormBuilder, private notif: NotificationService) {}
 
-  ngOnInit() {
-    this.load();
-    this.loadRoles();
-  }
+  ngOnInit() { this.load(); }
 
   load() {
     this.loading.set(true);
@@ -70,15 +67,8 @@ export class GroupsComponent implements OnInit {
     });
   }
 
-  loadRoles() {
-    this.http.get<any>('/api/users/roles').subscribe({
-      next: r => this.roles.set(r.roles ?? []),
-    });
-  }
-
   openNew() {
     this.editingGroup = null;
-    this.selectedRoleIds = [];
     this.form = this.fb.group({
       groupName:   ['', Validators.required],
       groupCode:   ['', [Validators.required, Validators.pattern(/^[A-Z0-9_]+$/)]],
@@ -100,25 +90,18 @@ export class GroupsComponent implements OnInit {
       isActive:    [g.IsActive],
       sortOrder:   [0],
     });
-    this.selectedRoleIds = [];
     this.dialogOpen.set(true);
   }
 
   closeDialog() { this.dialogOpen.set(false); this.editingGroup = null; }
 
-  isRoleSelected(roleId: number): boolean { return this.selectedRoleIds.includes(roleId); }
-
-  toggleRole(roleId: number) {
-    if (this.isRoleSelected(roleId))
-      this.selectedRoleIds = this.selectedRoleIds.filter(id => id !== roleId);
-    else
-      this.selectedRoleIds = [...this.selectedRoleIds, roleId];
-  }
+  openPerms(g: Group) { this.permsGroup = g; this.permsOpen = true; }
+  closePerms()         { this.permsOpen = false; this.permsGroup = null; }
 
   save() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.saving.set(true);
-    const payload = { ...this.form.value, roleIds: this.selectedRoleIds };
+    const payload = { ...this.form.value };
 
     const req = this.editingGroup
       ? this.http.put<any>(`/api/groups/${this.editingGroup.GroupID}`, payload)

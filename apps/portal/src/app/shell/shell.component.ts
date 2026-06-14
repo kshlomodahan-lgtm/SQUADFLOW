@@ -10,7 +10,7 @@ import { RbacService } from '../core/services/rbac.service';
 import { AiProcessingOverlayComponent } from '../shared/components/ai-processing/ai-processing-overlay.component';
 
 interface NavItem  { icon: string; label: string; route: string; }
-interface NavGroup { label: string; items: NavItem[]; }
+interface NavGroup { label: string; items: NavItem[]; hidePlatform?: boolean; platformOnly?: boolean; }
 
 @Component({
   selector: 'app-shell',
@@ -37,7 +37,8 @@ export class ShellComponent implements OnInit {
       ],
     },
     {
-      label: 'FLOWSPACE',
+      label: 'SpaceFlow',
+      hidePlatform: true,
       items: [
         { icon: 'rocket_launch', label: 'פרויקטים', route: '/app/projects' },
       ],
@@ -53,13 +54,8 @@ export class ShellComponent implements OnInit {
     {
       label: 'DevTools',
       items: [
-        { icon: 'manage_search', label: 'יומן פעילות', route: '/app/audit' },
-      ],
-    },
-    {
-      label: 'ארכים — עמלות',
-      items: [
-        { icon: 'receipt_long', label: 'הזמנות', route: '/app/arachim/orders' },
+        { icon: 'manage_search', label: 'יומן פעילות',     route: '/app/audit' },
+        { icon: 'vpn_key',      label: 'גישה לחיבורים', route: '/app/connector-access' },
       ],
     },
     {
@@ -69,6 +65,15 @@ export class ShellComponent implements OnInit {
       ],
     },
   ];
+
+  get isPlatformAdmin(): boolean {
+    const u = this.auth.user();
+    return u?.tenantId === 1 && u?.roleId === 1;
+  }
+
+  get visibleGroups(): NavGroup[] {
+    return this.navGroups.filter(g => this.isPlatformAdmin ? !g.hidePlatform : !g.platformOnly);
+  }
 
   constructor(
     public auth:  AuthService,

@@ -1,3 +1,10 @@
+:host {
+  display: block; width: 100%;
+  background: var(--sf-bg-card); border-radius: 12px;
+  border: 1px solid var(--sf-border); padding: 20px 24px;
+  box-sizing: border-box;
+}
+
 // ── Header ──────────────────────────────────────────────────
 .page-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -79,10 +86,11 @@
   transition: background .15s;
   i { font-size: .9rem; }
 }
-.act-open   { color: var(--sf-primary); background: var(--sf-primary-light); &:hover { background: var(--sf-primary); color: #fff; } }
-.act-expand { color: var(--sf-text-secondary); &:hover { background: var(--sf-bg-hover); color: var(--sf-primary); } &.expanded { color: var(--sf-primary); } }
-.act-edit   { color: #3b82f6; &:hover { background: #eff6ff; } }
-.act-delete { color: #ef4444; &:hover { background: #fef2f2; } }
+.act-open    { color: var(--sf-primary); background: var(--sf-primary-light); &:hover { background: var(--sf-primary); color: #fff; } }
+.act-browser { color: #059669; background: #d1fae5; &:hover { background: #059669; color: #fff; } &:disabled { opacity: .35; cursor: not-allowed; } }
+.act-expand  { color: var(--sf-text-secondary); &:hover { background: var(--sf-bg-hover); color: var(--sf-primary); } &.expanded { color: var(--sf-primary); } }
+.act-edit    { color: #3b82f6; &:hover { background: #eff6ff; } }
+.act-delete  { color: #ef4444; &:hover { background: #fef2f2; } }
 
 // ── Detail Card ───────────────────────────────────────────────
 .project-detail-card {

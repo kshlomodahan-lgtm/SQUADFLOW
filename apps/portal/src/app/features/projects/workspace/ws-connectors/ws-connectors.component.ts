@@ -17,12 +17,13 @@ import {
 } from '../../../settings/connectors/connectors.component';
 
 const CATEGORY_META: Record<string, { label: string; icon: string }> = {
-  AI:       { label: 'AI ואוטומציה',          icon: '🤖' },
-  DATABASE: { label: 'בסיסי נתונים',           icon: '🗄️' },
-  EMAIL:    { label: 'דוא"ל',                icon: '📧' },
-  STORAGE:  { label: 'אחסון קבצים',           icon: '☁️' },
-  WEBHOOK:  { label: 'Webhooks ואינטגרציות',   icon: '🔗' },
-  AUTH:     { label: 'זיהוי וכניסה',           icon: '🔐' },
+  AI:           { label: 'AI ואוטומציה',          icon: '🤖' },
+  DATABASE:     { label: 'בסיסי נתונים',           icon: '🗄️' },
+  EMAIL:        { label: 'דוא"ל',                icon: '📧' },
+  STORAGE:      { label: 'אחסון קבצים',           icon: '☁️' },
+  WEBHOOK:      { label: 'Webhooks ואינטגרציות',   icon: '🔗' },
+  AUTH:         { label: 'זיהוי וכניסה',           icon: '🔐' },
+  EXTERNAL_API: { label: 'API חיצוני',            icon: '🌐' },
 };
 
 @Component({
@@ -45,16 +46,34 @@ export class WsConnectorsComponent implements OnInit {
   connectors     = signal<Connector[]>([]);
   activeCategory = signal('DATABASE');
 
+  deleteOpen       = signal(false);
+  deleteConnector  = signal<Connector | null>(null);
+  deleteInProgress = signal(false);
+
   editOpen      = signal(false);
   editConnector = signal<Connector | null>(null);
   editConfig    = signal<Record<string, any>>({});
   editEnabled   = signal(false);
+  editAccessMode = signal<'PUBLIC'|'PRIVATE'|'APPROVAL_REQUIRED'>('APPROVAL_REQUIRED');
   editSaving    = signal(false);
   editError     = signal('');
   editShowPass: Record<string, boolean> = {};
 
-  testRunning = signal<string | null>(null);
-  testResult  = signal<{ key: string; status: string; message: string } | null>(null);
+  testRunning  = signal<string | null>(null);
+  testResult   = signal<{ key: string; status: string; message: string } | null>(null);
+  copiedToken  = signal<string | null>(null);
+  editToken    = computed(() => this.editConnector()?.ConnectorToken ?? null);
+
+  // ── New connector ──
+  newOpen    = signal(false);
+  newSaving  = signal(false);
+  newError   = signal('');
+  newForm = {
+    connectorName: '',
+    category:      'EXTERNAL_API',
+    iconEmoji:     '🌐',
+    description:   '',
+  };
 
   readonly categories    = Object.entries(CATEGORY_META).map(([id, m]) => ({ id, ...m }));
   readonly categoryMeta  = CATEGORY_META;
@@ -95,12 +114,14 @@ export class WsConnectorsComponent implements OnInit {
         this.editConnector.set(c);
         this.editConfig.set({ ...r.data.config });
         this.editEnabled.set(!!c.IsEnabled);
+        this.editAccessMode.set((c as any).AccessMode || 'APPROVAL_REQUIRED');
         this.editOpen.set(true);
       },
       error: () => {
         this.editConnector.set(c);
         this.editConfig.set({});
         this.editEnabled.set(!!c.IsEnabled);
+        this.editAccessMode.set((c as any).AccessMode || 'APPROVAL_REQUIRED');
         this.editOpen.set(true);
       },
     });
@@ -121,6 +142,11 @@ export class WsConnectorsComponent implements OnInit {
     if (!c) return;
     this.editSaving.set(true);
     this.editError.set('');
+    // Save AccessMode separately
+    this.http.put(`/api/connector-access/connectors/${(c as any).ConnectorID}/access-mode`,
+      { accessMode: this.editAccessMode() }
+    ).subscribe();
+
     this.http.put<{ success: boolean; message: string }>(
       `/api/connectors/${c.ConnectorKey}?scope=PROJECT&projectId=${this.projectId}`,
       { config: this.editConfig(), isEnabled: this.editEnabled(), projectId: this.projectId }
@@ -167,6 +193,63 @@ export class WsConnectorsComponent implements OnInit {
 
   catCount(id: string)        { return this.connectors().filter(c => c.Category === id).length; }
   catEnabledCount(id: string) { return this.connectors().filter(c => c.Category === id && c.IsEnabled).length; }
+
+  copyToken(token: string) {
+    navigator.clipboard.writeText(token).then(() => {
+      this.copiedToken.set(token);
+      setTimeout(() => this.copiedToken.set(null), 2000);
+    });
+  }
+
+  confirmDelete(c: Connector) { this.deleteConnector.set(c); this.deleteOpen.set(true); }
+  cancelDelete()  { this.deleteOpen.set(false); this.deleteConnector.set(null); }
+  doDelete() {
+    const c = this.deleteConnector();
+    if (!c) return;
+    this.deleteInProgress.set(true);
+    this.http.delete<{ success: boolean; message: string }>(
+      `/api/connectors/${c.ConnectorKey}?scope=PROJECT&projectId=${this.projectId}`
+    ).subscribe({
+      next: () => { this.deleteInProgress.set(false); this.cancelDelete(); this.load(); },
+      error: err => { this.deleteInProgress.set(false); alert(err.error?.message ?? 'שגיאה במחיקה'); },
+    });
+  }
+
+  openNew() {
+    this.newForm = { connectorName: '', category: 'EXTERNAL_API', iconEmoji: '🌐', description: '' };
+    this.newError.set('');
+    this.newOpen.set(true);
+  }
+
+  saveNew() {
+    if (!this.newForm.connectorName.trim()) { this.newError.set('שם חיבור הוא שדה חובה'); return; }
+    this.newSaving.set(true);
+    this.newError.set('');
+    this.http.post<{ success: boolean; message: string }>(
+      '/api/connectors',
+      { ...this.newForm, projectId: this.projectId }
+    ).subscribe({
+      next: () => {
+        this.newSaving.set(false);
+        this.newOpen.set(false);
+        this.activeCategory.set(this.newForm.category);
+        this.load();
+      },
+      error: err => {
+        this.newSaving.set(false);
+        this.newError.set(err.error?.message ?? 'שגיאה ביצירה');
+      },
+    });
+  }
+
+  onCategoryChange(cat: string) {
+    const icons: Record<string, string> = {
+      AI: '🤖', DATABASE: '🗄️', EMAIL: '📧', STORAGE: '☁️',
+      WEBHOOK: '🔗', AUTH: '🔐', EXTERNAL_API: '🌐',
+    };
+    this.newForm.category  = cat;
+    this.newForm.iconEmoji = icons[cat] ?? '🔌';
+  }
 
   back() { this.router.navigate(['/app/projects', this.projectId]); }
 }

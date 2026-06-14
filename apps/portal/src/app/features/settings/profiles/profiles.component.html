@@ -1,0 +1,142 @@
+<div class="profiles-wrap">
+
+  <div class="page-header">
+    <h2>פרופילים</h2>
+    <button class="btn-save" (click)="openNew()">✓ פרופיל חדש</button>
+  </div>
+
+  <div class="grid-wrap">
+    @if (loading()) {
+      <div class="center-spin"><mat-spinner diameter="40"/></div>
+    } @else if (error()) {
+      <div class="error-box">{{ error() }}</div>
+    } @else {
+      <kendo-grid class="profiles-grid"
+        [data]="{ data: pagedData, total: gridData.length }"
+        [skip]="skip" [pageSize]="pageSize"
+        [pageable]="{ buttonCount: 5, info: true, type: 'numeric', pageSizes: [25, 50, 100] }"
+        [sortable]="{ mode: 'single', allowUnsort: false }"
+        [sort]="sort"
+        [reorderable]="true" [resizable]="true"
+        scrollable="scrollable"
+        (pageChange)="onPageChange($event)"
+        (sortChange)="onSortChange($event)">
+
+        <kendo-grid-column field="ProfileName" title="שם פרופיל">
+          <ng-template kendoGridCellTemplate let-row>
+            <strong>{{ row.ProfileName }}</strong>
+          </ng-template>
+        </kendo-grid-column>
+
+        <kendo-grid-column field="ProfileCode" title="קוד" [width]="160">
+          <ng-template kendoGridCellTemplate let-row>
+            <span class="badge-code">{{ row.ProfileCode }}</span>
+          </ng-template>
+        </kendo-grid-column>
+
+        <kendo-grid-column field="Description" title="תיאור">
+          <ng-template kendoGridCellTemplate let-row>
+            <span class="text-muted">{{ row.Description || '—' }}</span>
+          </ng-template>
+        </kendo-grid-column>
+
+        <kendo-grid-column field="UserCount" title="משתמשים" [width]="110">
+          <ng-template kendoGridCellTemplate let-row>
+            <span class="badge-count">{{ row.UserCount }}</span>
+          </ng-template>
+        </kendo-grid-column>
+
+        <kendo-grid-column field="PermissionCount" title="הרשאות" [width]="100">
+          <ng-template kendoGridCellTemplate let-row>
+            <span class="badge-count">{{ row.PermissionCount }}</span>
+          </ng-template>
+        </kendo-grid-column>
+
+        <kendo-grid-column field="IsActive" title="סטטוס" [width]="100">
+          <ng-template kendoGridCellTemplate let-row>
+            <span class="badge" [class.badge-active]="row.IsActive" [class.badge-inactive]="!row.IsActive">
+              {{ row.IsActive ? 'פעיל' : 'מושהה' }}
+            </span>
+          </ng-template>
+        </kendo-grid-column>
+
+        <kendo-grid-column title="" [width]="110" [sortable]="false" [resizable]="false" [columnMenu]="false">
+          <ng-template kendoGridCellTemplate let-row>
+            <div class="row-actions">
+              <button class="act-btn act-perms"  title="הרשאות לוגיקה" (click)="openPerms(row)"><i class="pi pi-shield"></i></button>
+              <button class="act-btn act-edit"   title="ערוך"          (click)="openEdit(row)"><i class="pi pi-pencil"></i></button>
+              <button class="act-btn act-delete" title="מחיקה"         (click)="delete(row)"><i class="pi pi-trash"></i></button>
+            </div>
+          </ng-template>
+        </kendo-grid-column>
+
+        <kendo-grid-messages
+          pagerItemsPerPage="שורות בעמוד" pagerOf="מתוך" pagerItems="רשומות"
+          noRecords="לא נמצאו פרופילים" loading="טוען..." />
+      </kendo-grid>
+    }
+  </div>
+</div>
+
+<!-- Permissions Dialog -->
+@if (permsOpen && permsProfile) {
+  <app-logic-perms
+    entityType="PROFILE"
+    [entityId]="permsProfile.ProfileID"
+    [entityName]="permsProfile.ProfileName"
+    (closed)="closePerms()" />
+}
+
+<!-- Edit Dialog -->
+@if (dialogOpen()) {
+  <kendo-dialog [title]="editingProfile ? 'עריכת פרופיל' : 'פרופיל חדש'"
+                [width]="480" [minWidth]="360" (close)="closeDialog()">
+
+    <form [formGroup]="form" class="profile-form" dir="rtl">
+
+      <div class="form-row">
+        <label>שם פרופיל <span class="req">*</span></label>
+        <kendo-textbox formControlName="profileName" placeholder="לדוגמה: מנהלי פרויקטים" />
+        @if (form.get('profileName')?.invalid && form.get('profileName')?.touched) {
+          <span class="field-err">שדה חובה</span>
+        }
+      </div>
+
+      <div class="form-row">
+        <label>קוד פרופיל <span class="req">*</span></label>
+        <kendo-textbox formControlName="profileCode" placeholder="PROJECT_MANAGERS" [disabled]="!!editingProfile" />
+        @if (form.get('profileCode')?.invalid && form.get('profileCode')?.touched) {
+          <span class="field-err">קוד חייב להיות A-Z / 0-9 / _</span>
+        }
+      </div>
+
+      <div class="form-row">
+        <label>תיאור</label>
+        <kendo-textbox formControlName="description" placeholder="תיאור קצר של הפרופיל" />
+      </div>
+
+      <div class="form-row">
+        <label>סטטוס</label>
+        <div class="seg-ctrl">
+          <button type="button" class="seg-btn"
+                  [class.seg-on]="!!form.get('isActive')?.value"
+                  (click)="form.get('isActive')?.setValue(true)">✓ פעיל</button>
+          <button type="button" class="seg-btn"
+                  [class.seg-off]="!form.get('isActive')?.value"
+                  (click)="form.get('isActive')?.setValue(false)">✗ מושהה</button>
+        </div>
+      </div>
+
+    </form>
+
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-save" [disabled]="saving()" (click)="save()">
+          @if (saving()) { <kendo-loader size="small" themeColor="primary" /> }
+          @else { ✓ שמור }
+        </button>
+        <button class="btn-cancel" (click)="closeDialog()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}

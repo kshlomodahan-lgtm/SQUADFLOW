@@ -35,12 +35,6 @@
         </ng-template>
       </kendo-grid-column>
 
-      <kendo-grid-column field="RoleNames" title="תפקידים">
-        <ng-template kendoGridCellTemplate let-row>
-          <span class="text-muted">{{ row.RoleNames || '—' }}</span>
-        </ng-template>
-      </kendo-grid-column>
-
       <kendo-grid-column field="UserCount" title="משתמשים" [width]="110">
         <ng-template kendoGridCellTemplate let-row>
           <span class="badge-count">{{ row.UserCount }}</span>
@@ -55,15 +49,12 @@
         </ng-template>
       </kendo-grid-column>
 
-      <kendo-grid-column title="" [width]="80" [sortable]="false" [resizable]="false" [columnMenu]="false">
+      <kendo-grid-column title="" [width]="110" [sortable]="false" [resizable]="false" [columnMenu]="false">
         <ng-template kendoGridCellTemplate let-row>
           <div class="row-actions">
-            <button class="act-btn act-edit" title="ערוך" (click)="openEdit(row)">
-              <i class="pi pi-pencil"></i>
-            </button>
-            <button class="act-btn act-delete" title="מחיקה" (click)="delete(row)">
-              <i class="pi pi-trash"></i>
-            </button>
+            <button class="act-btn act-perms"  title="הרשאות לוגיקה" (click)="openPerms(row)"><i class="pi pi-shield"></i></button>
+            <button class="act-btn act-edit"   title="ערוך"          (click)="openEdit(row)"><i class="pi pi-pencil"></i></button>
+            <button class="act-btn act-delete" title="מחיקה"         (click)="delete(row)"><i class="pi pi-trash"></i></button>
           </div>
         </ng-template>
       </kendo-grid-column>
@@ -78,7 +69,16 @@
   </div><!-- /grid-wrap -->
 </div>
 
-<!-- Dialog -->
+<!-- Permissions Dialog -->
+@if (permsOpen && permsGroup) {
+  <app-logic-perms
+    entityType="GROUP"
+    [entityId]="permsGroup.GroupID"
+    [entityName]="permsGroup.GroupName"
+    (closed)="closePerms()" />
+}
+
+<!-- Edit Dialog -->
 @if (dialogOpen()) {
   <kendo-dialog [title]="editingGroup ? 'עריכת קבוצה' : 'קבוצה חדשה'"
                 [width]="520" [minWidth]="380" (close)="closeDialog()">
@@ -126,21 +126,6 @@
         <label>צבע</label>
         <input type="color" formControlName="colorHex" class="color-picker" />
         <span class="color-preview" [style.background]="form.get('colorHex')?.value"></span>
-      </div>
-
-      <div class="form-row">
-        <label>תפקידים משוייכים</label>
-        <div class="roles-checks">
-          @for (r of roles(); track r.RoleID) {
-            <label class="role-check">
-              <input type="checkbox"
-                     [checked]="isRoleSelected(r.RoleID)"
-                     (change)="toggleRole(r.RoleID)" />
-              {{ r.RoleName }}
-              <span class="role-code">{{ r.RoleCode }}</span>
-            </label>
-          }
-        </div>
       </div>
 
     </form>

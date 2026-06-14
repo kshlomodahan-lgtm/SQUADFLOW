@@ -88,16 +88,17 @@ router.post('/login', async (req, res) => {
       .input('TenantID', sql.Int, TenantID)
       .query(`SELECT u.FirstName, u.LastName,
                      COALESCE(r.RoleName, ur.RoleName) AS RoleName,
-                     t.CompanyName
+                     t.CompanyName, t.LogoUrl
               FROM dbo.tblUsers u
               LEFT JOIN dbo.tblRoles     r  ON r.RoleID    = u.RoleID
               LEFT JOIN dbo.tblUserRoles ur ON ur.RoleID   = u.RoleID
               JOIN dbo.tblTenants        t  ON t.TenantID  = @TenantID
               WHERE u.UserID = @UserID`);
 
-    const { FirstName, LastName, RoleName, CompanyName } = userInfo.recordset[0];
+    const { FirstName, LastName, RoleName, CompanyName, LogoUrl } = userInfo.recordset[0];
     const fullName    = `${FirstName} ${LastName}`.trim();
     const companyName = CompanyName || '';
+    const logoUrl     = LogoUrl || '';
 
     // שלוף theme פעיל (User → Org → Platform)
     const themeResult = await (await getPool()).request()
@@ -108,9 +109,9 @@ router.post('/login', async (req, res) => {
 
     // יצור JWT Token
     const token = jwt.sign(
-      { userId: UserID, roleId: RoleID, customerId: CustomerID, tenantId: TenantID, fullName, roleName: RoleName, companyName },
+      { userId: UserID, roleId: RoleID, customerId: CustomerID, tenantId: TenantID, fullName, roleName: RoleName, companyName, logoUrl },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '8h' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
     logAuth(ip, userAgent, 'LOGIN', fullName, TenantID, UserID, fullName);
@@ -119,7 +120,7 @@ router.post('/login', async (req, res) => {
       success: true,
       message: ResultMessage,
       token,
-      user: { userId: UserID, roleId: RoleID, customerId: CustomerID, tenantId: TenantID, fullName, roleName: RoleName, companyName },
+      user: { userId: UserID, roleId: RoleID, customerId: CustomerID, tenantId: TenantID, fullName, roleName: RoleName, companyName, logoUrl },
       theme: { colorScheme: theme.ColorScheme, darkMode: !!theme.DarkMode }
     });
 

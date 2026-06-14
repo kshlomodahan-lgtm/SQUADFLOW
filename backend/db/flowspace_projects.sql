@@ -154,16 +154,18 @@ BEGIN
         p.ProjectName,
         p.Description,
         p.ClientOrgID,
-        o.CompanyName AS ClientOrgName,
+        t.CompanyName AS ClientOrgName,
+        t.TenantCode  AS ClientOrgCode,
         p.Status,
         p.StartDate,
         p.TargetDate,
         p.CompletedDate,
+        p.GithubUrl,
         p.CreatedAt,
         p.UpdatedAt,
         (SELECT COUNT(*) FROM dbo.tblSWProducts sp2 WHERE sp2.ProjectID = p.ProjectID AND sp2.IsActive = 1) AS ProductCount
     FROM dbo.tblProjects p
-    LEFT JOIN dbo.tblOrganizations o ON o.OrgID = p.ClientOrgID
+    LEFT JOIN dbo.tblTenants t ON t.TenantID = p.ClientOrgID
     WHERE p.TenantID = @TenantID
       AND p.IsActive = 1
       AND (@SearchText IS NULL OR p.ProjectName LIKE '%' + @SearchText + '%' OR p.ProjectCode LIKE '%' + @SearchText + '%')

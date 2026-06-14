@@ -52,7 +52,9 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    const urlTenant   = this.route.snapshot.queryParamMap.get('tenant') ?? '';
+    const urlTenant   = this.route.snapshot.queryParamMap.get('tenant')
+                     ?? this.route.snapshot.queryParamMap.get('org')
+                     ?? '';
     const savedTenant = localStorage.getItem('lastTenantCode') ?? '';
     const code        = (urlTenant || savedTenant).toUpperCase();
 

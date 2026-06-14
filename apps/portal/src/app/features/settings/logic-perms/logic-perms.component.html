@@ -1,0 +1,240 @@
+<kendo-dialog [title]="dialogTitle" [width]="1300" [minWidth]="900" (close)="tryClose()">
+
+  @if (loading()) {
+    <div class="lp-center-spin">
+      <kendo-loader type="converging-spinner" themeColor="primary" size="large" />
+    </div>
+  } @else {
+
+    <div class="lp-body" dir="rtl">
+
+      <!-- ═══ RIGHT: Nav panel ═══ -->
+      <nav class="lp-nav">
+        @for (tab of tabs; track tab.id) {
+          <button type="button" class="lp-nav-btn"
+                  [class.active]="selectedTab() === tab.id"
+                  [class.nav-all]="tab.id === 'all'"
+                  (click)="selectTab(tab.id)">
+            <i class="pi {{ tab.icon }} nav-icon"></i>
+            <span class="nav-label">{{ tab.label }}</span>
+            <span class="nav-count" [class.count-has]="tabCount(tab) > 0">{{ tabCount(tab) }}</span>
+          </button>
+        }
+      </nav>
+
+      <!-- ═══ MIDDLE: Items panel ═══ -->
+      <div class="lp-items">
+
+        <div class="lp-panel-header">
+          <span class="lp-panel-title">{{ currentTab?.label }}</span>
+          <span class="lp-count">
+            @if (selectedTab() === 'perm')  { {{ filteredPerms().length }}  }
+            @if (selectedTab() === 'all')   { {{ allSectionItemCount() }} }
+            @if (selectedTab() !== 'perm' && selectedTab() !== 'all') { {{ filteredItems().length }} }
+          </span>
+        </div>
+
+        <div class="search-wrap">
+          <mat-icon class="search-icon">search</mat-icon>
+          <input class="search-input" type="text" placeholder="חיפוש..."
+                 [value]="searchText()"
+                 (input)="searchText.set($any($event.target).value)" />
+        </div>
+
+        <!-- ── PERM TAB ── -->
+        @if (selectedTab() === 'perm') {
+          @if (filteredPerms().length === 0) {
+            <div class="lp-hint">אין הרשאות לוגיקה מוגדרות</div>
+          } @else {
+            <div class="items-list">
+              @for (perm of filteredPerms(); track perm.PermCodeID) {
+                <div class="item-row" [class.item-selected]="isAssigned(perm.PermCodeID)">
+                  <label class="item-check-label">
+                    <input type="checkbox" class="item-checkbox"
+                           [checked]="isAssigned(perm.PermCodeID)"
+                           [disabled]="saving()"
+                           (change)="togglePerm(perm)" />
+                  </label>
+                  <i class="pi pi-shield item-type-icon"></i>
+                  <div class="item-info">
+                    <span class="item-name">{{ perm.PermName }}</span>
+                    <span class="item-code">{{ perm.PermCode }}</span>
+                  </div>
+                  @if (isAssigned(perm.PermCodeID) && getAssignment(perm.PermCodeID)) {
+                    <div class="grant-ctrl">
+                      <button type="button" class="grant-btn grant-allow"
+                              [class.active]="getEffectiveGrant(getAssignment(perm.PermCodeID)!)"
+                              (click)="setGrant(getAssignment(perm.PermCodeID)!, true)">
+                        ✓ אפשר
+                      </button>
+                      <button type="button" class="grant-btn grant-deny"
+                              [class.active]="!getEffectiveGrant(getAssignment(perm.PermCodeID)!)"
+                              (click)="setGrant(getAssignment(perm.PermCodeID)!, false)">
+                        ✗ חסום
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        }
+
+        <!-- ── ALL TAB ── -->
+        @if (selectedTab() === 'all') {
+          @if (allSections().length === 0) {
+            <div class="lp-hint">
+              <kendo-loader type="converging-spinner" themeColor="primary" size="small" />
+            </div>
+          } @else {
+            <div class="items-list">
+              @for (section of allSections(); track section.id) {
+                <div class="section-header">
+                  <i class="pi {{ section.icon }}"></i>
+                  <span>{{ section.label }}</span>
+                  <span class="section-badge">{{ section.items.length }}</span>
+                </div>
+                @for (item of filteredSectionItems(section); track $index) {
+                  <div class="item-row" [class.item-selected]="sectionIsChecked(section, item)">
+                    <label class="item-check-label">
+                      <input type="checkbox" class="item-checkbox"
+                             [checked]="sectionIsChecked(section, item)"
+                             [disabled]="sectionIsDisabled(section, item)"
+                             (change)="sectionToggle(section, item)" />
+                    </label>
+                    <i class="pi {{ section.icon }} item-type-icon"></i>
+                    <div class="item-info">
+                      <span class="item-name">{{ sectionItemName(section, item) }}</span>
+                      @if (sectionItemCode(section, item)) {
+                        <span class="item-code">{{ sectionItemCode(section, item) }}</span>
+                      }
+                    </div>
+                    @if (section.linkedType !== 'PERM' && entityPermCount(section.linkedType, sectionItemId(section, item)) > 0) {
+                      <span class="entity-perm-badge" title="הרשאות משויכות">
+                        {{ entityPermCount(section.linkedType, sectionItemId(section, item)) }}
+                      </span>
+                    }
+                  </div>
+                }
+                @if (section.items.length === 0) {
+                  <div class="empty-section">אין {{ section.label }}</div>
+                }
+              }
+            </div>
+          }
+        }
+
+        <!-- ── SINGLE ENTITY TAB ── -->
+        @if (selectedTab() !== 'perm' && selectedTab() !== 'all') {
+          @if (loadingItems()) {
+            <div class="lp-hint">
+              <kendo-loader type="converging-spinner" themeColor="primary" size="small" />
+            </div>
+          } @else if (filteredItems().length === 0) {
+            <div class="lp-hint">אין פריטים זמינים</div>
+          } @else {
+            <div class="items-list">
+              @for (item of filteredItems(); track $index) {
+                <div class="item-row" [class.item-selected]="isLinked(item)">
+                  <label class="item-check-label">
+                    <input type="checkbox" class="item-checkbox"
+                           [checked]="isLinked(item)"
+                           [disabled]="saving()"
+                           (change)="toggleLink(item)" />
+                  </label>
+                  <i class="pi {{ currentTab?.icon }} item-type-icon"></i>
+                  <div class="item-info">
+                    <span class="item-name">{{ itemName(item) }}</span>
+                    @if (itemCode(item)) {
+                      <span class="item-code">{{ itemCode(item) }}</span>
+                    }
+                  </div>
+                  @if (entityPermCount(currentTab!.linkedType!, itemId(item)) > 0) {
+                    <span class="entity-perm-badge" title="הרשאות משויכות">
+                      {{ entityPermCount(currentTab!.linkedType!, itemId(item)) }}
+                    </span>
+                  }
+                </div>
+              }
+            </div>
+          }
+        }
+
+      </div><!-- /lp-items -->
+
+      <!-- ═══ LEFT: Assigned panel ═══ -->
+      <div class="lp-assigned">
+        <div class="lp-panel-header">
+          <span class="lp-panel-title">משויכות</span>
+          <span class="lp-count">{{ allAssigned().length }}</span>
+        </div>
+        <div class="search-wrap search-wrap-sm">
+          <mat-icon class="search-icon">search</mat-icon>
+          <input class="search-input" type="text" placeholder="חיפוש..."
+                 [value]="assignedSearch()"
+                 (input)="assignedSearch.set($any($event.target).value)" />
+        </div>
+        @if (filteredAssigned().length === 0) {
+          <div class="lp-hint">{{ allAssigned().length === 0 ? 'אין שיוכים' : 'לא נמצא' }}</div>
+        } @else {
+          <div class="assigned-list">
+            @for (item of filteredAssigned(); track item.id) {
+              <div class="assigned-row" [class.row-local]="item.raw?._isLocal">
+                @if (item.linkedType === 'PERM') {
+                  <span class="grant-dot" [class.grant]="item.isGrant" [class.deny]="!item.isGrant"
+                        [title]="item.isGrant ? 'מאופשר' : 'חסום'">
+                    {{ item.isGrant ? '✓' : '✗' }}
+                  </span>
+                }
+                <span class="a-name" [title]="item.name">{{ item.name }}</span>
+                @if (item.raw?._isLocal) {
+                  <span class="local-badge" title="טרם נשמר">חדש</span>
+                }
+                <i class="pi {{ item.icon }} a-type-icon" [title]="item.linkedType"></i>
+                <button class="remove-btn" title="הסר" (click)="removeAssignedItem(item)" [disabled]="saving()">
+                  <mat-icon style="font-size:.8rem;width:.8rem;height:.8rem">close</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div><!-- /lp-assigned -->
+
+    </div><!-- /lp-body -->
+  }
+
+  <kendo-dialog-actions>
+    <div class="dialog-footer">
+      <button class="btn-save" (click)="save()" [disabled]="saving()">
+        @if (saving()) {
+          <kendo-loader type="converging-spinner" themeColor="secondary" size="small" style="margin-left:6px" />
+          שומר...
+        } @else {
+          ✓ שמור
+        }
+      </button>
+      @if (isDirty()) {
+        <span class="dirty-badge">● שינויים לא שמורים</span>
+      }
+      <button class="btn-cancel" (click)="tryClose()" [disabled]="saving()">ביטול</button>
+    </div>
+  </kendo-dialog-actions>
+
+</kendo-dialog>
+
+<!-- ── Confirm discard dialog ── -->
+@if (showConfirmClose()) {
+  <kendo-dialog title="האם לצאת ללא שמירה?" [width]="440" (close)="cancelClose()">
+    <div class="confirm-body" dir="rtl">
+      <i class="pi pi-exclamation-triangle confirm-icon"></i>
+      <p class="confirm-text">בוצעו שינויים שטרם נשמרו.</p>
+      <p class="confirm-sub">לחיצה על "יציאה" תבטל את כל השינויים.</p>
+    </div>
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-discard" (click)="discardAndClose()">יציאה ללא שמירה</button>
+        <button class="btn-cancel" (click)="cancelClose()">חזור לעריכה</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}

@@ -131,56 +131,6 @@
         </div>
       }
 
-      <!-- ══ אבטחה — שינוי סיסמה ══ -->
-      @if (activeGroup() === 'security') {
-        <div class="content-section">
-          <div class="section-header">
-            <h2>אבטחה</h2>
-            <p>שינוי סיסמה וניהול גישה</p>
-          </div>
-          <div class="setting-card">
-            <div class="setting-card-title">שינוי סיסמה</div>
-            @if (pwSuccess()) {
-              <div class="pw-success">✓ הסיסמה שונתה בהצלחה</div>
-            }
-            @if (pwError()) {
-              <div class="pw-error">⚠ {{ pwError() }}</div>
-            }
-            <div class="pw-fields" [formGroup]="pwForm">
-              <div class="pf-row">
-                <label>סיסמה נוכחית</label>
-                <input kendoTextBox formControlName="currentPassword" type="password" class="pf-input" />
-              </div>
-              <div class="pf-row">
-                <label>סיסמה חדשה</label>
-                <input kendoTextBox formControlName="newPassword" type="password" class="pf-input" />
-                @if (pwForm.get('newPassword')?.hasError('minlength') && pwForm.get('newPassword')?.touched) {
-                  <small class="pw-hint">לפחות 6 תווים</small>
-                }
-              </div>
-              <div class="pf-row">
-                <label>אימות סיסמה</label>
-                <input kendoTextBox formControlName="confirmPassword" type="password" class="pf-input" />
-              </div>
-            </div>
-            <div class="setting-actions">
-              <button class="btn-save" (click)="changePassword()" [disabled]="pwSaving()">
-                @if (pwSaving()) { <kendo-loader size="small" themeColor="primary" /> } @else { ✓ }
-                שנה סיסמה
-              </button>
-            </div>
-          </div>
-
-          <div class="setting-card" style="margin-top:16px">
-            <div class="setting-card-title">מידע על הגישה</div>
-            <div class="session-info">
-              <div class="si-row"><span class="si-label">משתמש</span><span class="si-val">{{ auth.user()?.fullName }}</span></div>
-              <div class="si-row"><span class="si-label">תפקיד</span><span class="si-val">{{ auth.user()?.roleName }}</span></div>
-              <div class="si-row"><span class="si-label">מזהה משתמש</span><span class="si-val mono">#{{ auth.user()?.userId }}</span></div>
-            </div>
-          </div>
-        </div>
-      }
 
       <!-- ══ התראות ══ -->
       @if (activeGroup() === 'notifications') {
@@ -804,35 +754,75 @@
         </div>
       }
 
-      <!-- ══ עץ תפריטים ══ -->
-      @if (activeGroup() === 'menu-tree') {
-        <div class="content-section content-section--wide">
-          <app-menu-manager />
+      <!-- ══ אבטחה והרשאות ══ -->
+      @if (activeGroup() === 'security-perms') {
+        <div class="content-section content-section--wide content-section--tabbed">
+
+          <!-- sub tab-bar -->
+          <nav class="sub-tabs" dir="rtl">
+            @for (t of securitySubTabs; track t.id) {
+              <button class="sub-tab" [class.active]="securitySubGroup() === t.id"
+                      (click)="securitySubGroup.set(t.id)">{{ t.text }}</button>
+            }
+          </nav>
+
+          <!-- sub content -->
+          <div class="sub-content">
+            @if (securitySubGroup() === 'security') {
+              <div class="section-header">
+                <h2>אבטחה</h2>
+                <p>שינוי סיסמה וניהול גישה</p>
+              </div>
+              <div class="setting-card">
+                <div class="setting-card-title">שינוי סיסמה</div>
+                @if (pwSuccess()) { <div class="pw-success">✓ הסיסמה שונתה בהצלחה</div> }
+                @if (pwError())   { <div class="pw-error">⚠ {{ pwError() }}</div> }
+                <div class="pw-fields" [formGroup]="pwForm">
+                  <div class="pf-row">
+                    <label>סיסמה נוכחית</label>
+                    <input kendoTextBox formControlName="currentPassword" type="password" class="pf-input" />
+                  </div>
+                  <div class="pf-row">
+                    <label>סיסמה חדשה</label>
+                    <input kendoTextBox formControlName="newPassword" type="password" class="pf-input" />
+                    @if (pwForm.get('newPassword')?.hasError('minlength') && pwForm.get('newPassword')?.touched) {
+                      <small class="pw-hint">לפחות 6 תווים</small>
+                    }
+                  </div>
+                  <div class="pf-row">
+                    <label>אימות סיסמה</label>
+                    <input kendoTextBox formControlName="confirmPassword" type="password" class="pf-input" />
+                  </div>
+                </div>
+                <div class="setting-actions">
+                  <button class="btn-save" (click)="changePassword()" [disabled]="pwSaving()">
+                    @if (pwSaving()) { <kendo-loader size="small" themeColor="primary" /> } @else { ✓ }
+                    שנה סיסמה
+                  </button>
+                </div>
+              </div>
+              <div class="setting-card" style="margin-top:16px">
+                <div class="setting-card-title">מידע על הגישה</div>
+                <div class="session-info">
+                  <div class="si-row"><span class="si-label">משתמש</span><span class="si-val">{{ auth.user()?.fullName }}</span></div>
+                  <div class="si-row"><span class="si-label">תפקיד</span><span class="si-val">{{ auth.user()?.roleName }}</span></div>
+                  <div class="si-row"><span class="si-label">מזהה משתמש</span><span class="si-val mono">#{{ auth.user()?.userId }}</span></div>
+                </div>
+              </div>
+            }
+
+            @if (securitySubGroup() === 'roles')            { <app-roles-manager /> }
+            @if (securitySubGroup() === 'menu-tree')        { <app-menu-manager /> }
+            @if (securitySubGroup() === 'org-chart')        { <app-org-chart /> }
+            @if (securitySubGroup() === 'profiles')         { <app-profiles /> }
+            @if (securitySubGroup() === 'groups')           { <app-groups /> }
+            @if (securitySubGroup() === 'content-groups')   { <app-content-groups /> }
+            @if (securitySubGroup() === 'perm-codes')       { <app-permission-codes /> }
+          </div>
+
         </div>
       }
 
-      <!-- ══ תפקידים והרשאות ══ -->
-      @if (activeGroup() === 'roles') {
-        <div class="content-section content-section--wide">
-          <app-roles-manager />
-        </div>
-      }
-
-      <!-- ══ מבנה ארגוני ══ -->
-      @if (activeGroup() === 'org-chart') {
-        <div class="content-section content-section--wide">
-          <app-org-chart />
-        </div>
-      }
-
-      <!-- ══ קבוצות ══ -->
-      @if (activeGroup() === 'groups') {
-        <div class="content-section content-section--wide">
-          <app-groups />
-        </div>
-      }
-
-      <!-- ══ חיבורים ══ -->
       @if (activeGroup() === 'connectors') {
         <div class="content-section content-section--wide">
           <app-connectors />

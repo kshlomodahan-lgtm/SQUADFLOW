@@ -194,7 +194,7 @@
       </kendo-grid-column>
 
       <!-- פעולות inline -->
-      <kendo-grid-column title="" [width]="104" [sortable]="false" [resizable]="false" [columnMenu]="false">
+      <kendo-grid-column title="" [width]="130" [sortable]="false" [resizable]="false" [columnMenu]="false">
         <ng-template kendoGridCellTemplate let-u let-rowIndex="rowIndex">
           <div class="row-actions">
             <button class="act-btn act-expand"
@@ -202,6 +202,9 @@
                     [title]="isExpanded(u.UserID) ? 'סגור' : 'פרטים'"
                     (click)="toggleDetail(u, rowIndex)">
               <i class="pi" [class.pi-chevron-down]="!isExpanded(u.UserID)" [class.pi-chevron-up]="isExpanded(u.UserID)"></i>
+            </button>
+            <button class="act-btn act-perms" title="הרשאות לוגיקה" (click)="openPerms(u)">
+              <i class="pi pi-shield"></i>
             </button>
             <button *appHasPerm="'USERS:UPDATE'"
                     class="act-btn"
@@ -224,6 +227,14 @@
   </div><!-- /grid-wrap -->
 
 </div>
+
+@if (permsOpen && permsUser) {
+  <app-logic-perms
+    entityType="USER"
+    [entityId]="permsUser.UserID"
+    [entityName]="permsUser.FullName || permsUser.Username"
+    (closed)="closePerms()" />
+}
 
 @if (dialogOpen()) {
   <app-user-dialog

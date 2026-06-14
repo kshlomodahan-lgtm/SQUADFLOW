@@ -1,0 +1,886 @@
+<div class="axon-root">
+
+  <!-- ── Toolbar ── -->
+  <header class="axon-toolbar">
+    <button class="back-btn" (click)="back()">
+      <mat-icon>arrow_back</mat-icon>
+      <span>FLOWSPACE</span>
+    </button>
+
+    <div class="axon-brand">
+      <span class="brand-tag">AXON</span>
+      <span class="brand-sub">Backend API Registry</span>
+    </div>
+
+    <!-- Mode Toggle -->
+    <div class="mode-toggle">
+      <button class="mode-btn" [class.active]="viewMode() === 'platform'"
+              (click)="setMode('platform')">
+        <mat-icon>layers</mat-icon>
+        Platform Routes
+      </button>
+      <button class="mode-btn" [class.active]="viewMode() === 'project'"
+              (click)="setMode('project')">
+        <mat-icon>folder_open</mat-icon>
+        Project Routes
+      </button>
+    </div>
+
+    <!-- Stats chips -->
+    @if (activeStats(); as s) {
+      <div class="stats-bar">
+        <div class="stat-chip chip-total">
+          <span class="chip-num">{{ s.total }}</span>
+          <span class="chip-lbl">Routes</span>
+        </div>
+        <div class="stat-chip chip-get">GET {{ s.gets }}</div>
+        <div class="stat-chip chip-post">POST {{ s.posts }}</div>
+        <div class="stat-chip chip-put">PUT {{ s.puts }}</div>
+        <div class="stat-chip chip-delete">DEL {{ s.deletes }}</div>
+        <div class="stat-chip chip-patch">PATCH {{ s.patches }}</div>
+        <div class="stat-chip chip-sec">
+          <mat-icon>lock</mat-icon>{{ s.secured }}
+        </div>
+        <div class="stat-chip chip-pub">
+          <mat-icon>public</mat-icon>{{ s.public }}
+        </div>
+      </div>
+    }
+
+    <!-- Display type toggle -->
+    <div class="display-toggle">
+      <button class="disp-btn" [class.active]="displayType() === 'list'"
+              (click)="setDisplayType('list')" title="מצב רשימה">
+        <mat-icon>view_list</mat-icon>
+      </button>
+      <button class="disp-btn" [class.active]="displayType() === 'graph'"
+              (click)="setDisplayType('graph')" title="מצב גרף נוירונים">
+        <mat-icon>bubble_chart</mat-icon>
+      </button>
+    </div>
+
+    <!-- AXON Logo — physical left -->
+    <div class="axon-logo-wrap">
+      <img src="/assets/axon-logo.svg" alt="AXON" class="axon-logo" />
+    </div>
+
+    <div class="toolbar-end">
+      @if (viewMode() === 'project') {
+        <!-- Import platform routes button -->
+        <button class="btn-import" (click)="importPlatform()" [disabled]="importing()" title="ייבא את כל routes הפלטפורמה לפרויקט">
+          @if (importing()) {
+            <kendo-loader type="pulsing" size="small" themeColor="primary" />
+          } @else {
+            <mat-icon>download</mat-icon>
+          }
+          Sync Platform
+        </button>
+
+        @if (importResult(); as imp) {
+          <span class="import-toast">✓ יובאו {{ imp.inserted }} | קיימים {{ imp.skipped }}</span>
+        }
+
+        <button class="btn-new-route" (click)="openNew()">
+          <mat-icon>add</mat-icon>
+          Route חדש
+        </button>
+      }
+    </div>
+  </header>
+
+  <!-- ── Search + Category Filter — list mode only ── -->
+  @if (displayType() === 'list') {
+  <div class="axon-controls">
+    <div class="search-wrap">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input class="search-input" type="text" placeholder="חיפוש route, path, method..."
+             [value]="searchText()"
+             (input)="searchText.set($any($event.target).value)" />
+    </div>
+
+    <div class="cat-pills">
+      <button class="cat-pill" [class.active]="activeCategory() === null"
+              (click)="activeCategory.set(null)">
+        <mat-icon>apps</mat-icon> הכל ({{ categories().length }})
+      </button>
+      @for (cat of categories(); track cat) {
+        <button class="cat-pill" [class.active]="activeCategory() === cat"
+                (click)="activeCategory.set(cat)">{{ cat }}</button>
+      }
+    </div>
+  </div>
+  } <!-- end list controls -->
+
+  <!-- ── Body ── -->
+  @if (displayType() === 'graph') {
+
+  <!-- ══ NEURAL GRAPH CANVAS ══ -->
+  <div class="neural-wrap">
+    <svg class="neural-svg"
+         [attr.viewBox]="'0 0 ' + CANVAS_W + ' ' + CANVAS_H"
+         preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <!-- Arrow markers per method color -->
+        <marker id="arr-green"  markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L7,3.5 z" fill="#10b981" opacity="0.8"/>
+        </marker>
+        <marker id="arr-get"    markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L7,3.5 z" fill="#065f46" opacity="0.9"/>
+        </marker>
+        <marker id="arr-post"   markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L7,3.5 z" fill="#1e40af" opacity="0.9"/>
+        </marker>
+        <marker id="arr-put"    markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L7,3.5 z" fill="#92400e" opacity="0.9"/>
+        </marker>
+        <marker id="arr-delete" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L7,3.5 z" fill="#991b1b" opacity="0.9"/>
+        </marker>
+        <marker id="arr-patch"  markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L7,3.5 z" fill="#5b21b6" opacity="0.9"/>
+        </marker>
+        <!-- Glow filter -->
+        <filter id="glow-green" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glow-sm" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <radialGradient id="center-glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#059669" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#059669" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+
+      <!-- ── Background: dark fill ── -->
+      <rect width="100%" height="100%" fill="#060f0a"/>
+
+      <!-- ── Neural background lines (faint) ── -->
+      @for (l of bgLines; track $index) {
+        <line [attr.x1]="l.x1" [attr.y1]="l.y1" [attr.x2]="l.x2" [attr.y2]="l.y2"
+              stroke="#1a3328" stroke-width="0.7" opacity="0.6"/>
+      }
+
+      <!-- ── Background dots ── -->
+      @for (d of bgDots; track $index) {
+        <circle [attr.cx]="d.x" [attr.cy]="d.y" [attr.r]="d.r"
+                fill="#2d5a3d" [attr.opacity]="d.op"/>
+      }
+
+      <!-- ── Ambient glow follows AXON ── -->
+      <circle [attr.cx]="axonCenter().x" [attr.cy]="axonCenter().y" r="180"
+              fill="url(#center-glow)"/>
+
+      <!-- ── Lines: AXON → category nodes (hidden when expanded) ── -->
+      @if (!activeGraphCat()) {
+        @for (cat of categoryNodes(); track cat.id) {
+          <line [attr.x1]="axonCenter().x" [attr.y1]="axonCenter().y"
+                [attr.x2]="cat.x" [attr.y2]="cat.y"
+                [attr.stroke]="cat.color"
+                [attr.stroke-opacity]="cat.active || cat.hovered ? 0.8 : 0.22"
+                [attr.stroke-width]="cat.active ? 2 : 1.2"
+                stroke-dasharray="5 4"
+                marker-end="url(#arr-green)"/>
+        }
+      }
+
+      <!-- ── AXON → expanded category connection ── -->
+      @if (activeGraphCat()) {
+        <line [attr.x1]="axonCenter().x" [attr.y1]="axonCenter().y"
+              [attr.x2]="expandedCatCenter.x" [attr.y2]="expandedCatCenter.y"
+              [attr.stroke]="CAT_COLORS[activeGraphCat()!] ?? '#10b981'"
+              stroke-width="1.5" stroke-dasharray="8 5" opacity="0.45"
+              marker-end="url(#arr-green)"/>
+      }
+
+      <!-- ── Lines: category → route nodes (when expanded) ── -->
+      @for (rn of routeNodes(); track rn.id) {
+        <line [attr.x1]="rn.catX" [attr.y1]="rn.catY"
+              [attr.x2]="rn.x" [attr.y2]="rn.y"
+              [attr.stroke]="rn.fg"
+              [attr.stroke-opacity]="rn.hovered ? 1 : 0.5"
+              stroke-width="1"
+              [attr.marker-end]="'url(#arr-' + rn.method.toLowerCase() + ')'"
+              stroke-dasharray="3 3"/>
+      }
+
+      <!-- ── Route nodes (circles) ── -->
+      @for (rn of routeNodes(); track rn.id) {
+        <g class="route-node"
+           (mouseenter)="hoveredRoute.set(rn.id)"
+           (mouseleave)="hoveredRoute.set(null)"
+           style="cursor:pointer">
+
+          <!-- Glow halo on hover -->
+          @if (rn.hovered) {
+            <circle [attr.cx]="rn.x" [attr.cy]="rn.y" r="26"
+                    [attr.fill]="rn.bg" opacity="0.18"
+                    filter="url(#glow-sm)"/>
+          }
+
+          <!-- Main circle -->
+          <circle [attr.cx]="rn.x" [attr.cy]="rn.y" r="15"
+                  [attr.fill]="rn.hovered ? rn.bg : '#0d2018'"
+                  [attr.stroke]="rn.bg"
+                  [attr.stroke-width]="rn.hovered ? 2 : 1.5"
+                  [attr.filter]="rn.hovered ? 'url(#glow-sm)' : ''"/>
+
+          <!-- Method letter -->
+          <text [attr.x]="rn.x" [attr.y]="rn.y + 4"
+                text-anchor="middle"
+                font-family="monospace" font-size="9" font-weight="800"
+                [attr.fill]="rn.hovered ? rn.fg : rn.bg">{{ rn.method[0] }}</text>
+
+          <!-- Hover tooltip: method + path -->
+          @if (rn.hovered) {
+            <g>
+              <!-- Path tooltip above -->
+              <rect [attr.x]="rn.x - 88" [attr.y]="rn.y - 44"
+                    width="176" height="22" rx="11"
+                    fill="#061810" stroke="#1a4a2e" stroke-width="1"/>
+              <text [attr.x]="rn.x" [attr.y]="rn.y - 29"
+                    text-anchor="middle"
+                    font-family="monospace" font-size="8.5" font-weight="700"
+                    fill="#10b981">{{ rn.method }}</text>
+              <text [attr.x]="rn.x + 28" [attr.y]="rn.y - 29"
+                    font-family="monospace" font-size="8"
+                    fill="#6ee7b7">{{ rn.path.length > 22 ? rn.path.slice(0,21) + '…' : rn.path }}</text>
+
+              <!-- Title tooltip below -->
+              @if (rn.title) {
+                <rect [attr.x]="rn.x - 82" [attr.y]="rn.y + 22"
+                      width="164" height="18" rx="9"
+                      fill="#061810" stroke="#1a4a2e" stroke-width="1" opacity="0.95"/>
+                <text [attr.x]="rn.x" [attr.y]="rn.y + 34"
+                      text-anchor="middle"
+                      font-family="'Segoe UI', sans-serif" font-size="7.5"
+                      fill="#4ade80">{{ rn.title.slice(0, 26) }}</text>
+              }
+            </g>
+          }
+
+          <!-- "+N more" badge on last visible node when capped -->
+          @if (rn.isLast) {
+            <g>
+              <rect [attr.x]="rn.x + 16" [attr.y]="rn.y - 8"
+                    width="52" height="16" rx="8"
+                    fill="#1e3a2f" stroke="#4ade80" stroke-width="1"/>
+              <text [attr.x]="rn.x + 42" [attr.y]="rn.y + 4"
+                    text-anchor="middle"
+                    font-family="monospace" font-size="7.5" font-weight="700"
+                    fill="#4ade80">+{{ rn.extraCount }}</text>
+            </g>
+          }
+        </g>
+      }
+
+      <!-- ── Category nodes (hidden when any cat is expanded) ── -->
+      @for (cat of categoryNodes(); track cat.id) {
+        <g class="cat-graph-node"
+           [attr.opacity]="cat.hidden ? 0 : 1"
+           [style.pointer-events]="cat.hidden ? 'none' : 'auto'"
+           (mouseenter)="hoveredGraphCat.set(cat.id)"
+           (mouseleave)="hoveredGraphCat.set(null)"
+           (click)="toggleGraphCat(cat.id)"
+           style="cursor:pointer">
+
+          <!-- Halo -->
+          <circle [attr.cx]="cat.x" [attr.cy]="cat.y" r="38"
+                  [attr.fill]="cat.color"
+                  [attr.fill-opacity]="cat.hovered ? 0.14 : 0.07"
+                  [attr.stroke]="cat.color"
+                  [attr.stroke-width]="cat.hovered ? 2 : 1.2"
+                  [attr.stroke-opacity]="cat.hovered ? 0.9 : 0.45"
+                  [attr.filter]="cat.hovered ? 'url(#glow-sm)' : ''"/>
+
+          <!-- Category name -->
+          <text [attr.x]="cat.x" [attr.y]="cat.y - 5"
+                text-anchor="middle"
+                font-family="'Segoe UI', sans-serif"
+                [attr.font-size]="cat.id.length > 9 ? '9' : '10'"
+                font-weight="700"
+                [attr.fill]="cat.color">{{ cat.id }}</text>
+
+          <!-- Count badge -->
+          <text [attr.x]="cat.x" [attr.y]="cat.y + 10"
+                text-anchor="middle"
+                font-family="monospace" font-size="9"
+                fill="#4b7a63">{{ cat.count }}</text>
+        </g>
+      }
+
+      <!-- ── Expanded category focus node (left center) ── -->
+      @if (activeGraphCat(); as activeCat) {
+        <g class="expanded-cat-group">
+          <!-- Outer pulse rings -->
+          <circle [attr.cx]="expandedCatCenter.x" [attr.cy]="expandedCatCenter.y" r="92"
+                  [attr.stroke]="CAT_COLORS[activeCat] ?? '#64748b'"
+                  stroke-width="1" fill="none"
+                  class="exp-ring-outer"/>
+          <circle [attr.cx]="expandedCatCenter.x" [attr.cy]="expandedCatCenter.y" r="76"
+                  [attr.stroke]="CAT_COLORS[activeCat] ?? '#64748b'"
+                  stroke-width="1.5" fill="none"
+                  class="exp-ring-inner"/>
+          <!-- Core -->
+          <circle [attr.cx]="expandedCatCenter.x" [attr.cy]="expandedCatCenter.y" r="60"
+                  fill="#071510"
+                  [attr.stroke]="CAT_COLORS[activeCat] ?? '#64748b'"
+                  stroke-width="2.5"
+                  filter="url(#glow-sm)"/>
+          <circle [attr.cx]="expandedCatCenter.x" [attr.cy]="expandedCatCenter.y" r="52"
+                  [attr.fill]="CAT_COLORS[activeCat] ?? '#64748b'"
+                  fill-opacity="0.1"/>
+          <!-- Name -->
+          <text [attr.x]="expandedCatCenter.x" [attr.y]="expandedCatCenter.y - 7"
+                text-anchor="middle"
+                font-family="'Segoe UI', sans-serif"
+                [attr.font-size]="activeCat.length > 9 ? '11' : '14'"
+                font-weight="800"
+                [attr.fill]="CAT_COLORS[activeCat] ?? '#e2f8ef'">{{ activeCat }}</text>
+          <!-- Route count -->
+          <text [attr.x]="expandedCatCenter.x" [attr.y]="expandedCatCenter.y + 13"
+                text-anchor="middle"
+                font-family="monospace" font-size="10"
+                fill="#6ee7b7">{{ (activeGrouped()[activeCat] ?? []).length }} routes</text>
+        </g>
+      }
+
+      <!-- ── Central AXON node (animates right when cat is expanded) ── -->
+      <g class="axon-center-group"
+         [attr.transform]="'translate(' + axonCenter().x + ',' + axonCenter().y + ')'"
+         (click)="activeGraphCat.set(null)" style="cursor:pointer">
+        <!-- Outer glow rings -->
+        <circle cx="0" cy="0" r="68" fill="none" stroke="#059669" stroke-width="1"
+                opacity="0.2" class="center-ring-slow"/>
+        <circle cx="0" cy="0" r="55" fill="none" stroke="#10b981" stroke-width="1.5"
+                opacity="0.3" class="center-ring-fast"/>
+        <!-- Core -->
+        <circle cx="0" cy="0" r="44"
+                fill="#071510" stroke="#059669" stroke-width="2.5"
+                filter="url(#glow-green)"/>
+        <circle cx="0" cy="0" r="38" fill="#059669" fill-opacity="0.12"/>
+        <!-- Diamond network icon -->
+        <line x1="0" y1="-6" x2="0" y2="-20" stroke="#10b981" stroke-width="1.8" stroke-linecap="round"/>
+        <line x1="0" y1="6"  x2="0" y2="20"  stroke="#10b981" stroke-width="1.8" stroke-linecap="round"/>
+        <line x1="-6" y1="0" x2="-20" y2="0" stroke="#10b981" stroke-width="1.8" stroke-linecap="round"/>
+        <line x1="6"  y1="0" x2="20"  y2="0" stroke="#10b981" stroke-width="1.8" stroke-linecap="round"/>
+        <polygon points="0,-6 6,0 0,6 -6,0" fill="#059669"/>
+        <circle cx="0"   cy="-20" r="3.5" fill="#10b981"/>
+        <circle cx="0"   cy="20"  r="3.5" fill="#10b981"/>
+        <circle cx="-20" cy="0"   r="3.5" fill="#059669"/>
+        <circle cx="20"  cy="0"   r="3.5" fill="#059669"/>
+        <!-- Label / back hint when expanded -->
+        @if (!activeGraphCat()) {
+          <text x="0" y="36" text-anchor="middle"
+                font-family="'Segoe UI', sans-serif"
+                font-size="10" font-weight="800" letter-spacing="3"
+                fill="#10b981">AXON</text>
+        } @else {
+          <text x="0" y="62" text-anchor="middle"
+                font-family="'Segoe UI', sans-serif"
+                font-size="8.5" fill="#4b7a63">↩ חזור</text>
+          <text x="0" y="36" text-anchor="middle"
+                font-family="'Segoe UI', sans-serif"
+                font-size="10" font-weight="800" letter-spacing="3"
+                fill="#10b981">AXON</text>
+        }
+      </g>
+
+    </svg>
+
+    <!-- Graph legend (shown only in default view) -->
+    @if (!activeGraphCat()) {
+      <div class="graph-legend">
+        <span class="legend-hint">לחץ על קטגוריה לצפייה בשירותים</span>
+        <div class="legend-methods">
+          @for (m of methods; track m) {
+            <span class="legend-m" [style.background]="methodStyle(m).bg" [style.color]="methodStyle(m).color">
+              {{ m }}
+            </span>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── Floating routes panel (visible when category is expanded) ── -->
+    @if (activeGraphCat(); as activeCat) {
+      <div class="routes-float-panel">
+        <div class="rfp-header">
+          <div class="rfp-title-row">
+            <span class="rfp-cat-dot" [style.background]="CAT_COLORS[activeCat] ?? '#64748b'"></span>
+            <span class="rfp-title">{{ activeCat }}</span>
+            <span class="rfp-count">{{ (activeGrouped()[activeCat] ?? []).length }}</span>
+          </div>
+          <button class="rfp-close" (click)="activeGraphCat.set(null)" title="סגור">✕</button>
+        </div>
+        <div class="rfp-body">
+          @for (r of (activeGrouped()[activeCat] ?? []); track routeKey(r)) {
+            <div class="rfp-route"
+                 [class.rfp-hovered]="hoveredRoute() === routeKey(r)"
+                 (mouseenter)="hoveredRoute.set(routeKey(r))"
+                 (mouseleave)="hoveredRoute.set(null)">
+              <span class="rfp-method"
+                    [style.background]="methodStyle(getMethod(r)).bg"
+                    [style.color]="methodStyle(getMethod(r)).color">
+                {{ getMethod(r) }}
+              </span>
+              <span class="rfp-path">{{ getPath(r) }}</span>
+              @if (getTitle(r)) {
+                <span class="rfp-route-title">{{ getTitle(r) }}</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  } @else {
+  <div class="axon-body">
+
+    @if (loading()) {
+      <div class="axon-loading">
+        <kendo-loader type="infinite-spinner" size="medium" themeColor="primary" />
+        <span>טוען routes...</span>
+      </div>
+    } @else if (error()) {
+      <div class="axon-error">{{ error() }}</div>
+    } @else if (Object.keys(filteredGrouped()).length === 0) {
+      <div class="axon-empty">
+        <div class="empty-icon">⚡</div>
+        @if (viewMode() === 'project') {
+          <h3>אין routes עדיין</h3>
+          <p>הוסף route ידנית או ייבא את routes הפלטפורמה</p>
+          <button class="btn-import" (click)="importPlatform()">
+            <mat-icon>download</mat-icon> Sync Platform Routes
+          </button>
+        } @else {
+          <h3>לא נמצאו תוצאות</h3>
+          <p>שנה את הפילטר או נקה את החיפוש</p>
+        }
+      </div>
+    } @else {
+
+      @for (entry of (filteredGrouped() | keyvalue); track entry.key) {
+        <!-- Category Section -->
+        <div class="cat-section">
+          <div class="cat-header">
+            <div class="cat-dot"></div>
+            <h3 class="cat-name">{{ entry.key }}</h3>
+            <span class="cat-count">{{ entry.value.length }}</span>
+            <div class="cat-line"></div>
+          </div>
+
+          <div class="routes-list">
+            @for (r of entry.value; track routeKey(r)) {
+
+              <!-- Route Row -->
+              <div class="route-card" [class.expanded]="isExpanded(r)"
+                   (click)="toggleExpand(r)">
+
+                <!-- ── Collapsed header ── -->
+                <div class="route-row">
+                  <span class="method-badge"
+                        [style.background]="methodStyle(getMethod(r)).bg"
+                        [style.color]="methodStyle(getMethod(r)).color">
+                    {{ getMethod(r) }}
+                  </span>
+
+                  <code class="route-path">{{ getPath(r) }}</code>
+
+                  <span class="route-title">{{ getTitle(r) }}</span>
+
+                  <div class="route-meta">
+                    @if (isAuth(r)) {
+                      <span class="badge-auth" title="מוגן — נדרש JWT">
+                        <mat-icon>lock</mat-icon>
+                      </span>
+                    } @else {
+                      <span class="badge-pub" title="ציבורי — ללא auth">
+                        <mat-icon>public</mat-icon>
+                      </span>
+                    }
+                    @if (r.SpName) {
+                      <span class="badge-sp" title="Stored Procedure: {{ r.SpName }}">
+                        <mat-icon>data_object</mat-icon> SP
+                      </span>
+                    }
+                    @for (tag of (r.Tags ?? []); track tag) {
+                      <span class="route-tag">{{ tag }}</span>
+                    }
+                  </div>
+
+                  <div class="route-actions" (click)="$event.stopPropagation()">
+                    <button class="btn-icon btn-test" (click)="toggleTest(r)" title="בדוק">
+                      <mat-icon>play_arrow</mat-icon>
+                    </button>
+                    @if (viewMode() === 'project' && r.RouteID) {
+                      <button class="btn-icon" (click)="openEdit(r, $event)" title="ערוך">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      <button class="btn-icon btn-del" (click)="deleteRoute(r, $event)" title="מחק">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    }
+                  </div>
+
+                  <mat-icon class="expand-arrow" [class.open]="isExpanded(r)">
+                    expand_more
+                  </mat-icon>
+                </div>
+
+                <!-- ── Expanded detail ── -->
+                @if (isExpanded(r)) {
+                  <div class="route-detail" (click)="$event.stopPropagation()">
+
+                    <div class="detail-grid">
+
+                      <!-- Description -->
+                      @if (getDesc(r)) {
+                        <div class="detail-block full-width">
+                          <div class="detail-label">תיאור</div>
+                          <p class="detail-desc">{{ getDesc(r) }}</p>
+                        </div>
+                      }
+
+                      <!-- Request Params (only for DB routes) -->
+                      @if (r.ReqSchema) {
+                        <div class="detail-block">
+                          <div class="detail-label">
+                            <mat-icon>input</mat-icon> פרמטרי קלט (Request)
+                          </div>
+                          @if (r.ReqSchema.length) {
+                            <table class="param-table">
+                              <thead>
+                                <tr><th>שם</th><th>סוג</th><th>חובה</th><th>תיאור</th><th>דוגמה</th></tr>
+                              </thead>
+                              <tbody>
+                                @for (p of r.ReqSchema; track p.name) {
+                                  <tr>
+                                    <td><code class="param-name">{{ p.name }}</code></td>
+                                    <td><span class="type-badge">{{ p.type }}</span></td>
+                                    <td>
+                                      @if (p.required) { <span class="req-yes">✓</span> }
+                                      @else { <span class="req-no">—</span> }
+                                    </td>
+                                    <td class="param-desc">{{ p.description }}</td>
+                                    <td><code class="param-example">{{ p.example }}</code></td>
+                                  </tr>
+                                }
+                              </tbody>
+                            </table>
+                          } @else {
+                            <p class="no-params">אין פרמטרים מוגדרים</p>
+                          }
+                        </div>
+                      }
+
+                      <!-- Path params (auto-detected from path) -->
+                      @if (pathParams(getPath(r)).length) {
+                        <div class="detail-block">
+                          <div class="detail-label"><mat-icon>route</mat-icon> Path Params</div>
+                          <div class="path-params-badges">
+                            @for (pp of pathParams(getPath(r)); track pp) {
+                              <code class="pp-badge">:{{ pp }}</code>
+                            }
+                          </div>
+                        </div>
+                      }
+
+                      <!-- Response Schema -->
+                      @if (r.ResSchema) {
+                        <div class="detail-block">
+                          <div class="detail-label"><mat-icon>output</mat-icon> מבנה תגובה (Response)</div>
+                          <pre class="res-schema">{{ formatBody(r.ResSchema) }}</pre>
+                        </div>
+                      }
+
+                      <!-- SP + Auth info -->
+                      <div class="detail-block info-block">
+                        @if (r.SpName) {
+                          <div class="info-row">
+                            <mat-icon>data_object</mat-icon>
+                            <span class="info-label">Stored Procedure</span>
+                            <code class="info-val sp-name">{{ r.SpName }}</code>
+                          </div>
+                        }
+                        <div class="info-row">
+                          <mat-icon>{{ isAuth(r) ? 'lock' : 'lock_open' }}</mat-icon>
+                          <span class="info-label">אימות</span>
+                          <span class="info-val" [class.auth-yes]="isAuth(r)" [class.auth-no]="!isAuth(r)">
+                            {{ isAuth(r) ? 'JWT נדרש' : 'ציבורי' }}
+                          </span>
+                        </div>
+                        @if (r.RouteToken) {
+                          <div class="info-row">
+                            <mat-icon>tag</mat-icon>
+                            <span class="info-label">Token</span>
+                            <code class="info-val token-mini">{{ r.RouteToken }}</code>
+                          </div>
+                        }
+                        <div class="info-row">
+                          <mat-icon>link</mat-icon>
+                          <span class="info-label">Full Path</span>
+                          <code class="info-val full-path">{{ getPath(r) }}</code>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- ── TEST Panel ── -->
+                    @if (isTesting(r)) {
+                      <div class="test-panel">
+                        <div class="test-panel-title">
+                          <mat-icon>play_circle</mat-icon> בדיקת Route חי
+                          <span class="method-badge-sm" [style.background]="methodStyle(getMethod(r)).bg"
+                                [style.color]="methodStyle(getMethod(r)).color">{{ getMethod(r) }}</span>
+                          <code class="test-path-preview">{{ getPath(r) }}</code>
+                        </div>
+
+                        <div class="test-controls">
+                          <!-- Base URL -->
+                          <div class="test-row">
+                            <label>Base URL</label>
+                            <input class="test-input" type="text"
+                                   [value]="testBaseUrl()"
+                                   (input)="testBaseUrl.set($any($event.target).value)"
+                                   dir="ltr" placeholder="http://localhost:3000" />
+                          </div>
+
+                          <!-- Path params -->
+                          @if (pathParams(getPath(r)).length) {
+                            <div class="test-row">
+                              <label>Path Params</label>
+                              <div class="path-params-grid">
+                                @for (param of pathParams(getPath(r)); track param) {
+                                  <div class="path-param-row">
+                                    <code class="pp-name">:{{ param }}</code>
+                                    <input class="test-input pp-val" type="text"
+                                           [value]="testPathParams()[param] ?? ''"
+                                           (input)="setPathParam(param, $any($event.target).value)"
+                                           [placeholder]="param" dir="ltr" />
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          }
+
+                          <!-- Headers -->
+                          <div class="test-row">
+                            <label>
+                              Headers
+                              <button class="btn-add-header" type="button" (click)="addHeader()">+</button>
+                            </label>
+                            <div class="headers-list">
+                              @for (h of testHeaders(); track $index) {
+                                <div class="header-row">
+                                  <input class="test-input hdr-key" type="text" placeholder="key"
+                                         [value]="h.key"
+                                         (input)="setHeaderVal($index, 'key', $any($event.target).value)" dir="ltr"/>
+                                  <span class="hdr-colon">:</span>
+                                  <input class="test-input hdr-val" type="text" placeholder="value"
+                                         [value]="h.value"
+                                         (input)="setHeaderVal($index, 'value', $any($event.target).value)" dir="ltr"/>
+                                  <button class="btn-rm-hdr" (click)="removeHeader($index)">✕</button>
+                                </div>
+                              }
+                            </div>
+                          </div>
+
+                          <!-- Body — only for POST/PUT/PATCH -->
+                          @if (getMethod(r) === 'POST' || getMethod(r) === 'PUT' || getMethod(r) === 'PATCH') {
+                            <div class="test-row">
+                              <label>Request Body (JSON)</label>
+                              <textarea class="test-textarea" rows="5" dir="ltr"
+                                        [value]="testBody()"
+                                        (input)="testBody.set($any($event.target).value)"
+                                        placeholder='{ "key": "value" }'></textarea>
+                            </div>
+                          }
+
+                          <button class="btn-run-test" (click)="runTest(r)" [disabled]="testRunning()">
+                            @if (testRunning()) {
+                              <kendo-loader type="pulsing" size="small" themeColor="primary" />
+                            } @else {
+                              <mat-icon>send</mat-icon>
+                            }
+                            הפעל בדיקה
+                          </button>
+                        </div>
+
+                        <!-- Test Result -->
+                        @if (testResult(); as res) {
+                          <div class="test-result"
+                               [class.res-ok]="res.status >= 200 && res.status < 300"
+                               [class.res-err]="res.status >= 400 || res.status === 0">
+                            <div class="res-header">
+                              @if (res.error) {
+                                <span class="res-status status-err">ERR</span>
+                                <span class="res-msg">{{ res.error }}</span>
+                              } @else {
+                                <span class="res-status" [class]="statusClass(res.status)">{{ res.status }}</span>
+                                <span class="res-duration">{{ res.duration }}ms</span>
+                              }
+                            </div>
+                            @if (res.body !== null && res.body !== undefined) {
+                              <pre class="res-body">{{ formatBody(res.body) }}</pre>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+
+                  </div>
+                }
+
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+    }
+  </div>
+  } <!-- end @else list -->
+
+</div>
+
+<!-- ── Add / Edit Dialog (project mode only) ── -->
+@if (dialogOpen()) {
+  <kendo-dialog
+    [title]="editRoute() ? 'עריכת Route' : 'Route חדש'"
+    [width]="700" [minWidth]="500"
+    (close)="closeDialog()">
+
+    <form [formGroup]="form" class="route-form">
+
+      @if (dialogError()) {
+        <div class="form-error">{{ dialogError() }}</div>
+      }
+
+      <!-- Row 1: Method + Path -->
+      <div class="form-row two-col">
+        <div class="form-group">
+          <label>Method</label>
+          <div class="method-seg">
+            @for (m of methods; track m) {
+              <button type="button" class="method-btn"
+                      [style.background]="form.value.method === m ? methodStyle(m).bg : ''"
+                      [style.color]="form.value.method === m ? methodStyle(m).color : ''"
+                      [class.active]="form.value.method === m"
+                      (click)="form.get('method')?.setValue(m)">{{ m }}</button>
+            }
+          </div>
+        </div>
+        <div class="form-group path-group">
+          <label>Path <span class="req">*</span></label>
+          <input class="form-input" formControlName="path" placeholder="/api/resource/:id" dir="ltr" />
+        </div>
+      </div>
+
+      <!-- Row 2: Category + Title -->
+      <div class="form-row two-col">
+        <div class="form-group">
+          <label>קטגוריה</label>
+          <input class="form-input" formControlName="category" placeholder="לדוגמה: Users, Auth, Products" />
+        </div>
+        <div class="form-group">
+          <label>כותרת</label>
+          <input class="form-input" formControlName="title" placeholder="תיאור קצר בעברית" />
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label>תיאור</label>
+        <textarea class="form-input" formControlName="description" rows="2" placeholder="מה עושה ה-route הזה?"></textarea>
+      </div>
+
+      <!-- SP + Auth -->
+      <div class="form-row two-col">
+        <div class="form-group">
+          <label>Stored Procedure</label>
+          <input class="form-input" formControlName="spName" placeholder="dbo.sp_EntitySave" dir="ltr" />
+        </div>
+        <div class="form-group">
+          <label>אימות</label>
+          <div class="seg-ctrl">
+            <button type="button" class="seg-btn" [class.seg-on]="form.get('authRequired')?.value"
+                    (click)="form.get('authRequired')?.setValue(true)">🔒 מוגן</button>
+            <button type="button" class="seg-btn" [class.seg-off]="!form.get('authRequired')?.value"
+                    (click)="form.get('authRequired')?.setValue(false)">🌐 ציבורי</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tags -->
+      <div class="form-group">
+        <label>תגיות (מופרדות בפסיק)</label>
+        <input class="form-input" formControlName="tags" placeholder="auth, public, admin" dir="ltr" />
+      </div>
+
+      <!-- Request Params -->
+      <div class="params-section">
+        <div class="params-header">
+          <mat-icon>input</mat-icon>
+          <span>פרמטרי קלט (Request)</span>
+          <button type="button" class="btn-add-param" (click)="addParam()">
+            <mat-icon>add</mat-icon> הוסף פרמטר
+          </button>
+        </div>
+
+        @if (reqParams.length) {
+          <div class="params-table-wrap" formArrayName="reqParams">
+            <table class="params-edit-table">
+              <thead>
+                <tr><th>שם</th><th>סוג</th><th>חובה</th><th>תיאור</th><th>דוגמה</th><th></th></tr>
+              </thead>
+              <tbody>
+                @for (p of reqParams.controls; track $index) {
+                  <tr [formGroupName]="$index">
+                    <td><input class="form-input-sm" formControlName="name" placeholder="paramName" dir="ltr"/></td>
+                    <td>
+                      <select class="form-input-sm" formControlName="type">
+                        @for (t of paramTypes; track t) {
+                          <option [value]="t">{{ t }}</option>
+                        }
+                      </select>
+                    </td>
+                    <td class="td-center">
+                      <input type="checkbox" formControlName="required" />
+                    </td>
+                    <td><input class="form-input-sm" formControlName="description" placeholder="תיאור"/></td>
+                    <td><input class="form-input-sm" formControlName="example" placeholder="דוגמה" dir="ltr"/></td>
+                    <td>
+                      <button type="button" class="btn-rm-param" (click)="removeParam($index)">✕</button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      <!-- Response Schema -->
+      <div class="form-group">
+        <label><mat-icon>output</mat-icon> מבנה תגובה (JSON)</label>
+        <textarea class="form-input res-schema-input" formControlName="resSchema"
+                  rows="4" dir="ltr"
+                  placeholder='{ "success": true, "data": { "id": 1, "name": "..." } }'></textarea>
+      </div>
+
+    </form>
+
+    <kendo-dialog-actions>
+      <div class="dialog-footer">
+        <button class="btn-save" (click)="save()" [disabled]="saving()">
+          @if (saving()) { <kendo-loader type="pulsing" size="small" /> } @else { ✓ }
+          שמור
+        </button>
+        <button class="btn-cancel" (click)="closeDialog()">ביטול</button>
+      </div>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}

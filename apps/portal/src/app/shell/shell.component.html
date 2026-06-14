@@ -14,8 +14,19 @@
       }
     </div>
 
+    @if (auth.user()?.logoUrl && sidebarOpen) {
+      <div class="sidebar-org-logo">
+        <img [src]="auth.user()!.logoUrl" [alt]="auth.user()!.companyName" class="org-logo-img" />
+      </div>
+    } @else if (!auth.user()?.logoUrl && auth.user()?.companyName && sidebarOpen && !isPlatformAdmin) {
+      <div class="sidebar-org-logo">
+        <div class="org-logo-initials">{{ auth.user()!.companyName.charAt(0) }}</div>
+        <span class="org-logo-name">{{ auth.user()!.companyName }}</span>
+      </div>
+    }
+
     <nav class="sidebar-nav">
-      @for (group of navGroups; track group.label) {
+      @for (group of visibleGroups; track group.label) {
         @if (sidebarOpen) {
           <div class="nav-group-label">{{ group.label }}</div>
         }

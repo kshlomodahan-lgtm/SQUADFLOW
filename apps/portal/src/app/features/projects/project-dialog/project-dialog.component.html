@@ -61,6 +61,24 @@
       </div>
     </div>
 
+    <div class="form-row">
+      <label>
+        <mat-icon style="font-size:15px;width:15px;height:15px;vertical-align:middle;">code</mat-icon>
+        GitHub URL
+      </label>
+      <input kendoTextBox formControlName="githubUrl"
+             placeholder="https://github.com/org/repo" class="dir-ltr" />
+    </div>
+
+    <div class="form-row">
+      <label>
+        <mat-icon style="font-size:15px;width:15px;height:15px;vertical-align:middle;">play_circle</mat-icon>
+        Dev URL
+      </label>
+      <input kendoTextBox formControlName="devUrl"
+             placeholder="http://localhost:4201" class="dir-ltr" />
+    </div>
+
     <div class="form-row align-top">
       <label>תיאור</label>
       <kendo-textarea formControlName="description"

@@ -10,7 +10,6 @@
 
       @if (project(); as p) {
         <div class="ws-project-info">
-          <div class="ws-badge">FLOWSPACE</div>
           <h1 class="ws-project-name">{{ p.ProjectName }}</h1>
           <div class="ws-meta">
             <span class="ws-code">{{ p.ProjectCode }}</span>
@@ -20,11 +19,19 @@
             }
             <span class="ws-sep">·</span>
             <span class="ws-status">{{ statusLabel(p.Status) }}</span>
+            @if (p.GithubUrl) {
+              <span class="ws-sep">·</span>
+              <a class="ws-github" [href]="p.GithubUrl" target="_blank" rel="noopener">
+                <mat-icon>code</mat-icon> GitHub
+              </a>
+            }
           </div>
         </div>
+        <div class="ws-divider"></div>
       }
 
-      <div class="ws-header-end">
+      <div class="ws-logo-wrap">
+        <img src="/assets/flowspace-logo.svg" alt="FlowSpace" class="ws-logo" />
         <div class="ws-pulse">
           <span class="pulse-dot"></span>
           <span class="pulse-label">סביבת פיתוח AI</span>

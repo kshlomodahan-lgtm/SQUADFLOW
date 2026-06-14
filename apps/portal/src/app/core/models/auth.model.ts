@@ -12,6 +12,7 @@ export interface LoginUser {
   fullName:    string;
   roleName:    string;
   companyName: string;
+  logoUrl:     string;
 }
 
 export interface LoginResponse {
