@@ -55,9 +55,13 @@ app.use('/api/reference',       require('./routes/reference'));
 app.use('/api/exchange-rates',  require('./routes/exchange-rates'));
 app.use('/api/ai',             require('./routes/ai'));
 app.use('/api/connectors',     require('./routes/connectors'));
+app.use('/api/external',         require('./routes/external'));
+app.use('/api/connector-access', require('./routes/connector-access'));
 app.use('/api/projects',       require('./routes/projects'));
 app.use('/api/cortex',         require('./routes/cortex'));
 app.use('/api/nexus',          require('./routes/nexus'));
+app.use('/api/axon',           require('./routes/axon'));
+app.use('/api/studio',         require('./routes/studio'));
 app.use('/api/arachim/orders', require('./routes/arachim'));
 
 // 404
