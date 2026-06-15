@@ -8227,7 +8227,7 @@ var routes = [
       },
       {
         path: "ws-connectors/:projectId",
-        loadComponent: () => import("./chunk-ENB4UIUR.js").then((m7) => m7.WsConnectorsComponent)
+        loadComponent: () => import("./chunk-H42RAYNH.js").then((m7) => m7.WsConnectorsComponent)
       },
       {
         path: "studio/:projectId",
